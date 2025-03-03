@@ -1,0 +1,82 @@
+/* Place your CSS styles in this file */
+
+h1 {
+    text-align: center;
+    font-family: "Source Sans Pro", sans-serif;
+    font-weight: normal;
+}
+
+
+/* เพิ่มการรองรับหน้าจอเล็กๆ (เช่น มือถือ) */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 24px; /* ลดขนาดตัวอักษรของหัวข้อ */
+        margin-bottom: 10px;
+    }
+
+    button {
+        padding: 12px 20px; /* ปรับขนาดปุ่มให้เล็กลง */
+        font-size: 16px;
+    }
+
+    .table-container {
+        width: 100%; /* ให้ตารางยืดเต็มหน้าจอ */
+        margin: 10px 0;
+    }
+
+    table {
+        font-size: 14px; /* ปรับขนาดตัวอักษรในตารางให้เหมาะสมกับโทรศัพท์ */
+        width: 100%;
+    }
+
+    td, th {
+        padding: 10px;
+    }
+
+    .image-container img {
+        width: 100px; /* ปรับขนาดของรูปให้พอดี */
+    }
+
+    .remove-table {
+        font-size: 14px; /* ลดขนาดปุ่มลบ */
+    }
+
+    .table-title-input {
+        width: 100%; /* ให้ช่องกรอกชื่อค่ายเต็มหน้าจอ */
+    }
+
+    .instructions, .prohibited {
+        font-size: 14px; /* ลดขนาดฟอนต์ในช่องคำแนะนำ */
+        width: 100%; /* ให้คำแนะนำและข้อห้ามแสดงเต็มหน้าจอ */
+        margin-top: 10px;
+    }
+
+    .wrapper {
+        flex-direction: column; /* ทำให้คำแนะนำและข้อห้ามแสดงในแนวตั้ง */
+        justify-content: flex-start;
+    }
+}
+
+/* ปรับขนาดช่องกรอกข้อมูล */
+input[type="text"] {
+    width: 100%; /* ให้ช่องกรอกข้อมูลเต็มความกว้าง */
+    padding: 12px; /* เพิ่มพื้นที่ภายในช่องกรอกข้อมูล */
+    font-size: 16px; /* ปรับขนาดฟอนต์ให้เหมาะสม */
+    box-sizing: border-box; /* รวม padding กับ width ให้พอดี */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f4f4f4; /* ปรับสีพื้นหลัง */
+    margin-bottom: 10px; /* เพิ่มระยะห่างระหว่างช่องกรอก */
+}
+
+/* ปรับขนาดฟอร์มและช่องกรอกข้อมูลให้เหมาะสมในมือถือ */
+@media (max-width: 768px) {
+    input[type="text"] {
+        padding: 10px; /* ลดขนาด padding ในมือถือ */
+        font-size: 14px; /* ลดขนาดฟอนต์ */
+    }
+}

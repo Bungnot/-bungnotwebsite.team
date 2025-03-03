@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หลังบ้านคิดยอดแอดมิน</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- เพิ่มฟอนต์จาก Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* ใส่สไตล์ต่างๆ ที่ไม่ต้องแก้ไข */
+        body {
+            font-family: 'Sarabun', sans-serif; /* เปลี่ยนฟอนต์ให้เป็น Sarabun */
+            background-color: #E3F2FD;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            font-family: 'Sarabun', sans-serif;
+            font-weight: bold;
+            color: rgb(255, 0, 0);
+            padding: 10px;
+            border-radius: 10px;
+            background: linear-gradient(to right, rgb(255, 0, 0), rgb(0, 255, 0), rgb(0, 0, 255));
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center; /* ทำให้ปุ่มอยู่กลาง */
+            margin-top: 70px; /* ขยับลงมาให้มากขึ้น */
+        }
+
+        button {
+            background-color: #00796B;
+            color: white;
+            border: none;
+            padding: 15px 30px; /* เพิ่มขนาดปุ่ม */
+            font-size: 20px; /* เพิ่มขนาดตัวอักษร */
+            cursor: pointer;
+            border-radius: 10px; /* ทำให้กรอบปุ่มนุ่มนวล */
+            transition: background-color 0.3s ease, transform 0.3s ease; /* เพิ่ม transition สำหรับสีและการขยาย */
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #004D40;
+            transform: scale(1.1); /* เพิ่มขนาดปุ่มเมื่อ hover */
+        }
+
+        .table-container {
+            position: relative;
+            margin-bottom: 20px;
+            margin-top: 30px; /* เพิ่ม margin-top เพื่อขยับลงมา */
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th:nth-child(1) { background-color: #4CAF50; color: white; }
+        th:nth-child(2) { background-color: #FFA500; color: white; }
+        th:nth-child(3) { background-color: #FF0000; color: white; }
+        th:nth-child(4) { background-color: #8A2BE2; color: white; }
+        tbody tr:nth-child(odd) { background-color: #F1F8E9; }
+        tbody tr:nth-child(even) { background-color: #FFFFFF; }
+
+        table input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .credit {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 14px;
+            color: #888;
+            font-weight: 300;
+        }
+
+        .wrapper {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .instructions, .prohibited {
+            font-size: 16px;
+            font-weight: 300;
+            color: #555;
+            width: 48%; /* ให้กรอบแสดงข้างๆ กัน */
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            width: 150px;
+            height: auto;
+            margin: 10px;
+        }
+
+        .remove-table {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .remove-table:hover {
+            background-color: darkred;
+        }
+
+        .table-title-input {
+            width: 300px;
+            padding: 12px;
+            font-size: 16px;
+            text-align: center;
+            border: 2px solid #00796B;
+            border-radius: 10px;
+            background-color: #F0F4C3;
+        }
+
+        .add-row-button {
+            padding: 12px 20px;
+            background-color: #00796B;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-row-button:hover {
+            background-color: #004D40;
+        }
+    </style>
+</head>
+<body>
+    <div class="credit">Bungnot Website</div>
+
+    <h2>หลังบ้านคิดยอดแอดมิน</h2>
+    <div class="button-container">
+        <button onclick="addTable()">เพิ่มบั้งใหม่</button>
+        <button onclick="showHistory()">ดูประวัติการคิดยอด</button>
+    </div>
+
+    <div class="image-container">
+        <img src="https://img2.pic.in.th/pic/4a876b4a-5a39-446b-a621-7c7e2fe7b5e8.webp" alt="รูปที่ 1">
+        <img src="https://img2.pic.in.th/pic/c4e14b58-bf1c-41e4-b0e8-94224f812d1c.webp" alt="c4e14b58 bf1c 41e4 b0e8 94224f812d1c" border="0">
+    </div>
+
+    <div class="wrapper">
+        <div class="instructions">
+            วิธีการคิดยอดง่ายๆ ตามนี้:<br><br>
+            - ให้เอาชื่อคนไล่ ไว้ข้างหน้าจะดูง่ายกว่า<br>
+            - ราคาถ้าคนเล่น 280/300 ให้เฮาใส่เป็น 80/00 แล้วใส่ ราคาที่เล่น 500<br>
+            - เว็บจะคำนวนกำไรให้เอง ตอนที่กด X ดูได้ใน ประวัติการลบตาราง
+        </div>
+        
+        <div class="prohibited">
+            วิธีการใช้งาน:<br><br>
+            - ห้ามใส่ตัวเลข 3 หลักที่อื่น นอกจากช่อง ราคาบั้งไฟ ใส่ได้<br>
+            - ถ้าคนยกเลิกแผลให้ลบแถวไปได้เลย<br>
+            - เวลาจะลบแถว ให้พิมพ์อะไรก็ได้ลงในช่องก่อน
+        </div>
+    </div>
+
+    <div id="tables-container"></div>
+
+    <script>
+        let historyData = [];
+
+        function addRow(table) {
+            const tbody = table.querySelector("tbody");
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td><input type="text" placeholder="ใส่ชื่อ"></td>
+                <td><input type="text" placeholder=" "></td>
+                <td><input type="text" placeholder="ใส่ชื่อ"></td>
+                <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
+            `;
+            tbody.appendChild(newRow);
+        }
+
+        function addTable() {
+            const container = document.getElementById("tables-container");
+            const newTable = document.createElement("div");
+            newTable.classList.add("table-container");
+            newTable.innerHTML = `
+                <button class="remove-table" onclick="removeTable(this)">X</button>
+                <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย">
+                <table>
+                    <thead>
+                        <tr>
+                            <th> รายชื่อไลน์คนไล่</th>
+                            <th>ราคาบั้งไฟ</th>
+                            <th> รายชื่อไลน์คนยั้ง</th>
+                            <th>แผลยกเลิก X ได้เลย</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="text" placeholder="ใส่ชื่อ"></td>
+                            <td><input type="text" placeholder=" "></td>
+                            <td><input type="text" placeholder="ใส่ชื่อ"></td>
+                            <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
+            `;
+            container.appendChild(newTable);
+        }
+
+        function removeTable(button) {
+            const tableContainer = button.parentElement;
+            const inputs = tableContainer.querySelectorAll('input');
+
+            let hasInput = Array.from(inputs).some(input => input.value.trim() !== "");
+
+            if (!hasInput) {
+                alert("ต้องกรอกข้อมูลในช่องก่อนถึงจะสามารถ X ได้");
+                return;
+            }
+
+            const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
+            let totalProfit = 0;
+
+            priceInputs.forEach(input => {
+                const priceStr = input.value.match(/\d{3,}/g);
+                if (priceStr) {
+                    const price = parseFloat(priceStr[0]);
+                    const profit = price * 0.10;
+                    totalProfit += profit;
+                }
+            });
+
+            const confirmDelete = confirm(`คุณต้องการลบตารางนี้จริงหรือ? กำไรที่คำนวณได้คือ: ฿${totalProfit.toFixed(2)}`);
+            if (confirmDelete) {
+                html2canvas(tableContainer).then(canvas => {
+                    const imgData = canvas.toDataURL("image/png");
+                    historyData.push({ imgData, profit: totalProfit });
+                    alert("ตารางถูกลบแล้ว! คุณสามารถดูประวัติได้");
+                });
+                tableContainer.remove();
+            }
+        }
+
+        function removeRow(button) {
+            const row = button.parentElement.parentElement;
+            const inputs = row.querySelectorAll('input');
+
+            let hasInput = Array.from(inputs).some(input => input.value.trim() !== "");
+
+            if (!hasInput) {
+                alert("ต้องกรอกข้อมูลในช่องก่อนถึงจะสามารถ X ได้");
+                return;
+            }
+
+            row.remove();
+        }
+
+        function showHistory() {
+            if (historyData.length === 0) {
+                alert("ยังไม่มีประวัติการลบตาราง");
+                return;
+            }
+            let newWindow = window.open("", "History", "width=800,height=600");
+            newWindow.document.write("<h2>ประวัติการลบตาราง</h2>");
+            historyData.forEach(data => {
+                newWindow.document.write(`<img src='${data.imgData}' style='max-width:100%; margin-bottom:10px;'>`);
+                newWindow.document.write(`<p>กำไรที่คำนวณได้: ฿${data.profit.toFixed(2)}</p>`);
+            });
+        }
+    </script>
+</body>
+</html>
+    
