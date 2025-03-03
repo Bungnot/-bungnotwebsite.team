@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ</title>
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #E3F2FD;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #00796B;
+        }
+        button {
+            background-color: #00796B;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #004D40;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>เข้าสู่ระบบ</h2>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="ชื่อผู้ใช้" required><br>
+        <input type="password" id="password" placeholder="รหัสผ่าน" required><br>
+        <button type="submit">เข้าสู่ระบบ</button>
+    </form>
+
+    <script>
+        // ตรวจสอบการล็อกอิน
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const validUsername = "admin";
+            const validPassword = "1234";
+
+            if (username === validUsername && password === validPassword) {
+                // ถ้าชื่อผู้ใช้และรหัสผ่านถูกต้อง
+                localStorage.setItem('loggedIn', 'true');
+                window.location.href = "main.html";  // เปลี่ยนไปยังหน้าเว็บหลัก
+            } else {
+                alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+            }
+        });
+    </script>
+</body>
+</html>
