@@ -80,3 +80,55 @@ input[type="text"] {
         font-size: 14px; /* ลดขนาดฟอนต์ */
     }
 }
+
+
+    .list-update {
+        width: 80%;
+        max-width: 400px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        margin: 20px auto;
+        text-align: left;
+        font-family: 'Sarabun', sans-serif;
+        position: relative;
+    }
+
+    .list-update h3 {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        background: linear-gradient(45deg, #FF5722, #FFC107);
+        -webkit-background-clip: text;
+        color: transparent;
+        margin-bottom: 15px;
+    }
+
+    .list-update ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .list-update li {
+        font-size: 18px;
+        padding: 10px;
+        margin: 5px 0;
+        background: #E3F2FD;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .list-update li:hover {
+        background: #BBDEFB;
+        transform: translateX(5px);
+    }
+
+    .list-update li::before {
+        content: "✅";
+        margin-right: 10px;
+        font-size: 20px;
+    }
