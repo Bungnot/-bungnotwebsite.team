@@ -319,37 +319,6 @@
         }
 
 
-            // ป้องกันคลิกขวา
-            document.addEventListener("contextmenu", function(e) {
-                e.preventDefault();
-            });
-        
-            // ป้องกัน F12, Ctrl+Shift+I, Ctrl+U
-            document.onkeydown = function(e) {
-                if (
-                    e.key === "F12" ||
-                    (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) ||
-                    (e.ctrlKey && e.key === "U")
-                ) {
-                    return false;
-                }
-            };
-        
-            // ตรวจจับการเปิด DevTools (แบบเบื้องต้น)
-            let devtools = { open: false };
-            const threshold = 160;
-            setInterval(function () {
-                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-                if (widthThreshold || heightThreshold) {
-                    alert("ห้ามเปิดเครื่องมือนักพัฒนา!");
-                    window.location.href = "about:blank"; // หรือ redirect ออก
-                }
-            }, 1000);
-
-
-
-
         
     </script>
 </body>
