@@ -319,6 +319,13 @@
         }
 
 
+
+          document.addEventListener("keydown", function (e) {
+            if (e.ctrlKey && e.key.toLowerCase() === "u") {
+              e.preventDefault();
+              alert("ไม่อนุญาตให้ดูซอร์สโค้ดหน้านี้");
+            }
+          });
         
     </script>
 </body>
