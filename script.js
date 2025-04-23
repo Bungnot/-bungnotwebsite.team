@@ -6,9 +6,9 @@ function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td><input type="text" placeholder="ใส่ชื่อ"></td>
-        <td><input type="text" placeholder="ใส่ราคาเล่นกัน"></td>
-        <td><input type="text" placeholder="ใส่ชื่อ"></td>
+        <td><input type="text" placeholder=" "></td>
+        <td><input type="text" placeholder=" "></td>
+        <td><input type="text" placeholder=" "></td>
         <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
     `;
     tbody.appendChild(newRow);
