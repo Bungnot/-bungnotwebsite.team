@@ -55,3 +55,32 @@ app.post('/send-line', async (req, res) => {
 app.listen(port, () => {
     console.log(`✅ Backend รอรับอยู่ที่ http://localhost:${port}`);
 });
+
+
+
+
+app.post('/webhook', (req, res) => {
+    const events = req.body.events;
+    if (events && events.length > 0) {
+        const userId = events[0].source.userId;
+        console.log("🔔 User ID:", userId);
+
+        // ตอบกลับ (optional)
+        fetch('https://api.line.me/v2/bot/message/reply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}`
+            },
+            body: JSON.stringify({
+                replyToken: events[0].replyToken,
+                messages: [{ type: 'text', text: '📌 บันทึก User ID แล้ว!' }]
+            })
+        });
+
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(200);
+    }
+});
+
