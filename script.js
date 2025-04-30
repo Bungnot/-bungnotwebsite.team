@@ -131,44 +131,6 @@ document.addEventListener("keydown", function (e) {
 
 
 
-<script>
-function sendMessage() {
-    const lineName = document.getElementById("lineName").value.trim();
-    const message = document.getElementById("messageText").value.trim();
-
-    if (!lineName || !message) {
-        alert("กรุณากรอกชื่อและข้อความให้ครบ");
-        return;
-    }
-
-    fetch("http://localhost:3000/send-line", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ lineName, message })
-    })
-    .then(res => {
-        if (res.ok) {
-            alert("✅ ส่งข้อความสำเร็จ");
-        } else {
-            return res.json().then(data => {
-                throw new Error(data.error || "เกิดข้อผิดพลาด");
-            });
-        }
-    })
-    .catch(err => {
-        alert("❌ ส่งไม่สำเร็จ: " + err.message);
-    });
-}
-</script>
-
-
-
-
-
-
-
 
 
 
