@@ -1,6 +1,8 @@
-// script.js
-
 let historyData = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadData(); // โหลดข้อมูลเมื่อหน้าเว็บเปิด
+});
 
 function addRow(table) {
     const tbody = table.querySelector("tbody");
@@ -12,7 +14,6 @@ function addRow(table) {
         <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
     `;
     tbody.appendChild(newRow);
-    saveTables();
 }
 
 function addTable() {
@@ -21,7 +22,7 @@ function addTable() {
     newTable.classList.add("table-container");
     newTable.innerHTML = `
         <button class="remove-table" onclick="removeTable(this)">X</button>
-        <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย" oninput="saveTables()">
+        <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย">
         <table>
             <thead>
                 <tr>
@@ -33,9 +34,9 @@ function addTable() {
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder="ใส่ชื่อ" oninput="saveTables()"></td>
-                    <td><input type="text" placeholder=" " oninput="saveTables()"></td>
-                    <td><input type="text" placeholder="ใส่ชื่อ" oninput="saveTables()"></td>
+                    <td><input type="text" placeholder="ใส่ชื่อ"></td>
+                    <td><input type="text" placeholder=" "></td>
+                    <td><input type="text" placeholder="ใส่ชื่อ"></td>
                     <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
                 </tr>
             </tbody>
@@ -43,7 +44,6 @@ function addTable() {
         <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
     `;
     container.appendChild(newTable);
-    saveTables();
 }
 
 function removeTable(button) {
@@ -51,7 +51,6 @@ function removeTable(button) {
     const inputs = tableContainer.querySelectorAll('input');
 
     let hasInput = Array.from(inputs).some(input => input.value.trim() !== "");
-
     if (!hasInput) {
         alert("ต้องกรอกข้อมูลในช่องก่อนถึงจะสามารถ X ได้");
         return;
@@ -59,7 +58,6 @@ function removeTable(button) {
 
     const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
     let totalProfit = 0;
-
     priceInputs.forEach(input => {
         const priceStr = input.value.match(/\d{3,}/g);
         if (priceStr) {
@@ -75,9 +73,9 @@ function removeTable(button) {
             const imgData = canvas.toDataURL("image/png");
             historyData.push({ imgData, profit: totalProfit });
             alert("ตารางถูกลบแล้ว! คุณสามารถดูประวัติได้");
-            tableContainer.remove();
-            saveTables();
         });
+        tableContainer.remove();
+        saveData(); // บันทึกหลังลบ
     }
 }
 
@@ -86,14 +84,13 @@ function removeRow(button) {
     const inputs = row.querySelectorAll('input');
 
     let hasInput = Array.from(inputs).some(input => input.value.trim() !== "");
-
     if (!hasInput) {
         alert("ต้องกรอกข้อมูลในช่องก่อนถึงจะสามารถ X ได้");
         return;
     }
 
     row.remove();
-    saveTables();
+    saveData(); // บันทึกหลังลบแถว
 }
 
 function showHistory() {
@@ -109,60 +106,71 @@ function showHistory() {
     });
 }
 
-function saveTables() {
-    const container = document.getElementById("tables-container");
-    const tables = container.querySelectorAll(".table-container");
-    const dataToSave = [];
+function saveData() {
+    const data = [];
+    const tables = document.querySelectorAll(".table-container");
 
-    tables.forEach(table => {
-        const title = table.querySelector(".table-title-input").value;
+    tables.forEach(tableContainer => {
+        const title = tableContainer.querySelector(".table-title-input").value;
         const rows = [];
-        const trList = table.querySelectorAll("tbody tr");
-
-        trList.forEach(tr => {
-            const cells = tr.querySelectorAll("input");
-            rows.push({
-                a: cells[0]?.value || "",
-                b: cells[1]?.value || "",
-                c: cells[2]?.value || ""
-            });
+        tableContainer.querySelectorAll("tbody tr").forEach(row => {
+            const cells = row.querySelectorAll("input");
+            rows.push([
+                cells[0]?.value || "",
+                cells[1]?.value || "",
+                cells[2]?.value || ""
+            ]);
         });
-
-        dataToSave.push({ title, rows });
+        data.push({ title, rows });
     });
 
-    localStorage.setItem("tables", JSON.stringify(dataToSave));
+    localStorage.setItem("savedTables", JSON.stringify(data));
 }
 
-function loadTables() {
-    const saved = localStorage.getItem("tables");
-    if (!saved) return;
+function loadData() {
+    const data = JSON.parse(localStorage.getItem("savedTables"));
+    if (!data) return;
 
-    const data = JSON.parse(saved);
+    const container = document.getElementById("tables-container");
+    container.innerHTML = "";
 
-    data.forEach(item => {
-        addTable();
-        const latestTable = document.querySelectorAll(".table-container");
-        const table = latestTable[latestTable.length - 1];
-        table.querySelector(".table-title-input").value = item.title;
+    data.forEach(table => {
+        const newTable = document.createElement("div");
+        newTable.classList.add("table-container");
 
-        const tbody = table.querySelector("tbody");
-        tbody.innerHTML = "";
-
-        item.rows.forEach(row => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td><input type="text" value="${row.a}" oninput="saveTables()"></td>
-                <td><input type="text" value="${row.b}" oninput="saveTables()"></td>
-                <td><input type="text" value="${row.c}" oninput="saveTables()"></td>
-                <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
+        let rowsHtml = "";
+        table.rows.forEach(row => {
+            rowsHtml += `
+                <tr>
+                    <td><input type="text" value="${row[0] || ""}"></td>
+                    <td><input type="text" value="${row[1] || ""}"></td>
+                    <td><input type="text" value="${row[2] || ""}"></td>
+                    <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
+                </tr>
             `;
-            tbody.appendChild(tr);
         });
+
+        newTable.innerHTML = `
+            <button class="remove-table" onclick="removeTable(this)">X</button>
+            <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย" value="${table.title || ""}">
+            <table>
+                <thead>
+                    <tr>
+                        <th> รายชื่อไลน์คนไล่</th>
+                        <th>ราคาคนเล่นกัน</th>
+                        <th> รายชื่อไลน์คนยั้ง</th>
+                        <th>แผลยกเลิก X ได้เลย</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                </tbody>
+            </table>
+            <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
+        `;
+        container.appendChild(newTable);
     });
 }
-
-document.addEventListener("DOMContentLoaded", loadTables);
 
 document.addEventListener("keydown", function (e) {
     if (e.ctrlKey && e.key.toLowerCase() === "u") {
@@ -170,3 +178,5 @@ document.addEventListener("keydown", function (e) {
         alert("ไม่อนุญาตให้ดูซอร์สโค้ดหน้านี้");
     }
 });
+
+setInterval(saveData, 15000); // เซฟข้อมูลทุก 15 วินาที
