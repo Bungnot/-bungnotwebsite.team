@@ -12,6 +12,7 @@ function addRow(table) {
         <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
     `;
     tbody.appendChild(newRow);
+    saveData();
 }
 
 function addTable() {
@@ -42,6 +43,7 @@ function addTable() {
         <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
     `;
     container.appendChild(newTable);
+    saveData();
 }
 
 function removeTable(button) {
@@ -75,6 +77,7 @@ function removeTable(button) {
             alert("ตารางถูกลบแล้ว! คุณสามารถดูประวัติได้");
         });
         tableContainer.remove();
+        saveData();
     }
 }
 
@@ -90,6 +93,7 @@ function removeRow(button) {
     }
 
     row.remove();
+    saveData();
 }
 
 function showHistory() {
@@ -112,28 +116,62 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
+// ------------------------------------------
+// ✅ ส่วนบันทึกอัตโนมัติด้วย LocalStorage
+// ------------------------------------------
 
+const LOCAL_STORAGE_KEY = "admin-calc-data";
 
+// เซฟทุกครั้งที่กรอกข้อมูล
+function saveData() {
+    const container = document.getElementById("tables-container");
+    localStorage.setItem(LOCAL_STORAGE_KEY, container.innerHTML);
+}
 
+// โหลดคืนข้อมูล
+function restoreData() {
+    const container = document.getElementById("tables-container");
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+        container.innerHTML = saved;
+        restoreListeners();
+    }
+}
 
+// ติดตั้ง event ที่หายไปหลังโหลดข้อมูล
+function restoreListeners() {
+    document.querySelectorAll(".remove-row").forEach(btn => {
+        btn.onclick = () => removeRow(btn);
+    });
 
+    document.querySelectorAll(".remove-table").forEach(btn => {
+        btn.onclick = () => removeTable(btn);
+    });
 
+    document.querySelectorAll(".add-row-button").forEach(btn => {
+        btn.onclick = () => addRow(btn.previousElementSibling);
+    });
 
+    document.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", saveData);
+    });
+}
 
+// โหลดตอนเปิดหน้า + ติดตามการเปลี่ยนแปลง DOM เพื่อเซฟอัตโนมัติ
+window.addEventListener("DOMContentLoaded", () => {
+    restoreData();
 
+    const observer = new MutationObserver(() => {
+        document.querySelectorAll("input").forEach(input => {
+            if (!input.dataset.listenerAttached) {
+                input.addEventListener("input", saveData);
+                input.dataset.listenerAttached = "true";
+            }
+        });
+    });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    observer.observe(document.getElementById("tables-container"), {
+        childList: true,
+        subtree: true
+    });
+});
