@@ -1,4 +1,4 @@
-// main.js
+// script.js
 
 let historyData = [];
 
@@ -12,7 +12,7 @@ function addRow(table) {
         <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
     `;
     tbody.appendChild(newRow);
-    saveData();
+    saveTables();
 }
 
 function addTable() {
@@ -21,7 +21,7 @@ function addTable() {
     newTable.classList.add("table-container");
     newTable.innerHTML = `
         <button class="remove-table" onclick="removeTable(this)">X</button>
-        <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย">
+        <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย" oninput="saveTables()">
         <table>
             <thead>
                 <tr>
@@ -33,9 +33,9 @@ function addTable() {
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder="ใส่ชื่อ"></td>
-                    <td><input type="text" placeholder=" "></td>
-                    <td><input type="text" placeholder="ใส่ชื่อ"></td>
+                    <td><input type="text" placeholder="ใส่ชื่อ" oninput="saveTables()"></td>
+                    <td><input type="text" placeholder=" " oninput="saveTables()"></td>
+                    <td><input type="text" placeholder="ใส่ชื่อ" oninput="saveTables()"></td>
                     <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
                 </tr>
             </tbody>
@@ -43,7 +43,7 @@ function addTable() {
         <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
     `;
     container.appendChild(newTable);
-    saveData();
+    saveTables();
 }
 
 function removeTable(button) {
@@ -75,9 +75,9 @@ function removeTable(button) {
             const imgData = canvas.toDataURL("image/png");
             historyData.push({ imgData, profit: totalProfit });
             alert("ตารางถูกลบแล้ว! คุณสามารถดูประวัติได้");
+            tableContainer.remove();
+            saveTables();
         });
-        tableContainer.remove();
-        saveData();
     }
 }
 
@@ -93,7 +93,7 @@ function removeRow(button) {
     }
 
     row.remove();
-    saveData();
+    saveTables();
 }
 
 function showHistory() {
@@ -109,69 +109,64 @@ function showHistory() {
     });
 }
 
+function saveTables() {
+    const container = document.getElementById("tables-container");
+    const tables = container.querySelectorAll(".table-container");
+    const dataToSave = [];
+
+    tables.forEach(table => {
+        const title = table.querySelector(".table-title-input").value;
+        const rows = [];
+        const trList = table.querySelectorAll("tbody tr");
+
+        trList.forEach(tr => {
+            const cells = tr.querySelectorAll("input");
+            rows.push({
+                a: cells[0]?.value || "",
+                b: cells[1]?.value || "",
+                c: cells[2]?.value || ""
+            });
+        });
+
+        dataToSave.push({ title, rows });
+    });
+
+    localStorage.setItem("tables", JSON.stringify(dataToSave));
+}
+
+function loadTables() {
+    const saved = localStorage.getItem("tables");
+    if (!saved) return;
+
+    const data = JSON.parse(saved);
+
+    data.forEach(item => {
+        addTable();
+        const latestTable = document.querySelectorAll(".table-container");
+        const table = latestTable[latestTable.length - 1];
+        table.querySelector(".table-title-input").value = item.title;
+
+        const tbody = table.querySelector("tbody");
+        tbody.innerHTML = "";
+
+        item.rows.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><input type="text" value="${row.a}" oninput="saveTables()"></td>
+                <td><input type="text" value="${row.b}" oninput="saveTables()"></td>
+                <td><input type="text" value="${row.c}" oninput="saveTables()"></td>
+                <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadTables);
+
 document.addEventListener("keydown", function (e) {
     if (e.ctrlKey && e.key.toLowerCase() === "u") {
         e.preventDefault();
         alert("ไม่อนุญาตให้ดูซอร์สโค้ดหน้านี้");
     }
-});
-
-// ------------------------------------------
-// ✅ ส่วนบันทึกอัตโนมัติด้วย LocalStorage
-// ------------------------------------------
-
-const LOCAL_STORAGE_KEY = "admin-calc-data";
-
-// เซฟทุกครั้งที่กรอกข้อมูล
-function saveData() {
-    const container = document.getElementById("tables-container");
-    localStorage.setItem(LOCAL_STORAGE_KEY, container.innerHTML);
-}
-
-// โหลดคืนข้อมูล
-function restoreData() {
-    const container = document.getElementById("tables-container");
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-        container.innerHTML = saved;
-        restoreListeners();
-    }
-}
-
-// ติดตั้ง event ที่หายไปหลังโหลดข้อมูล
-function restoreListeners() {
-    document.querySelectorAll(".remove-row").forEach(btn => {
-        btn.onclick = () => removeRow(btn);
-    });
-
-    document.querySelectorAll(".remove-table").forEach(btn => {
-        btn.onclick = () => removeTable(btn);
-    });
-
-    document.querySelectorAll(".add-row-button").forEach(btn => {
-        btn.onclick = () => addRow(btn.previousElementSibling);
-    });
-
-    document.querySelectorAll("input").forEach(input => {
-        input.addEventListener("input", saveData);
-    });
-}
-
-// โหลดตอนเปิดหน้า + ติดตามการเปลี่ยนแปลง DOM เพื่อเซฟอัตโนมัติ
-window.addEventListener("DOMContentLoaded", () => {
-    restoreData();
-
-    const observer = new MutationObserver(() => {
-        document.querySelectorAll("input").forEach(input => {
-            if (!input.dataset.listenerAttached) {
-                input.addEventListener("input", saveData);
-                input.dataset.listenerAttached = "true";
-            }
-        });
-    });
-
-    observer.observe(document.getElementById("tables-container"), {
-        childList: true,
-        subtree: true
-    });
 });
