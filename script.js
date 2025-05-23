@@ -179,4 +179,9 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
-setInterval(saveData, 15000); // เซฟข้อมูลทุก 15 วินาที
+
+setInterval(() => {
+    saveData();
+    console.log("ข้อมูลถูกบันทึกอัตโนมัติ");
+}, 15000);
+
