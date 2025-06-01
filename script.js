@@ -180,8 +180,19 @@ document.addEventListener("keydown", function (e) {
 });
 
 
+function showAutoSaveAlert() {
+    const alertBox = document.getElementById("auto-save-alert");
+    alertBox.style.opacity = "1";
+    setTimeout(() => {
+        alertBox.style.opacity = "0";
+    }, 2000); // แสดง 2 วินาที
+}
+
+
 setInterval(() => {
     saveData();
     console.log("ข้อมูลถูกบันทึกอัตโนมัติ");
+    showAutoSaveAlert(); // เรียกแสดงกล่องแจ้งเตือน
 }, 15000);
+
 
