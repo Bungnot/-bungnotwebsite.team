@@ -204,6 +204,24 @@
             - เว็บจะคำนวนกำไรให้เอง ตอนที่กด X ดูได้ใน ดูประวัติการคิดยอด
         </div>
 
+        <div id="auto-save-alert" style="
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+        z-index: 9999;
+    ">
+        ✅ บันทึกข้อมูลอัตโนมัติแล้ว
+    </div>
+
+
         <div style="margin-top: 50px;">
             <h3>ส่งข้อความเข้า Line OA</h3>
             <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA" style="padding:10px; width:300px; margin:10px;"><br>
