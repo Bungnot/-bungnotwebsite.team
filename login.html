@@ -1,22 +1,40 @@
-<!-- Firebase Auth & Auth Check -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Bungnot Web</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCIMKIVtES7sda4QNGUApnrLR9R_XPjRmM",
-    authDomain: "bungnotfivem.firebaseapp.com",
-    projectId: "bungnotfivem",
-    appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCIMKIVtES7sda4QNGUApnrLR9R_XPjRmM",
+      authDomain: "bungnotfivem.firebaseapp.com",
+      projectId: "bungnotfivem",
+      appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const allowedUserEmail = "sapakao@gmail.com";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user || user.email !== allowedUserEmail) {
-      window.location.href = "login.html"; // ถ้าไม่ใช่ user ที่กำหนด จะเด้งไปหน้า login
-    }
-  });
-</script>
+    window.login = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          window.location.href = "index.html"; // เมื่อสำเร็จ จะไปหน้าเว็บหลัก
+        })
+        .catch((error) => {
+          alert("ล็อกอินผิดพลาด: " + error.message);
+        });
+    };
+  </script>
+</head>
+<body>
+  <h2>เข้าสู่ระบบเว็บ Bungnot</h2>
+  <input id="email" type="email" placeholder="Email"><br><br>
+  <input id="password" type="password" placeholder="Password"><br><br>
+  <button onclick="login()">เข้าสู่ระบบ</button>
+</body>
+</html>
