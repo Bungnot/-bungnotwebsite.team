@@ -7,18 +7,29 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script defer data-domain="bungnot.github.io/-bungnot.teamx" src="https://plausible.io/js/script.js"></script>
         <!-- Firebase App -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <!-- Firebase Auth -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
-
-    <script>
+    <!-- Firebase Auth & Auth Check -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    
       const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        // ...
+        apiKey: "AIzaSyCIMKIVtES7sda4QNGUApnrLR9R_XPjRmM",
+        authDomain: "bungnotfivem.firebaseapp.com",
+        projectId: "bungnotfivem",
+        appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1"
       };
-      firebase.initializeApp(firebaseConfig);
+    
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const allowedUserEmail = "sapakao@gmail.com";
+    
+      onAuthStateChanged(auth, (user) => {
+        if (!user || user.email !== allowedUserEmail) {
+          window.location.href = "login.html"; // ถ้าไม่ใช่ user ที่กำหนด จะเด้งไปหน้า login
+        }
+      });
     </script>
+
 
     <!-- เพิ่มฟอนต์จาก Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
