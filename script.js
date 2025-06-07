@@ -200,27 +200,3 @@ setInterval(() => {
 
 
 
-
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-
-const allowedUsers = [
-  "adminbungnot01@gmail.com",
-  "adminbungnot02@gmail.com",
-  "adminbungnot03@gmail.com",
-  "adminbungnot04@gmail.com"
-];
-
-const auth = getAuth();
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // ✅ login แล้ว → ทำงานปกติ
-    console.log("ผู้ใช้ล็อกอินแล้ว:", user.email);
-  } else {
-    // ❌ ยังไม่ได้ login → เด้งไป login.html
-    window.location.href = "login.html";
-  }
-});
-
-
-
