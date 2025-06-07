@@ -196,3 +196,28 @@ setInterval(() => {
 }, 15000);
 
 
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+
+const allowedUsers = [
+  "sapakao@gmail.com",
+  "admin@example.com",
+  "bungnot@gmail.com"
+];
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    const email = user.email;
+    if (!allowedUsers.includes(email)) {
+      alert("คุณไม่ได้รับอนุญาตให้เข้าเว็บนี้");
+      signOut(auth).then(() => {
+        window.location.href = "https://google.com"; // หรือ redirect ไปหน้าอื่น
+      });
+    }
+  } else {
+    window.location.href = "login.html"; // ถ้าไม่ได้ login
+  }
+});
+
+
