@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Login - Bungnot Web</title>
+  <title>Login</title>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -11,30 +10,35 @@
       apiKey: "AIzaSyCIMKIVtES7sda4QNGUApnrLR9R_XPjRmM",
       authDomain: "bungnotfivem.firebaseapp.com",
       projectId: "bungnotfivem",
-      appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1"
+      storageBucket: "bungnotfivem.appspot.com",
+      messagingSenderId: "272267072900",
+      appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1",
+      measurementId: "G-6TBBLPM4BT"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const auth = getAuth();
 
-    window.login = function () {
+    function login() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
       signInWithEmailAndPassword(auth, email, password)
         .then(() => {
-          window.location.href = "index.html"; // เมื่อสำเร็จ จะไปหน้าเว็บหลัก
+          window.location.href = "index.html";
         })
         .catch((error) => {
-          alert("ล็อกอินผิดพลาด: " + error.message);
+          alert("Login ผิด: " + error.message);
         });
-    };
+    }
+
+    window.login = login;
   </script>
 </head>
 <body>
-  <h2>เข้าสู่ระบบเว็บ Bungnot</h2>
-  <input id="email" type="email" placeholder="Email"><br><br>
-  <input id="password" type="password" placeholder="Password"><br><br>
+  <h2>เข้าสู่ระบบ</h2>
+  <input id="email" placeholder="อีเมล"><br>
+  <input id="password" type="password" placeholder="รหัสผ่าน"><br>
   <button onclick="login()">เข้าสู่ระบบ</button>
 </body>
 </html>
