@@ -16,19 +16,23 @@
         apiKey: "AIzaSyCIMKIVtES7sda4QNGUApnrLR9R_XPjRmM",
         authDomain: "bungnotfivem.firebaseapp.com",
         projectId: "bungnotfivem",
-        appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1"
+        storageBucket: "bungnotfivem.appspot.com",
+        messagingSenderId: "272267072900",
+        appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1",
+        measurementId: "G-6TBBLPM4BT"
       };
     
       const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const allowedUserEmail = "sapakao@gmail.com";
+      const auth = getAuth();
     
       onAuthStateChanged(auth, (user) => {
-        if (!user || user.email !== allowedUserEmail) {
-          window.location.href = "login.html"; // ถ้าไม่ใช่ user ที่กำหนด จะเด้งไปหน้า login
+        if (!user) {
+          // ยังไม่ล็อกอิน → ส่งกลับหน้า login
+          window.location.href = "login.html";
         }
       });
     </script>
+
 
 
     <!-- เพิ่มฟอนต์จาก Google Fonts -->
