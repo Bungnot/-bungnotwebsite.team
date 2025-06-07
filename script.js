@@ -199,9 +199,10 @@ setInterval(() => {
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 const allowedUsers = [
-  "sapakao@gmail.com",
-  "admin@example.com",
-  "bungnot@gmail.com"
+  "adminbungnot01",
+  "adminbungnot02",
+  "adminbungnot03",
+  "adminbungnot04"
 ];
 
 const auth = getAuth();
