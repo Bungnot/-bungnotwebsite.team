@@ -197,6 +197,38 @@ setInterval(() => {
 
 
 
+function sendMessageToLine() {
+    const name = document.getElementById("lineName").value;
+    const msg = document.getElementById("messageToSend").value;
+
+    const fullMsg = `ชื่อผู้ส่ง: ${name}\nข้อความ: ${msg}`;
+
+    fetch("https://api.line.me/v2/bot/message/push", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer [ใส่ Channel Access Token ของคุณที่นี่]"
+        },
+        body: JSON.stringify({
+            to: "[User ID ของผู้รับข้อความ (หรือ Group ID)]",
+            messages: [
+                {
+                    type: "text",
+                    text: fullMsg
+                }
+            ]
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("ส่งสำเร็จ", data);
+        alert("ส่งข้อความสำเร็จแล้ว!");
+    })
+    .catch(err => {
+        console.error("ส่งไม่สำเร็จ", err);
+        alert("เกิดข้อผิดพลาดในการส่งข้อความ");
+    });
+}
 
 
 
