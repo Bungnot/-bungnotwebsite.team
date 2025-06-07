@@ -8,30 +8,33 @@
     <script defer data-domain="bungnot.github.io/-bungnot.teamx" src="https://plausible.io/js/script.js"></script>
         <!-- Firebase App -->
     <!-- Firebase Auth & Auth Check -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    
-      const firebaseConfig = {
-        apiKey: "AIzaSyCIMKIVtES7sda4QNGUApnrLR9R_XPjRmM",
-        authDomain: "bungnotfivem.firebaseapp.com",
-        projectId: "bungnotfivem",
-        storageBucket: "bungnotfivem.appspot.com",
-        messagingSenderId: "272267072900",
-        appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1",
-        measurementId: "G-6TBBLPM4BT"
-      };
-    
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth();
-    
-      onAuthStateChanged(auth, (user) => {
-        if (!user) {
-          // ยังไม่ล็อกอิน → ส่งกลับหน้า login
-          window.location.href = "login.html";
-        }
-      });
-    </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCIMKIVtES7sda4QNGUApnrLR9R_XPjRmM",
+    authDomain: "bungnotfivem.firebaseapp.com",
+    projectId: "bungnotfivem",
+    storageBucket: "bungnotfivem.appspot.com",
+    messagingSenderId: "272267072900",
+    appId: "1:272267072900:web:fc07b25ec90d9c6badf9d1",
+    measurementId: "G-6TBBLPM4BT"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // ✅ รอจน Firebase บอกว่า login หรือยัง
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      console.log("ผู้ใช้ล็อกอินแล้ว:", user.email);
+    }
+  });
+</script>
+
 
 
 
