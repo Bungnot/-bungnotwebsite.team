@@ -53,17 +53,36 @@
       border-radius: 10px;
       cursor: pointer;
       font-size: 1rem;
-      transition: background-color 0.3s;
+      transition: background-color 0.3s, transform 0.2s;
     }
 
     .btn:hover {
       background-color: rgba(255, 140, 231, 0.2);
+      transform: scale(1.05);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     img.broken-icon {
       width: 24px;
       height: 24px;
       vertical-align: middle;
+    }
+
+    .loading-text {
+      margin-top: 1rem;
+      font-size: 1rem;
+      color: #ffb3ec;
+      display: none;
+      animation: fadeIn 1s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
@@ -75,9 +94,24 @@
       เว็บของคุณหมดอายุการใช้งานแล้ว กรุณา ต่ออายุได้ที่เว็บ rent.xzrn.xyz และทำการต่ออายุเว็บเพื่อเปิดใช้งานเว็บของคุณต่อ
     </p>
     <div class="buttons">
-      <a href="https://api.xzrn.xyz/api/exp.php" class="btn">ต่ออายุตอนนี้</a>
+      <button id="renewBtn" class="btn">ต่ออายุตอนนี้</button>
       <a href="#" class="btn">เข้าเว็บ</a>
     </div>
+    <div id="loadingMessage" class="loading-text">กำลังพาไปต่ออายุ กรุณารอสักครู่...</div>
   </div>
+
+  <script>
+    const renewBtn = document.getElementById('renewBtn');
+    const loadingMessage = document.getElementById('loadingMessage');
+
+    renewBtn.addEventListener('click', () => {
+      renewBtn.disabled = true;
+      loadingMessage.style.display = 'block';
+
+      setTimeout(() => {
+        window.location.href = 'https://api.xzrn.xyz/api/exp.php';
+      }, 2000); // รอ 2 วินาที ก่อน redirect
+    });
+  </script>
 </body>
 </html>
