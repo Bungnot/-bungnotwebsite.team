@@ -1,670 +1,255 @@
-
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="https://img.anubis.xyz/upload/image/YnZ1709120399lzIaG.png" type="image/png" sizes="16x16">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css">
-    <link href="https://kit-pro.fontawesome.com/releases/v6.2.0/css/pro.min.css" rel="stylesheet">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link href="hover.css" rel="stylesheet">
-    <title>anubis stores</title>
+    <title>เว็บคิดยอดแอดมิน </title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script defer data-domain="bungnot.github.io/-bungnot.teamx" src="https://plausible.io/js/script.js"></script>
 
+    <!-- เพิ่มฟอนต์จาก Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        h3 {
-            color: white;
-        }
         
-
-*{
-    font-family: 'Kanit', sans-serif;
-    padding: 0;
-    margin: 0;
-    outline: none;
-    border: none;
-    box-sizing: border-box;
-    color: #fff;
-}
-
-::selection{
-  color: #f2f2f2;
-  background: #f86d8d;
-}
-
-img{
-    width: 100%;
-    display: flex;
-}
-
-a{
-    text-decoration: none;
-}
-
-body{
-    background-image: linear-gradient(to top, black 5%, transparent 80%), url('');
-    background-repeat: no-repeat;
-        background-attachment: fixed;
-        background-position: center;
-        background-size: cover;
-        overflow-x: hidden;
-}
-
-
-
-nav{
-    max-width: 1200px;
-    margin: auto;
-    padding: 2rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2rem;
-    color: #fff;
-}
-
-.nav-logo{
-    max-width: 100px;
-    color: #fff;
-}
-
-.nav-links{
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: 3rem;
-}
-
-.link a{
-    position: relative;
-    padding-bottom: 0.75rem;
-    color: #fff;
-}
-
-.link a::after{
-    content: "";
-    position: absolute;
-    height: 2px;
-    width: 0;
-    bottom: 0;
-    left: 0;
-    background-color: #ffffff;
-    transition: all 0.3s ease;
-}
-
-.link a:hover::after{
-    width: 100%;
-}
-
-.btn{
-    padding: 1rem 2rem;
-    font-size: 1rem;
-    color: #fff;
-    background-color: #ffffff;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn:hover{
-    background-color: #ff85ed;
-}
-
-.container{
-    max-width: 1200px;
-    margin: auto;
-    padding: 5rem 2rem;
-}
-
-.blur{
-    position: absolute;
-    box-shadow: 0 0 1000px 50px #ff85ed;
-    z-index: -100;
-}
-
-header{
-    position: relative;
-    padding-top: 2rem;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    align-items: center;
-    gap: 2rem;
-}
-
-header .content h4{
-    margin-bottom: 1rem;
-    color: #ccc;
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-header .content h1{
-    color: #fff;
-    margin-bottom: 1rem;
-    font-size: 3rem;
-    font-weight: 700;
-    line-height: 4rem;
-}
-
-header .content h2{
-    color: #fff;
-    margin-bottom: 1rem;
-    font-size: 3rem;
-    font-weight: 700;
-    line-height: 4rem;
-}
-
-header .content h1 span{
-    -webkit-text-fill-color: transparent;
-    -webkit-text-stroke: 1px #fff;
-}
-
-header .content p{
-    margin-bottom: 2rem;
-    color: #ccc;
-}
-
-header .image{
-    position: relative;
-}
-header .imi{
-    position: relative;
-}
-
-
-
-header .image img{
-    max-width: 600px;
-    margin: auto;
-}
-header .imi img{
-    max-width: 600px;
-    margin: auto;
-}
-
-section .header{
-    margin-bottom: 1rem;
-    color: #fff;
-    text-align: center;
-    font-size: 2.25rem;
-    font-weight: 600;
-}
-
-.features{
-    margin-top: 4rem;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
-}
-
-.features .card{
-    padding: 1rem;
-    border: 2px solid transparent;
-    border-radius: 15px;
-    transition: all 0.3s ease;
-}
-
-.features .card:hover{
-    border-color: #ff85ed;
-}
-
-.features .card span{
-    display: inline-block;
-    background-color: #292929;
-    padding: 2px 9px;
-    margin-bottom: 1rem;
-    font-size: 1.75rem;
-    color: #fff;
-    border-radius: 5px;
-}
-
-.features .card h4{
-    margin-bottom: 0.5rem;
-    color: #fff;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-
-.features .card p{
-    color: #ccc;
-    margin-bottom: 1rem;
-}
-
-.features .card a{
-    color: #fff;
-    transition: all 0.3s ease;
-}
-
-.features .card a:hover{
-    color: #1e40af;
-}
-
-.sub-header{
-    max-width: 600px;
-    margin: auto;
-    text-align: center;
-    color: #ccc;
-}
-
-.pricing{
-    margin-top: 4rem;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
-}
-
-.pricing .card{
-    padding: 3rem 2rem;
-    display: flex;
-    flex-direction: column;
-    border: 2px solid transparent;
-    border-radius: 15px;
-    transition: all 0.3s ease;
-}
-
-.pricing .card:hover{
-    border-color: #fff;
-}
-
-.pricing .card .content{
-    flex: 1;
-    margin-bottom: 2rem;
-}
-
-.pricing .card h4{
-    margin-bottom: 1rem;
-    color: #fff;
-    font-size: 1.2rem;
-    font-weight: 500;
-}
-
-.pricing .card h3{
-    color: #fff;
-    padding-bottom: 1rem;
-    margin-bottom: 2rem;
-    font-size: 2rem;
-    font-weight: 600;
-    border-bottom: 2px dashed #fff;
-}
-
-.pricing .card p{
-    color: #fff;
-    margin-bottom: 0.75rem;
-}
-
-.pricing .card p i{
-    color: #ccc;
-    font-size: 1.2rem;
-    margin-right: 0.3rem;
-}
-
-.pricing .card button{
-    color: #fff;
-    background-color: transparent;
-    border: 2px solid #fff;
-}
-
-.pricing .card button:hover{
-    background-color: #1e40af;
-    border-color: #1e40af;
-}
-
-footer{
-    position: relative;
-    display: grid;
-    grid-template-columns: 400px repeat(3, 1fr);
-    gap: 2rem;
-}
-
-footer .column .logo{
-    max-width: 100px;
-    margin-bottom: 2rem;
-}
-
-footer .column p{
-    color: #ccc;
-    margin-bottom: 2rem;
-}
-
-footer .column .socials{
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-footer .column .socials a{
-    color: #ccc;
-    border: 1px solid #ccc;
-    padding: 5px 10px;
-    font-size: 1.25rem;
-    border-radius: 100%;
-    transition: all 0.3s ease;
-}
-
-footer .column .socials a:hover{
-    color: #fff;
-    background-color: #1d4ed8;
-    border-color: #1d4ed8;
-}
-
-footer .column h4{
-    color: #fff;
-    margin-bottom: 2rem;
-    font-size: 1.2rem;
-    font-weight: 500;
-}
-
-footer .column > a{
-    display: block;
-    color: #ccc;
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
-}
-
-footer .column > a:hover{
-    color: #1d4ed8;
-}
-
-.copyright{
-    max-width: 1200px;
-    margin: auto;
-    padding: 1rem;
-    color: #fff;
-    font-size: 0.8rem;
-    text-align: center;
-}
-
-@media (width < 900px){
-    .nav-links{
-        display: none;
-    }
-    header{
-        grid-template-columns: repeat(1, 1fr);
-    }
-    header .image{
-        grid-area: 1/1/2/2;
-    }
-    header .imi{
-        grid-area: 1/1/2/2;
-    }
-    .features{
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .pricing{
-        grid-template-columns: repeat(2, 1fr);
-    }
-    footer{
-        grid-template-columns: 1fr 200px;
-    }
-}
-
-@media (width < 600px){
-    .image{
-        display: none;
-    }
-    .imi{
-        display: none;
-    }
-
-    .features{
-        grid-template-columns: repeat(1, 1fr);
-    }
-
-    .pricing{
-        grid-template-columns: repeat(1, 1fr);
-    }
-
-    footer{
-        grid-template-columns: 1fr 150px;
-    }
-}
-
-
-.btn-main {
-    font-family: 'Kanit', sans-serif;
-    margin-left: 7px;
-    font-size: 15px;
-    padding: 10px 25px;
-    border-radius: 1vh;
-    text-decoration: none;
-    color: #ffffff;
-    font-family: 'Prompt', sans-serif;
-    border: 2.5px dashed  #ff85ed ;
-    filter: drop-shadow(0 0 90px #ffffff );
-    transition: all .5s ease;
-}
-.btn-main:hover {
-    font-family: 'Kanit', sans-serif;
+        /* ใส่สไตล์ต่างๆ ที่ไม่ต้องแก้ไข */
+        body {
+            font-family: 'Sarabun', sans-serif; /* เปลี่ยนฟอนต์ให้เป็น Sarabun */
+            background-color: #E3F2FD;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            font-family: 'Sarabun', sans-serif;
+            font-weight: bold;
+            color: rgb(255, 0, 0);
+            padding: 10px;
+            border-radius: 10px;
+            background: linear-gradient(to right, rgb(255, 0, 0), rgb(0, 255, 0), rgb(0, 0, 255));
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center; /* ทำให้ปุ่มอยู่กลาง */
+            margin-top: 70px; /* ขยับลงมาให้มากขึ้น */
+        }
+
+        button {
+            background-color: #00796B;
             color: white;
-            background-color: #ff85ed;
-            border: 2.5px solid #ff85ed;
-        }
-.pt-2 {
-    font-family: 'Kanit', sans-serif;
-    padding-top: .5rem!important;
-}
-
-.pb-2 {
-    font-family: 'Kanit', sans-serif;
-    padding-bottom: .5rem!important;
-}
-
-.bg-glass {
-    background: linear-gradient(135deg, rgba(255, 255,255 , 0.1) , rgba(255, 255,255 , 0) );
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
-}
-
-
-.box {
-    position: relative;
-    width: 220px;
-    height: 300px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: 0.5s;
-    z-index: 1;
-}
-
-.box::before {
-    content: ' ';
-    position: absolute;
-    top: 0;
-    left: 50px;
-    width: 50%;
-    height: 100%;
-    text-decoration: none;
-    background: #fff;
-    border-radius: 8px;
-    transform: skewX(15deg);
-    transition: 0.5s;
-}
-
-.box::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50;
-    width: 50%;
-    height: 100%;
-    background: #fff;
-    border-radius: 8px;
-    transform: skewX(15deg);
-    transition: 0.5s;
-    filter: blur(30px);
-}
-
-.box:hover:before,
-.box:hover:after {
-    transform: skewX(0deg) scaleX(1.3);
-}
-
-.box:before,
-.box:after {
-    background: linear-gradient(315deg, #ffbc00, #ff0058)
-}
-
-.box span {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 5;
-    pointer-events: none;
-}
-
-.box span::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    opacity: 0;
-    transition: 0.1s;
-    animation: animate 2s ease-in-out infinite;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08)
-}
-
-.box span::before {
-    top: -40px;
-    left: 40px;
-    width: 50px;
-    height: 50px;
-    opacity: 1;
-}
-
-.box span::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    opacity: 0;
-    transition: 0.5s;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    animation-delay: -1s;
-}
-
-.box span:after {
-    bottom: -40px;
-    right: 40px;
-    width: 50px;
-    height: 50px;
-    opacity: 1;
-}
-
-.box .content {
-    position: relative;
-    width: 190px;
-    height: 254px;
-    padding: 20px 40px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    z-index: 1;
-    transform: 0.5s;
-    color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.box .content h2 {
-    font-size: 20px;
-    color: #fff;
-    margin-bottom: 10px;
-}
-i {
-    font-size: 25px;
-}
-.m {
-    margin-top: 100px;
-}
-.float-ani {
-            animation: float 4s ease-in-out infinite;
+            border: none;
+            padding: 15px 30px; /* เพิ่มขนาดปุ่ม */
+            font-size: 20px; /* เพิ่มขนาดตัวอักษร */
+            cursor: pointer;
+            border-radius: 10px; /* ทำให้กรอบปุ่มนุ่มนวล */
+            transition: background-color 0.3s ease, transform 0.3s ease; /* เพิ่ม transition สำหรับสีและการขยาย */
+            margin: 5px;
         }
 
-        @keyframes float {
-            0% {
-                transform: translatey(0px);
-            }
+        button:hover {
+            background-color: #004D40;
+            transform: scale(1.1); /* เพิ่มขนาดปุ่มเมื่อ hover */
+        }
 
-            50% {
-                transform: translatey(-30px);
-            }
+        .table-container {
+            position: relative;
+            margin-bottom: 20px;
+            margin-top: 30px; /* เพิ่ม margin-top เพื่อขยับลงมา */
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
 
-            100% {
-                transform: translatey(0px);
-            }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th:nth-child(1) { background-color: #4CAF50; color: white; }
+        th:nth-child(2) { background-color: #FFA500; color: white; }
+        th:nth-child(3) { background-color: #FF0000; color: white; }
+        th:nth-child(4) { background-color: #8A2BE2; color: white; }
+        tbody tr:nth-child(odd) { background-color: #F1F8E9; }
+        tbody tr:nth-child(even) { background-color: #FFFFFF; }
+
+        table input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .credit {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 14px;
+            color: #888;
+            font-weight: 300;
+        }
+
+        .wrapper {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .instructions, .prohibited {
+            font-size: 16px;
+            font-weight: 300;
+            color: #555;
+            width: 48%; /* ให้กรอบแสดงข้างๆ กัน */
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            width: 150px;
+            height: auto;
+            margin: 10px;
+        }
+
+        .remove-table {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .remove-table:hover {
+            background-color: darkred;
+        }
+
+        .table-title-input {
+            width: 300px;
+            padding: 12px;
+            font-size: 16px;
+            text-align: center;
+            border: 2px solid #00796B;
+            border-radius: 10px;
+            background-color: #F0F4C3;
+        }
+
+        .add-row-button {
+            padding: 12px 20px;
+            background-color: #00796B;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-row-button:hover {
+            background-color: #004D40;
         }
     </style>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
 </head>
-
 <body>
+    <div class="credit">Web development by Bungnot V1.8.1 update</div>
 
+    <h2>หลังบ้านคิดยอดแอดมิน OG</h2>
+    <div class="button-container">
+        <button onclick="addTable()">🚀 เพิ่มบั้งใหม่</button>
+        <button onclick="showHistory()">📖 ดูประวัติการคิดยอด</button>
+    </div>
 
+    <div class="image-container">
+        <img src="https://img5.pic.in.th/file/secure-sv1/-esan-rocket.gif" alt="บั้งไฟ esan rocket" border="0">
+        <img src="https://img2.pic.in.th/pic/-ab541a779db05b6d.gif" alt="บั้งไฟ ตนไฟบิน" border="0">
+    </div>
 
-    <header class="container m">
-        <div class="content zoom2 "  data-aos="fade-up" data-aos-duration="1000">
-            <span class="blur"></span>
-            <span class="blur"></span>
-            <H1 class="hvr-grow">anubis website</H1>
-            <H1 class="hvr-forward">เว็บหมดอายุการใช้งาน</H1>
-            <p class="hvr-forward">
-                เว็บของคุณหมดอายุการใช้งานแล้ว กรุณา ต่ออายุได้ที่เว็บ anubis.website.xyz และทำการต่ออายุเว็บเพื่อเปิดใช้งานเว็บของคุณต่อ
-            </p>
-            <a class="btn-main pt-2 pb-2 hvr-grow" href="https://anubis.website.store" role="button">ต่ออายุที่นี่!</a>
-            <a class="btn-main pt-2 pb-2 hvr-grow" href="https://anubis.website.store" role="button">เข้าเว็บ</a>
+    <div class="wrapper">
+        <div class="instructions">
+            วิธีการคิดยอดง่ายๆ ตามนี้:<br><br>
+            - ให้เอาชื่อคนไล่ ไว้ข้างหน้าจะดูง่ายกว่า<br>
+            - ราคาถ้าคนเล่น 280/300 ให้เฮาใส่เป็น 80/00 แล้วใส่ ราคาที่เล่น 500<br>
+            - ถ้าคนเล่นแผล 400 ขึ้น แบบนี้ให้ใส่เป็นตัว 4OO ตัวโอ เอา หรือ 415 ให้ใส่เป็น 4I5 <br>
+            - เว็บจะคำนวนกำไรให้เอง ตอนที่กด X ดูได้ใน ดูประวัติการคิดยอด
         </div>
-        <div class="imi zoom" data-aos="fade-up" data-aos-duration="1500">
-            <img class="float-ani" src="https://img.anubis.xyz/upload/image/YnZ1709120399lzIaG.png">
+
+        <div id="auto-save-alert" style="
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(76, 175, 80, 0.4);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+        z-index: 9999;
+        font-weight: 500;
+        font-size: 16px;
+    ">
+        ✅ กันไฟดับ Auto นะจ๊ะ
+    </div>
+
+
+
+
+        <div style="margin-top: 50px;">
+            <h3>ส่งข้อความเข้า Line OA</h3>
+            <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA" style="padding:10px; width:300px; margin:10px;"><br>
+            <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" style="padding:10px; width:300px; height:100px; margin:10px;"></textarea><br>
+            <button onclick="sendMessageToLine()" style="padding:10px 20px; font-size:16px;">ส่งข้อความ</button>
         </div>
-    </header>
 
 
-    
+        
+        <div class="prohibited">
+            วิธีการใช้งาน:<br><br>
+            - ห้ามใส่ตัวเลข 3 หลักที่อื่น นอกจากช่อง ราคาบั้งไฟ ใส่ได้<br>
+            - ถ้าคนยกเลิกแผลให้ลบแถวไปได้เลย<br>
+            - เวลาจะลบแถว ให้พิมพ์อะไรก็ได้ลงในช่องก่อน
+        </div>
+    </div>
 
-
+    <div id="tables-container"></div>
 
     <script src="script.js"></script>
 </body>
-
 </html>
-
-<script>
-    $(document).ready(function(){
-        $(".zoom").hover(function(){
-            $(this).css("transform", "scale(1.25)");
-        }, function(){
-            $(this).css("transform", "scale(1)");
-        });
-        $(".zoom2").hover(function(){
-            $(this).css("transform", "scale(1.15)");
-        }, function(){
-            $(this).css("transform", "scale(1)");
-        });
-    });
-
-</script>
-
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-    AOS.init();
-  </script>
