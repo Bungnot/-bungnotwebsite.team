@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/W4QQVdX7/3f9d7965-5b59-442d-94ca-c0c6a324f9d1.png">
-    <title>เว็บคิดยอดแอดมิน </title>
+    <title>เว็บคิดยอดแอดมิน</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script defer data-domain="bungnot.github.io/-bungnot.teamx" src="https://plausible.io/js/script.js"></script>
 
@@ -45,18 +45,21 @@
         button {
             background-color: #00796B;
             color: white;
-            border: none;
-            padding: 15px 30px; /* เพิ่มขนาดปุ่ม */
-            font-size: 20px; /* เพิ่มขนาดตัวอักษร */
+            border: 2px solid #004D40; /* เปลี่ยนเป็นกรอบสีเข้ม */
+            padding: 15px 30px;
+            font-size: 20px;
             cursor: pointer;
-            border-radius: 10px; /* ทำให้กรอบปุ่มนุ่มนวล */
-            transition: background-color 0.3s ease, transform 0.3s ease; /* เพิ่ม transition สำหรับสีและการขยาย */
+            border-radius: 10px;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; /* เพิ่มการเปลี่ยนแปลงเงา */
             margin: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* เพิ่มเงาให้ปุ่ม */
         }
 
         button:hover {
             background-color: #004D40;
-            transform: scale(1.1); /* เพิ่มขนาดปุ่มเมื่อ hover */
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* เพิ่มเงาเมื่อ hover */
+            border-color: #00695C; /* เปลี่ยนสีกรอบเมื่อ hover */
         }
 
         .table-container {
@@ -233,24 +236,18 @@
         ✅ กันไฟดับ Auto นะจ๊ะ
     </div>
 
+    <div style="margin-top: 50px;">
+        <h3>ส่งข้อความเข้า Line OA (ยังไม่อัพเดท)</h3>
+        <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA" style="padding:10px; width:300px; margin:10px;"><br>
+        <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" style="padding:10px; width:300px; height:100px; margin:10px;"></textarea><br>
+        <button onclick="sendMessageToLine()" style="padding:10px 20px; font-size:16px;">ส่งข้อความ</button>
+    </div>
 
-
-
-        <div style="margin-top: 50px;">
-            <h3>ส่งข้อความเข้า Line OA (ยังไม่อัพเดท)</h3>
-            <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA" style="padding:10px; width:300px; margin:10px;"><br>
-            <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" style="padding:10px; width:300px; height:100px; margin:10px;"></textarea><br>
-            <button onclick="sendMessageToLine()" style="padding:10px 20px; font-size:16px;">ส่งข้อความ</button>
-        </div>
-
-
-        
-        <div class="prohibited">
-            วิธีการใช้งาน:<br><br>
-            - ห้ามใส่ตัวเลข 3 หลักที่อื่น นอกจากช่อง ราคาบั้งไฟ ใส่ได้<br>
-            - ถ้าคนยกเลิกแผลให้ลบแถวไปได้เลย<br>
-            - เวลาจะลบแถว ให้พิมพ์อะไรก็ได้ลงในช่องก่อน
-        </div>
+    <div class="prohibited">
+        วิธีการใช้งาน:<br><br>
+        - ห้ามใส่ตัวเลข 3 หลักที่อื่น นอกจากช่อง ราคาบั้งไฟ ใส่ได้<br>
+        - ถ้าคนยกเลิกแผลให้ลบแถวไปได้เลย<br>
+        - เวลาจะลบแถว ให้พิมพ์อะไรก็ได้ลงในช่องก่อน
     </div>
 
     <div id="tables-container"></div>
