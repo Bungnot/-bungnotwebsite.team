@@ -1,17 +1,18 @@
-<!DOCTYPE html>
+<!DOCTYPE html>More actions
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://img5.pic.in.th/file/secure-sv1/ChatGPT-Image-13-..-2568-15_31_37.png">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/W4QQVdX7/3f9d7965-5b59-442d-94ca-c0c6a324f9d1.png">
-    <title>เว็บคิดยอดแอดมิน</title>
+    <title>เว็บคิดยอดแอดมิน </title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script defer data-domain="bungnot.pages.dev" src="https://plausible.io/js/script.js"></script>
 
     <!-- เพิ่มฟอนต์จาก Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        
+
         /* ใส่สไตล์ต่างๆ ที่ไม่ต้องแก้ไข */
         body {
             font-family: 'Sarabun', sans-serif; /* เปลี่ยนฟอนต์ให้เป็น Sarabun */
@@ -45,21 +46,18 @@
         button {
             background-color: #00796B;
             color: white;
-            border: 2px solid #004D40; /* เปลี่ยนเป็นกรอบสีเข้ม */
-            padding: 15px 30px;
-            font-size: 20px;
+            border: none;
+            padding: 15px 30px; /* เพิ่มขนาดปุ่ม */
+            font-size: 20px; /* เพิ่มขนาดตัวอักษร */
             cursor: pointer;
-            border-radius: 10px;
-            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; /* เพิ่มการเปลี่ยนแปลงเงา */
+            border-radius: 10px; /* ทำให้กรอบปุ่มนุ่มนวล */
+            transition: background-color 0.3s ease, transform 0.3s ease; /* เพิ่ม transition สำหรับสีและการขยาย */
             margin: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* เพิ่มเงาให้ปุ่ม */
         }
 
         button:hover {
             background-color: #004D40;
-            transform: scale(1.1);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* เพิ่มเงาเมื่อ hover */
-            border-color: #00695C; /* เปลี่ยนสีกรอบเมื่อ hover */
+            transform: scale(1.1); /* เพิ่มขนาดปุ่มเมื่อ hover */
         }
 
         .table-container {
@@ -190,6 +188,7 @@
     <div class="credit">Web development by Bungnot version update 2.0.0</div>
 
     <div style="margin-top: 10px;">
+        <img src="https://img5.pic.in.th/file/secure-sv1/ChatGPT-Image-13-..-2568-15_31_37.png" alt="รูปโปรไฟล์" style="width: 100px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
         <img src="https://i.postimg.cc/W4QQVdX7/3f9d7965-5b59-442d-94ca-c0c6a324f9d1.png" alt="รูปโปรไฟล์" style="width: 100px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
     </div>
 
@@ -236,18 +235,24 @@
         ✅ กันไฟดับ Auto นะจ๊ะ
     </div>
 
-    <div style="margin-top: 50px;">
-        <h3>ส่งข้อความเข้า Line OA (ยังไม่อัพเดท)</h3>
-        <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA" style="padding:10px; width:300px; margin:10px;"><br>
-        <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" style="padding:10px; width:300px; height:100px; margin:10px;"></textarea><br>
-        <button onclick="sendMessageToLine()" style="padding:10px 20px; font-size:16px;">ส่งข้อความ</button>
-    </div>
 
-    <div class="prohibited">
-        วิธีการใช้งาน:<br><br>
-        - ห้ามใส่ตัวเลข 3 หลักที่อื่น นอกจากช่อง ราคาบั้งไฟ ใส่ได้<br>
-        - ถ้าคนยกเลิกแผลให้ลบแถวไปได้เลย<br>
-        - เวลาจะลบแถว ให้พิมพ์อะไรก็ได้ลงในช่องก่อน
+
+
+        <div style="margin-top: 50px;">
+            <h3>ส่งข้อความเข้า Line OA (ยังไม่อัพเดท)</h3>
+            <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA" style="padding:10px; width:300px; margin:10px;"><br>
+            <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" style="padding:10px; width:300px; height:100px; margin:10px;"></textarea><br>
+            <button onclick="sendMessageToLine()" style="padding:10px 20px; font-size:16px;">ส่งข้อความ</button>
+        </div>
+
+
+
+        <div class="prohibited">
+            วิธีการใช้งาน:<br><br>
+            - ห้ามใส่ตัวเลข 3 หลักที่อื่น นอกจากช่อง ราคาบั้งไฟ ใส่ได้<br>
+            - ถ้าคนยกเลิกแผลให้ลบแถวไปได้เลย<br>
+            - เวลาจะลบแถว ให้พิมพ์อะไรก็ได้ลงในช่องก่อน
+        </div>
     </div>
 
     <div id="tables-container"></div>
