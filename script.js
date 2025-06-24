@@ -102,14 +102,59 @@ function showHistory() {
     }
 
     let newWindow = window.open("", "History", "width=800,height=600");
-    newWindow.document.write("<h2>ประวัติการลบตาราง</h2>");
-    newWindow.document.write(`<p><strong>กำไรรวมทั้งหมด:</strong> ฿${totalDeletedProfit.toFixed(2)}</p><hr>`);
+    newWindow.document.write(`
+        <html>
+        <head>
+            <title>ประวัติการลบตาราง</title>
+            <style>
+                body {
+                    font-family: 'Sarabun', sans-serif;
+                    padding: 20px;
+                    background-color: #f9f9f9;
+                }
+                h2 {
+                    color: #e91e63;
+                    margin-bottom: 10px;
+                }
+                .total-profit {
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #4CAF50;
+                    margin-bottom: 20px;
+                }
+                img {
+                    max-width: 100%;
+                    margin-bottom: 10px;
+                    border: 1px solid #ccc;
+                    border-radius: 8px;
+                }
+                .entry {
+                    margin-bottom: 30px;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    background: #fff;
+                    border-radius: 10px;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>ประวัติการลบตาราง</h2>
+            <div class="total-profit">กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</div>
+    `);
 
     historyData.forEach(data => {
-        newWindow.document.write(`<img src='${data.imgData}' style='max-width:100%; margin-bottom:10px;'>`);
-        newWindow.document.write(`<p>กำไรที่คำนวณได้: ฿${data.profit.toFixed(2)}</p>`);
+        newWindow.document.write(`
+            <div class="entry">
+                <img src='${data.imgData}'>
+                <p>กำไรที่คำนวณได้: ฿${data.profit.toFixed(2)}</p>
+            </div>
+        `);
     });
+
+    newWindow.document.write(`</body></html>`);
+    newWindow.document.close();
 }
+
 
 
 function saveData() {
