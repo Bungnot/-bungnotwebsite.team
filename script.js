@@ -1,4 +1,5 @@
 let historyData = [];
+let totalDeletedProfit = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
     loadData(); // โหลดข้อมูลเมื่อหน้าเว็บเปิด
@@ -72,6 +73,7 @@ function removeTable(button) {
         html2canvas(tableContainer).then(canvas => {
             const imgData = canvas.toDataURL("image/png");
             historyData.push({ imgData, profit: totalProfit });
+            totalDeletedProfit += totalProfit;
             alert("ตารางถูกลบแล้ว! คุณสามารถดูประวัติได้");
         });
         tableContainer.remove();
@@ -98,13 +100,17 @@ function showHistory() {
         alert("ยังไม่มีประวัติการลบตาราง");
         return;
     }
+
     let newWindow = window.open("", "History", "width=800,height=600");
     newWindow.document.write("<h2>ประวัติการลบตาราง</h2>");
+    newWindow.document.write(`<p><strong>กำไรรวมทั้งหมด:</strong> ฿${totalDeletedProfit.toFixed(2)}</p><hr>`);
+
     historyData.forEach(data => {
         newWindow.document.write(`<img src='${data.imgData}' style='max-width:100%; margin-bottom:10px;'>`);
         newWindow.document.write(`<p>กำไรที่คำนวณได้: ฿${data.profit.toFixed(2)}</p>`);
     });
 }
+
 
 function saveData() {
     const data = [];
