@@ -44,7 +44,7 @@ function getLineIdFromName(nameRaw){
 }
 
 const MSG_TPL_WIN = (title, amount) => `🎉 ผลค่าย ${title}\nคุณได้ +${Math.round(amount).toLocaleString()} (หัก 10% แล้ว)\nขอบคุณที่เล่นกับเรา 🙏`;
-const MSG_TPL_LOSE = (title, amount) => `📣 ผลค่าย ${title}\nยอดที่ต้องชำระ -${Math.round(amount).toLocaleString()}\nโปรดชำระตามกติกานะครับ 🙏`;
+const MSG_TPL_LOSE = (title, amount) => `📣 ผลค่าย ${title}\nยอดที่ต้องชำระ -${Math.round(amount).toLocaleString()}\n 🙏`;
 
 async function pushText(to, text){
     const res = await fetch("https://api.line.me/v2/bot/message/push", {
