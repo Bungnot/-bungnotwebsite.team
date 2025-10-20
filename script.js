@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===== [ADD] LINE auto-send helpers & contact learning =====
-const CHANNEL_ACCESS_TOKEN = "[ใส่ Channel Access Token ของคุณที่นี่]"; // แนะนำย้ายไป proxy ฝั่งเซิร์ฟเวอร์จริงจัง
+const CHANNEL_ACCESS_TOKEN = "fmjqWDCs2Z1zL5z4o3+SNRTsSDMlYRUzgETICw6LZrCR36SanGMBWiy3v6Xl4aP9jk8TTD6p+zZtezzEkNLZgXEvffePBNtfFB2g8vjYzD6ba+vm3xt8l33d9Rn0ennRiUykVEUOqp27mbrTPfxuVQdB04t89/1O/w1cDnyilFU="; // แนะนำย้ายไป proxy ฝั่งเซิร์ฟเวอร์จริงจัง
 
 const LINE_ID_STORE_KEY = "line_id_book";
 function loadLineIdBook(){ try{ return JSON.parse(localStorage.getItem(LINE_ID_STORE_KEY) || "{}"); }catch(e){ return {}; } }
