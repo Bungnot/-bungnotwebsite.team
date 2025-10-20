@@ -17,35 +17,49 @@ function addRow(table) {
     tbody.appendChild(newRow);
 }
 
-function addTable() {
-    const container = document.getElementById("tables-container");
-    const newTable = document.createElement("div");
-    newTable.classList.add("table-container");
-    newTable.innerHTML = `
-        <button class="remove-table" onclick="removeTable(this)">X</button>
-        <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย">
-        <table>
-            <thead>
-                <tr>
-                    <th> รายชื่อไลน์คนไล่</th>
-                    <th>ราคาคนเล่นกัน</th>
-                    <th> รายชื่อไลน์คนยั้ง</th>
-                    <th>แผลยกเลิก X ได้เลย</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="text" placeholder="ใส่ชื่อ"></td>
-                    <td><input type="text" placeholder=" "></td>
-                    <td><input type="text" placeholder="ใส่ชื่อ"></td>
-                    <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
-                </tr>
-            </tbody>
-        </table>
-        <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
-    `;
-    container.appendChild(newTable);
-}
+newTable.innerHTML = `
+    <button class="remove-table" onclick="removeTable(this)">X</button>
+    <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย (เช่น ธนภัทร)">
+    <table>
+        <thead>
+            <tr>
+                <th> รายชื่อไลน์คนไล่</th>
+                <th>ราคาคนเล่นกัน</th>
+                <th> รายชื่อไลน์คนยั้ง</th>
+                <th>แผลยกเลิก X ได้เลย</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" placeholder="@ไลน์คนไล่"></td>
+                <td><input type="text" placeholder="ใส่ราคา เช่น 300"></td>
+                <td><input type="text" placeholder="@ไลน์คนยั้ง"></td>
+                <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- กล่องกำหนดช่วงราคาช่าง + ผล -->
+    <div class="settle-box">
+        <label>ราคาช่าง:</label>
+        <input class="settle-low" type="number" placeholder="ต่ำ (เช่น 285)">
+        <span style="justify-self:center">–</span>
+        <input class="settle-high" type="number" placeholder="สูง (เช่น 295)">
+        <label style="justify-self:end">ผลบั้งไฟ:</label>
+        <input class="settle-result" type="number" placeholder="ผล (เช่น 300)">
+    </div>
+    <div class="settle-actions">
+        <button class="settle-btn" onclick="settleTable(this)">กดปุ่มเพื่อคิดยอด สำหรับค่ายนี้</button>
+    </div>
+    <textarea class="settle-output" placeholder="ผลลัพธ์จะมาแปะตรงนี้ (คัดลอกอัตโนมัติ)"></textarea>
+
+    <!-- ปุ่มเพิ่มแผล (ผูกกับตารางของตัวเอง) -->
+    <button class="add-row-button"
+        onclick="addRow(this.closest('.table-container').querySelector('table'))">
+        เพิ่มแผลที่เล่น
+    </button>
+`;
+
 
 function removeTable(button) {
     const tableContainer = button.parentElement;
@@ -229,6 +243,103 @@ document.addEventListener("keydown", function (e) {
         alert("ไม่อนุญาตให้ดูซอร์สโค้ดหน้านี้");
     }
 });
+
+// ========== ฟังก์ชันช่วยคิดยอด ==========
+function parseAmount(str) {
+    if (!str) return 0;
+    const m = String(str).match(/\d{2,}/g); // ดึงตัวเลขท้ายสุด เช่น "ชล 300" => 300
+    if (!m) return 0;
+    return parseInt(m[m.length - 1], 10) || 0;
+}
+
+function thaiInt(n){ return Math.round(n).toString(); }
+
+function buildSettlementMessages(tableContainer) {
+    const low   = parseInt(tableContainer.querySelector('.settle-low')?.value || '', 10);
+    const high  = parseInt(tableContainer.querySelector('.settle-high')?.value || '', 10);
+    const result= parseInt(tableContainer.querySelector('.settle-result')?.value || '', 10);
+    const title = tableContainer.querySelector('.table-title-input')?.value?.trim() || 'ราคาช่าง';
+
+    if (Number.isNaN(low) || Number.isNaN(high) || Number.isNaN(result)) {
+        throw new Error('กรุณากรอก "ต่ำ–สูง–ผลบั้งไฟ" ให้ครบเป็นตัวเลข');
+    }
+    if (low > high) throw new Error('ค่าต่ำ มากกว่าค่าสูง กรุณาตรวจสอบ');
+
+    let outcome;
+    if (result < low) outcome = 'ต่ำ';
+    else if (result > high) outcome = 'สูง';
+    else outcome = 'เสมอ';
+
+    const rows = Array.from(tableContainer.querySelectorAll('tbody tr'));
+    const messages = [];
+
+    if (outcome === 'เสมอ') {
+        messages.push({ name: '(ระบบ)', text: `ผล ${result} อยู่ในช่วง ${low}-${high} : เสมอ (ไม่ต้องคิดยอด)` });
+        return { messages, outcome };
+    }
+
+    // 'ไล่' = คอลัมน์ซ้าย, 'ยั้ง' = คอลัมน์ขวา
+    const winnerSide = (outcome === 'ต่ำ') ? 'right' : 'left';
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const nameLeft  = cells[0]?.querySelector('input')?.value?.trim();
+        const priceStr  = cells[1]?.querySelector('input')?.value?.trim();
+        const nameRight = cells[2]?.querySelector('input')?.value?.trim();
+
+        const amt = parseAmount(priceStr);
+        if (!amt) return;
+
+        const winAmt  = amt * 0.9; // หัก 10% ให้ผู้ชนะ
+        const loseAmt = amt;       // ผู้แพ้เสียเต็ม
+
+        if (winnerSide === 'left') {
+            if (nameLeft)  messages.push({ name: nameLeft,  text: `( ${title} +${thaiInt(winAmt)} )` });
+            if (nameRight) messages.push({ name: nameRight, text: `( ${title} -${thaiInt(loseAmt)} )` });
+        } else {
+            if (nameRight) messages.push({ name: nameRight, text: `( ${title} +${thaiInt(winAmt)} )` });
+            if (nameLeft)  messages.push({ name: nameLeft,  text: `( ${title} -${thaiInt(loseAmt)} )` });
+        }
+    });
+
+    return { messages, outcome };
+}
+
+function settleTable(btn) {
+    const tableContainer = btn.closest('.table-container');
+    try {
+        const { messages, outcome } = buildSettlementMessages(tableContainer);
+        const out = tableContainer.querySelector('.settle-output');
+        out.value =
+            `ผลค่ายนี้: ${outcome}\n` +
+            messages.map(m => `${m.name}  ${m.text}`).join('\n');
+
+        navigator.clipboard.writeText(out.value).catch(()=>{});
+        alert('คำนวณสำเร็จ! คัดลอกข้อความแล้ว วางในห้องแชทได้เลย');
+
+        // ถ้าจะส่งผ่าน LINE OA อัตโนมัติ ให้ทำ mapping displayName -> userId แล้วเรียกฟังก์ชันด้านล่างนี้
+        // messages.forEach(m => sendMessageToLineByName(m.name, m.text));
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+// (ออปชัน) ตัวอย่างโครงส่งข้อความด้วย Line Messaging API (ต้องมี userId)
+function sendMessageToLineByName(displayName, text) {
+    const MAP = { /* "@ชื่อในไลน์": "Uxxxxxxxxxxxx" */ };
+    const userId = MAP[displayName];
+    if (!userId) return;
+
+    fetch("https://api.line.me/v2/bot/message/push", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer [ใส่ Channel Access Token]"
+        },
+        body: JSON.stringify({ to: userId, messages: [{ type: "text", text }] })
+    }).catch(()=>{});
+}
+
 
 
 function showAutoSaveAlert() {
