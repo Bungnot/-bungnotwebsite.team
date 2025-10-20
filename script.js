@@ -176,7 +176,7 @@ function saveData() {
     const tables = document.querySelectorAll(".table-container");
 
     tables.forEach(tableContainer => {
-        const title = tableContainer.querySelector(".table-title-input").value;
+        const title = tableContainer.querySelector(".table-title-input")?.value || "";
         const rows = [];
         tableContainer.querySelectorAll("tbody tr").forEach(row => {
             const cells = row.querySelectorAll("input");
@@ -186,11 +186,19 @@ function saveData() {
                 cells[2]?.value || ""
             ]);
         });
-        data.push({ title, rows });
+
+        // เก็บค่าช่วงและผล
+        const low  = tableContainer.querySelector('.settle-low')?.value || "";
+        const high = tableContainer.querySelector('.settle-high')?.value || "";
+        const res  = tableContainer.querySelector('.settle-result')?.value || "";
+
+        data.push({ title, rows, low, high, res });
     });
 
     localStorage.setItem("savedTables", JSON.stringify(data));
 }
+
+
 
 function loadData() {
     const data = JSON.parse(localStorage.getItem("savedTables"));
@@ -204,7 +212,7 @@ function loadData() {
         newTable.classList.add("table-container");
 
         let rowsHtml = "";
-        table.rows.forEach(row => {
+        (table.rows || []).forEach(row => {
             rowsHtml += `
                 <tr>
                     <td><input type="text" value="${row[0] || ""}"></td>
@@ -217,7 +225,7 @@ function loadData() {
 
         newTable.innerHTML = `
             <button class="remove-table" onclick="removeTable(this)">X</button>
-            <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย" value="${table.title || ""}">
+            <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย (เช่น ธนภัทร)" value="${table.title || ""}">
             <table>
                 <thead>
                     <tr>
@@ -231,11 +239,29 @@ function loadData() {
                     ${rowsHtml}
                 </tbody>
             </table>
-            <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
+
+            <div class="settle-box">
+                <label>ราคาช่าง:</label>
+                <input class="settle-low" type="number" placeholder="ต่ำ"  value="${table.low  || ""}">
+                <span style="justify-self:center">–</span>
+                <input class="settle-high" type="number" placeholder="สูง" value="${table.high || ""}">
+                <label style="justify-self:end">ผลบั้งไฟ:</label>
+                <input class="settle-result" type="number" placeholder="ผล" value="${table.res || ""}">
+            </div>
+            <div class="settle-actions">
+                <button class="settle-btn" onclick="settleTable(this)">กดปุ่มเพื่อคิดยอด สำหรับค่ายนี้</button>
+            </div>
+            <textarea class="settle-output" placeholder="ผลลัพธ์จะมาแปะตรงนี้ (คัดลอกอัตโนมัติ)"></textarea>
+
+            <button class="add-row-button"
+                onclick="addRow(this.closest('.table-container').querySelector('table'))">
+                เพิ่มแผลที่เล่น
+            </button>
         `;
         container.appendChild(newTable);
     });
 }
+
 
 document.addEventListener("keydown", function (e) {
     if (e.ctrlKey && e.key.toLowerCase() === "u") {
