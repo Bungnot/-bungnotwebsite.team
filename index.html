@@ -314,30 +314,25 @@
 
 
 
-        <!-- ⬇⬇⬇ แทนที่บล็อกเก่า ด้วย “สมุดรายชื่อ LINE (ชื่อ + UID)” ⬇⬇⬇ -->
-        <div style="margin-top: 50px;">
-            <h3>สมุดรายชื่อ LINE (บันทึก ชื่อ + UID)</h3>
+    <!-- สมุดรายชื่อ LINE (บันทึก ชื่อ + UID) — แบบมินิมอล -->
+    <div style="margin-top: 50px;">
+      <h3>สมุดรายชื่อ LINE (บันทึก ชื่อ + UID)</h3>
+    
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+        <input type="text" id="contactName" placeholder="กรอกชื่อในไลน์ (เช่น Macus William)"
+               style="padding:10px; width:260px; margin:5px;">
+        <input type="text" id="contactUid" placeholder="กรอก UID (ขึ้นต้นด้วย U...)"
+               style="padding:10px; width:360px; margin:5px;">
+        <button onclick="uiSaveContact()" style="padding:10px 16px; font-size:16px;">บันทึก</button>
+        <button onclick="uiClearInputs()" style="padding:10px 16px; font-size:16px;">ล้างช่อง</button>
+        <button onclick="openLineBookWindow()" style="padding:10px 16px; font-size:16px;">เปิดดูรายชื่อ (New Tab)</button>
+      </div>
+    
+      <small style="display:block; margin-top:8px; color:#666;">
+        * รายชื่อถูกเก็บในเครื่องนี้ (localStorage) และถูกใช้ตอนกด “💰 คิดยอดค่ายนี้” เพื่อส่งข้อความอัตโนมัติ
+      </small>
+    </div>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
-                <input type="text" id="contactName" placeholder="กรอกชื่อในไลน์ (เช่น เบียร์)" style="padding:10px; width:260px; margin:5px;">
-                <input type="text" id="contactUid" placeholder="กรอก UID (ขึ้นต้นด้วย U…)" style="padding:10px; width:360px; margin:5px;">
-                <button onclick="uiSaveContact()" style="padding:10px 16px; font-size:16px;">บันทึก</button>
-                <button onclick="uiClearInputs()" style="padding:10px 16px; font-size:16px;">ล้างช่อง</button>
-            </div>
-
-            <div style="max-width:760px; margin:12px auto 0;">
-                <input type="text" id="contactSearch" placeholder="ค้นหาชื่อ..." oninput="renderLineBook()" style="padding:8px; width:100%; margin:5px 0;">
-                <table style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr>
-                            <th style="border:1px solid #ddd; padding:8px;">ชื่อ</th>
-                            <th style="border:1px solid #ddd; padding:8px;">UID</th>
-                            <th style="border:1px solid #ddd; padding:8px;">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lineBookList"></tbody>
-                </table>
-            </div>
 
             <small style="display:block; margin-top:8px; color:#666;">
                 * รายชื่อถูกเก็บในเบราว์เซอร์เครื่องนี้ (localStorage) และถูกใช้ตอนกด “💰 คิดยอดค่ายนี้” เพื่อส่งข้อความอัตโนมัติ
@@ -359,3 +354,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
