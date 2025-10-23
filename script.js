@@ -5,6 +5,164 @@ document.addEventListener("DOMContentLoaded", () => {
     loadData(); // โหลดข้อมูลเมื่อหน้าเว็บเปิด
 });
 
+// ===== [ADD] LINE auto-send helpers & contact learning =====
+const CHANNEL_ACCESS_TOKEN = "Pu1ujjTeMEd+pawiPhiJoASTNCS8LFBfsPC0nia5FyrwmVjTl4NLy+3TEh74smG4t9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+LM6HKMb2YcTmLq0K8CnkPa5jSkrpmCqWX0sXVtdLD8dwdB04t89/1O/w1cDnyilFU="; // แนะนำย้ายไป proxy ฝั่งเซิร์ฟเวอร์จริงจัง
+
+const LINE_ID_STORE_KEY = "line_id_book";
+function loadLineIdBook(){ try{ return JSON.parse(localStorage.getItem(LINE_ID_STORE_KEY) || "{}"); }catch(e){ return {}; } }
+function saveLineIdBook(book){ localStorage.setItem(LINE_ID_STORE_KEY, JSON.stringify(book||{})); }
+let LINE_ID_BOOK = loadLineIdBook();
+
+function learnFromURL(){
+    const usp = new URLSearchParams(location.search);
+    if(usp.get("learn")==="1"){
+        const name = (usp.get("name")||"").trim();
+        const uid  = (usp.get("uid")||"").trim();
+        if(name && uid){
+            LINE_ID_BOOK[name] = uid;
+            saveLineIdBook(LINE_ID_BOOK);
+            console.log("[LEARN] saved mapping", name, uid);
+        }
+    }
+}
+window.learnLineContact = function(name, uid){
+    const n=(name||"").trim(), u=(uid||"").trim();
+    if(!n || !u) return false;
+    LINE_ID_BOOK[n]=u; saveLineIdBook(LINE_ID_BOOK);
+    console.log("[LEARN] saved mapping", n, u);
+    return true;
+}
+
+function getLineIdFromName(nameRaw){
+    const name = (nameRaw||"").trim();
+    if(!name) return "";
+    if(name.includes("|")){
+        const parts = name.split("|");
+        return (parts[1]||"").trim();
+    }
+    return LINE_ID_BOOK[name] || "";
+}
+
+const MSG_TPL_WIN = (title, amount) => `🎉 ผลค่าย ${title}\nคุณได้ +${Math.round(amount).toLocaleString()} (หัก 10% แล้ว)\nขอบคุณที่เล่นกับเรา 🙏`;
+const MSG_TPL_LOSE = (title, amount) => `📣 ผลค่าย ${title}\nยอดที่ต้องชำระ -${Math.round(amount).toLocaleString()}\n 🙏`;
+
+async function pushText(to, text){
+    const res = await fetch("https://api.line.me/v2/bot/message/push", {
+        method: "POST",
+        headers: {"Content-Type":"application/json","Authorization":"Bearer "+CHANNEL_ACCESS_TOKEN},
+        body: JSON.stringify({ to, messages: [{type:"text", text}] })
+    });
+    if(!res.ok){ throw new Error(await res.text()); }
+}
+
+async function sendBulkLine(winList, loseList, autoSend){
+    if(!autoSend) return;
+    if(!CHANNEL_ACCESS_TOKEN || CHANNEL_ACCESS_TOKEN.includes("ใส่")){
+        alert("ยังไม่ได้ตั้งค่า CHANNEL_ACCESS_TOKEN");
+        return;
+    }
+    const items = [...winList, ...loseList].filter(x=>!!x.lineId);
+    if(items.length===0){
+        alert("ไม่มี LINE ID ตรงกับรายชื่อ (เพิ่มใน LINE_ID_BOOK หรือพิมพ์เป็น 'ชื่อ|Uxxxx')");
+        return;
+    }
+    const uniq = new Set(items.map(x=>x.lineId)).size;
+    if(!confirm(`จะส่ง ${items.length} ข้อความ ไปยัง ${uniq} คน ใช่ไหม?`)) return;
+
+    for(const it of items){
+        const text = it.type==="win" ? MSG_TPL_WIN(it.title, it.amount) : MSG_TPL_LOSE(it.title, it.amount);
+        try{
+            await pushText(it.lineId, text);
+            await new Promise(r=>setTimeout(r,250));
+        }catch(e){ console.error("ส่งไม่สำเร็จ", it, e); }
+    }
+    alert("✅ ส่ง LINE เสร็จแล้ว");
+}
+
+
+
+// =================== เพิ่มฟังก์ชันคิดยอด ===================
+
+function calculateSettle(tableContainer) {
+    try {
+        const low = parseFloat(tableContainer.querySelector('.settle-low')?.value || '');
+        const high = parseFloat(tableContainer.querySelector('.settle-high')?.value || '');
+        const result = parseFloat(tableContainer.querySelector('.settle-result')?.value || '');
+        const title = tableContainer.querySelector('.table-title-input')?.value?.trim() || 'ค่ายนี้';
+        const autoSend = !!tableContainer.querySelector('.settle-autosend')?.checked;
+
+        if (isNaN(low) || isNaN(high) || isNaN(result)) {
+            alert("⚠️ กรุณากรอก ราคาช่างต่ำ–สูง และผลบั้งไฟ ให้ครบก่อน");
+            return;
+        }
+
+        let outcome = '';
+        if (result < low) outcome = 'ต่ำ';
+        else if (result > high) outcome = 'สูง';
+        else outcome = 'เสมอ';
+
+        const rows = tableContainer.querySelectorAll("tbody tr");
+        const messages = [];
+        const winList = [];
+        const loseList = [];
+
+        if (outcome === 'เสมอ') {
+            messages.push(`ผล ${result} อยู่ในช่วง ${low}-${high} → เสมอ (ไม่คิดยอด)`);
+        } else {
+            const winnerSide = outcome === 'ต่ำ' ? 'right' : 'left';
+            rows.forEach(row => {
+                const cells = row.querySelectorAll("td input");
+                const nameLeft = (cells[0]?.value || '').trim();
+                const priceStr = (cells[1]?.value || '').trim();
+                const nameRight = (cells[2]?.value || '').trim();
+
+                const match = priceStr.match(/\d{2,}/g);
+                const price = match ? parseFloat(match[0]) : NaN;
+                if (isNaN(price)) return;
+
+                const winAmt = price * 0.9;
+                const loseAmt = price;
+
+                if (winnerSide === 'left') {
+                    if (nameLeft) {
+                        messages.push(`( ${title} +${winAmt} ) → ${nameLeft}`);
+                        winList.push({type:"win", title, name:nameLeft, lineId:getLineIdFromName(nameLeft), amount:winAmt});
+                    }
+                    if (nameRight) {
+                        messages.push(`( ${title} -${loseAmt} ) → ${nameRight}`);
+                        loseList.push({type:"lose", title, name:nameRight, lineId:getLineIdFromName(nameRight), amount:loseAmt});
+                    }
+                } else {
+                    if (nameRight) {
+                        messages.push(`( ${title} +${winAmt} ) → ${nameRight}`);
+                        winList.push({type:"win", title, name:nameRight, lineId:getLineIdFromName(nameRight), amount:winAmt});
+                    }
+                    if (nameLeft) {
+                        messages.push(`( ${title} -${loseAmt} ) → ${nameLeft}`);
+                        loseList.push({type:"lose", title, name:nameLeft, lineId:getLineIdFromName(nameLeft), amount:loseAmt});
+                    }
+                }
+            });
+        }
+
+        const output = tableContainer.querySelector('.settle-output');
+        if (output) {
+            output.value = messages.join("\n");
+        }
+        try { navigator.clipboard.writeText(messages.join("\n")); } catch(e) {}
+
+        sendBulkLine(winList, loseList, autoSend);
+
+        alert("✅ คิดยอดสำเร็จ! คัดลอกข้อความให้แล้ว");
+    } catch (err) {
+        console.error(err);
+        alert("เกิดข้อผิดพลาดในการคำนวณยอด");
+    }
+}
+
+// =========================================================
+
+
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
@@ -42,7 +200,22 @@ function addTable() {
                 </tr>
             </tbody>
         </table>
-        <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
+
+        <!-- ✅ เพิ่มส่วนคิดยอดบั้งไฟ -->
+        <div style="margin-top:10px; border-top:1px dashed #aaa; padding-top:8px;">
+            <label>ราคาช่าง:</label>
+            <input type="number" class="settle-low" placeholder="ต่ำ">
+            -
+            <input type="number" class="settle-high" placeholder="สูง">
+            <label style="margin-left:10px;">ผลบั้งไฟ:</label>
+            <input type="number" class="settle-result" placeholder="ผล">
+            <button style="margin-left:10px; background:#0ea5e9;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;"
+                onclick="calculateSettle(this.closest('.table-container'))">💰 คิดยอดค่ายนี้</button>
+            <label style="margin-left:10px; user-select:none;"><input type="checkbox" class="settle-autosend"> ส่ง LINE อัตโนมัติ</label>
+            <textarea class="settle-output" placeholder="ผลลัพธ์จะมาแสดงตรงนี้..." style="width:100%;margin-top:8px;height:80px;"></textarea>
+        </div>
+
+        <button class="add-row-button" onclick="addRow(this.previousElementSibling.previousElementSibling)">เพิ่มแผลที่เล่น</button>
     `;
     container.appendChild(newTable);
 }
@@ -107,34 +280,11 @@ function showHistory() {
         <head>
             <title>ประวัติการลบตาราง</title>
             <style>
-                body {
-                    font-family: 'Sarabun', sans-serif;
-                    padding: 20px;
-                    background-color: #f9f9f9;
-                }
-                h2 {
-                    color: #e91e63;
-                    margin-bottom: 10px;
-                }
-                .total-profit {
-                    font-size: 20px;
-                    font-weight: bold;
-                    color: #4CAF50;
-                    margin-bottom: 20px;
-                }
-                img {
-                    max-width: 100%;
-                    margin-bottom: 10px;
-                    border: 1px solid #ccc;
-                    border-radius: 8px;
-                }
-                .entry {
-                    margin-bottom: 30px;
-                    padding: 10px;
-                    border: 1px solid #ddd;
-                    background: #fff;
-                    border-radius: 10px;
-                }
+                body {font-family: 'Sarabun', sans-serif; padding: 20px; background-color: #f9f9f9;}
+                h2 {color: #e91e63;}
+                .total-profit {font-size: 20px; font-weight: bold; color: #4CAF50; margin-bottom: 20px;}
+                img {max-width: 100%; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px;}
+                .entry {margin-bottom: 30px; padding: 10px; border: 1px solid #ddd; background: #fff; border-radius: 10px;}
             </style>
         </head>
         <body>
@@ -156,7 +306,6 @@ function showHistory() {
 }
 
 
-
 function saveData() {
     const data = [];
     const tables = document.querySelectorAll(".table-container");
@@ -172,7 +321,10 @@ function saveData() {
                 cells[2]?.value || ""
             ]);
         });
-        data.push({ title, rows });
+        const low = tableContainer.querySelector('.settle-low')?.value || "";
+        const high = tableContainer.querySelector('.settle-high')?.value || "";
+        const res = tableContainer.querySelector('.settle-result')?.value || "";
+        data.push({ title, rows, low, high, res });
     });
 
     localStorage.setItem("savedTables", JSON.stringify(data));
@@ -217,7 +369,20 @@ function loadData() {
                     ${rowsHtml}
                 </tbody>
             </table>
-            <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
+
+            <div style="margin-top:10px; border-top:1px dashed #aaa; padding-top:8px;">
+                <label>ราคาช่าง:</label>
+                <input type="number" class="settle-low" placeholder="ต่ำ" value="${table.low || ""}">
+                -
+                <input type="number" class="settle-high" placeholder="สูง" value="${table.high || ""}">
+                <label style="margin-left:10px;">ผลบั้งไฟ:</label>
+                <input type="number" class="settle-result" placeholder="ผล" value="${table.res || ""}">
+                <button style="margin-left:10px; background:#0ea5e9;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;"
+                    onclick="calculateSettle(this.closest('.table-container'))">💰 คิดยอดค่ายนี้</button>
+                <textarea class="settle-output" placeholder="ผลลัพธ์จะมาแสดงตรงนี้..." style="width:100%;margin-top:8px;height:80px;"></textarea>
+            </div>
+
+            <button class="add-row-button" onclick="addRow(this.previousElementSibling.previousElementSibling)">เพิ่มแผลที่เล่น</button>
         `;
         container.appendChild(newTable);
     });
@@ -230,28 +395,23 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
-
 function showAutoSaveAlert() {
     const alertBox = document.getElementById("auto-save-alert");
     alertBox.style.opacity = "1";
     setTimeout(() => {
         alertBox.style.opacity = "0";
-    }, 2000); // แสดง 2 วินาที
+    }, 2000);
 }
-
 
 setInterval(() => {
     saveData();
     console.log("ข้อมูลถูกบันทึกอัตโนมัติ");
-    showAutoSaveAlert(); // เรียกแสดงกล่องแจ้งเตือน
+    showAutoSaveAlert();
 }, 15000);
-
-
 
 function sendMessageToLine() {
     const name = document.getElementById("lineName").value;
     const msg = document.getElementById("messageToSend").value;
-
     const fullMsg = `ชื่อผู้ส่ง: ${name}\nข้อความ: ${msg}`;
 
     fetch("https://api.line.me/v2/bot/message/push", {
@@ -262,12 +422,7 @@ function sendMessageToLine() {
         },
         body: JSON.stringify({
             to: "[User ID ของผู้รับข้อความ (หรือ Group ID)]",
-            messages: [
-                {
-                    type: "text",
-                    text: fullMsg
-                }
-            ]
+            messages: [{ type: "text", text: fullMsg }]
         })
     })
     .then(res => res.json())
