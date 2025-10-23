@@ -151,7 +151,7 @@ function calculateSettle(tableContainer) {
         }
         try { navigator.clipboard.writeText(messages.join("\n")); } catch(e) {}
 
-        sendBulkLine(winList, loseList, autoSend);
+       sendBulkLine(winList, loseList, true);
 
         alert("✅ คิดยอดสำเร็จ! คัดลอกข้อความให้แล้ว");
     } catch (err) {
@@ -212,6 +212,7 @@ function addTable() {
             <button style="margin-left:10px; background:#0ea5e9;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;"
                 onclick="calculateSettle(this.closest('.table-container'))">💰 คิดยอดค่ายนี้</button>
             <label style="margin-left:10px; user-select:none;"><input type="checkbox" class="settle-autosend"> ส่ง LINE อัตโนมัติ</label>
+            <input type="checkbox" class="settle-autosend" checked>
             <textarea class="settle-output" placeholder="ผลลัพธ์จะมาแสดงตรงนี้..." style="width:100%;margin-top:8px;height:80px;"></textarea>
         </div>
 
