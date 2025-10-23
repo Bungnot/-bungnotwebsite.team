@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>More actions
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -314,31 +314,13 @@
 
 
 
-    <!-- สมุดรายชื่อ LINE (บันทึก ชื่อ + UID) — แบบมินิมอล -->
-    <div style="margin-top: 50px;">
-      <h3>สมุดรายชื่อ LINE (บันทึก ชื่อ + UID)</h3>
-    
-      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
-        <input type="text" id="contactName" placeholder="กรอกชื่อในไลน์ (เช่น Macus William)"
-               style="padding:10px; width:260px; margin:5px;">
-        <input type="text" id="contactUid" placeholder="กรอก UID (ขึ้นต้นด้วย U...)"
-               style="padding:10px; width:360px; margin:5px;">
-        <button onclick="uiSaveContact()" style="padding:10px 16px; font-size:16px;">บันทึก</button>
-        <button onclick="uiClearInputs()" style="padding:10px 16px; font-size:16px;">ล้างช่อง</button>
-        <button onclick="openLineBookWindow()" style="padding:10px 16px; font-size:16px;">เปิดดูรายชื่อ (New Tab)</button>
-      </div>
-    
-      <small style="display:block; margin-top:8px; color:#666;">
-        * รายชื่อถูกเก็บในเครื่องนี้ (localStorage) และถูกใช้ตอนกด “💰 คิดยอดค่ายนี้” เพื่อส่งข้อความอัตโนมัติ
-      </small>
-    </div>
-
-
-            <small style="display:block; margin-top:8px; color:#666;">
-                * รายชื่อถูกเก็บในเบราว์เซอร์เครื่องนี้ (localStorage) และถูกใช้ตอนกด “💰 คิดยอดค่ายนี้” เพื่อส่งข้อความอัตโนมัติ
-            </small>
+        <div style="margin-top: 50px;">
+            <h3>ส่งข้อความเข้า Line OA (ยังไม่อัพเดท)</h3>
+            <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA" style="padding:10px; width:300px; margin:10px;"><br>
+            <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" style="padding:10px; width:300px; height:100px; margin:10px;"></textarea><br>
+            <button onclick="sendMessageToLine()" style="padding:10px 20px; font-size:16px;">ส่งข้อความ</button>
         </div>
-        <!-- ⬆⬆⬆ จบส่วนสมุดรายชื่อ LINE ⬆⬆⬆ -->
+
 
 
         <div class="prohibited">
@@ -354,4 +336,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
