@@ -151,7 +151,7 @@ function calculateSettle(tableContainer) {
         }
         try { navigator.clipboard.writeText(messages.join("\n")); } catch(e) {}
 
-       sendBulkLine(winList, loseList, true);
+        sendBulkLine(winList, loseList, autoSend);
 
         alert("✅ คิดยอดสำเร็จ! คัดลอกข้อความให้แล้ว");
     } catch (err) {
@@ -212,7 +212,6 @@ function addTable() {
             <button style="margin-left:10px; background:#0ea5e9;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;"
                 onclick="calculateSettle(this.closest('.table-container'))">💰 คิดยอดค่ายนี้</button>
             <label style="margin-left:10px; user-select:none;"><input type="checkbox" class="settle-autosend"> ส่ง LINE อัตโนมัติ</label>
-            <input type="checkbox" class="settle-autosend" checked>
             <textarea class="settle-output" placeholder="ผลลัพธ์จะมาแสดงตรงนี้..." style="width:100%;margin-top:8px;height:80px;"></textarea>
         </div>
 
@@ -410,9 +409,10 @@ setInterval(() => {
     showAutoSaveAlert();
 }, 15000);
 
+// ====== (ของเดิม) ปุ่มส่งข้อความทดลอง – คงไว้ตามเดิม แม้ไม่มีการใช้งานจริง ======
 function sendMessageToLine() {
-    const name = document.getElementById("lineName").value;
-    const msg = document.getElementById("messageToSend").value;
+    const name = document.getElementById("lineName")?.value || "";
+    const msg = document.getElementById("messageToSend")?.value || "";
     const fullMsg = `ชื่อผู้ส่ง: ${name}\nข้อความ: ${msg}`;
 
     fetch("https://api.line.me/v2/bot/message/push", {
@@ -436,3 +436,83 @@ function sendMessageToLine() {
         alert("เกิดข้อผิดพลาดในการส่งข้อความ");
     });
 }
+
+// ====== [NEW] UI: สมุดรายชื่อ LINE (ชื่อ + UID) ======
+window.renderLineBook = function(){
+  const tbody = document.getElementById("lineBookList");
+  if(!tbody) return;
+  const q = (document.getElementById("contactSearch")?.value || "").trim().toLowerCase();
+  tbody.innerHTML = "";
+
+  const entries = Object.entries(LINE_ID_BOOK)
+    .filter(([name, uid]) => !q || name.toLowerCase().includes(q) || uid.toLowerCase().includes(q))
+    .sort((a,b)=> a[0].localeCompare(b[0], "th"));
+
+  if(entries.length === 0){
+    tbody.innerHTML = `<tr><td colspan="3" style="border:1px solid #ddd; padding:8px; text-align:center; color:#777;">
+      ยังไม่มีรายชื่อหรือไม่พบผลลัพธ์การค้นหา</td></tr>`;
+    return;
+  }
+
+  for(const [name, uid] of entries){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="border:1px solid #ddd; padding:8px;">${name}</td>
+      <td style="border:1px solid #ddd; padding:8px; font-family:monospace;">${uid}</td>
+      <td style="border:1px solid #ddd; padding:8px; text-align:center;">
+        <button onclick="uiEditContact('${name.replace(/'/g,"\\'")}')" style="margin-right:6px;">แก้ไข</button>
+        <button onclick="uiDeleteContact('${name.replace(/'/g,"\\'")}')">ลบ</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+};
+
+window.uiSaveContact = function(){
+  const name = (document.getElementById("contactName")?.value || "").trim();
+  const uid  = (document.getElementById("contactUid")?.value  || "").trim();
+
+  if(!name){ alert("กรุณากรอกชื่อในไลน์"); return; }
+  if(!uid || !/^U[a-fA-F0-9]{16,}$/.test(uid)){
+    alert("กรุณากรอก UID ให้ถูกต้อง (ขึ้นต้นด้วย U...)");
+    return;
+  }
+
+  const ok = learnLineContact(name, uid);
+  if(ok){
+    uiClearInputs();
+    renderLineBook();
+    alert("บันทึกรายชื่อเรียบร้อย");
+  }else{
+    alert("ไม่สามารถบันทึกได้");
+  }
+};
+
+window.uiClearInputs = function(){
+  const a = document.getElementById("contactName");
+  const b = document.getElementById("contactUid");
+  if(a) a.value = "";
+  if(b) b.value = "";
+  a?.focus();
+};
+
+window.uiDeleteContact = function(name){
+  if(!confirm(`ลบรายชื่อ “${name}” ?`)) return;
+  delete LINE_ID_BOOK[name];
+  saveLineIdBook(LINE_ID_BOOK);
+  renderLineBook();
+};
+
+window.uiEditContact = function(name){
+  const a = document.getElementById("contactName");
+  const b = document.getElementById("contactUid");
+  if(!a || !b) return;
+  a.value = name;
+  b.value = LINE_ID_BOOK[name] || "";
+  a.focus();
+};
+
+// เรียกวาดสมุดรายชื่อหลัง DOM โหลด (เพิ่มจากเดิม)
+document.addEventListener("DOMContentLoaded", () => {
+  try{ renderLineBook(); }catch(e){}
+});
