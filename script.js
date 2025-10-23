@@ -516,3 +516,127 @@ window.uiEditContact = function(name){
 document.addEventListener("DOMContentLoaded", () => {
   try{ renderLineBook(); }catch(e){}
 });
+
+
+// ===== UI มินิมอล: บันทึกอย่างเดียว ไม่โชว์ในหน้า =====
+window.uiSaveContact = function(){
+  const name = (document.getElementById("contactName")?.value || "").trim();
+  const uid  = (document.getElementById("contactUid")?.value  || "").trim();
+
+  if(!name){ alert("กรุณากรอกชื่อในไลน์"); return; }
+  if(!uid || !/^U[a-fA-F0-9]{16,}$/.test(uid)){ // ตรวจแบบง่าย: ขึ้นต้น U และยาวพอ
+    alert("กรุณากรอก UID ให้ถูกต้อง (ขึ้นต้นด้วย U...)");
+    return;
+  }
+  const ok = learnLineContact(name, uid);  // ใช้ฟังก์ชันเดิมของคุณที่บันทึกลง LINE_ID_BOOK + localStorage
+  if(ok){
+    uiClearInputs();
+    alert("✅ บันทึกเรียบร้อย");
+  }else{
+    alert("ไม่สามารถบันทึกได้");
+  }
+};
+
+window.uiClearInputs = function(){
+  const a = document.getElementById("contactName");
+  const b = document.getElementById("contactUid");
+  if(a) a.value = "";
+  if(b) b.value = "";
+  a?.focus();
+};
+
+// ===== เปิดดูรายชื่อในหน้าต่างใหม่ (New Tab) =====
+window.openLineBookWindow = function(){
+  const w = window.open("", "LineIdBook", "width=900,height=650");
+  if(!w) { alert("เบราว์เซอร์บล็อกป๊อปอัพอยู่ โปรดอนุญาตก่อน"); return; }
+
+  const style = `
+    body{font-family:'Sarabun',sans-serif; padding:16px;}
+    table{width:100%; border-collapse:collapse; margin-top:10px;}
+    th,td{border:1px solid #ddd; padding:8px; text-align:left;}
+    th{background:#f6f6f6;}
+    input[type=text]{padding:8px; width:100%;}
+    .row{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
+    button{padding:6px 10px; border:none; border-radius:6px; cursor:pointer;}
+    .primary{background:#0ea5e9; color:#fff;}
+    .danger{background:#ef4444; color:#fff;}
+  `;
+
+  w.document.write(`
+    <html><head><meta charset="utf-8"><title>สมุดรายชื่อ LINE</title>
+      <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+      <style>${style}</style>
+    </head><body>
+      <h3>สมุดรายชื่อ LINE</h3>
+      <div class="row">
+        <input id="nb_name" type="text" placeholder="ชื่อ">
+        <input id="nb_uid"  type="text" placeholder="UID (ขึ้นต้น U...)">
+        <button id="nb_save" class="primary">บันทึก/แก้ไข</button>
+      </div>
+      <input id="nb_search" type="text" placeholder="ค้นหาชื่อหรือ UID...">
+      <table>
+        <thead><tr><th>ชื่อ</th><th>UID</th><th style="width:160px;">จัดการ</th></tr></thead>
+        <tbody id="nb_tbody"></tbody>
+      </table>
+      <script>
+        const STORE_KEY = "${LINE_ID_STORE_KEY}";
+        function load(){ try{return JSON.parse(localStorage.getItem(STORE_KEY)||"{}"); }catch(e){return{};} }
+        function save(book){ localStorage.setItem(STORE_KEY, JSON.stringify(book||{})); }
+        let BOOK = load();
+
+        function render(){
+          const q=(document.getElementById('nb_search').value||'').trim().toLowerCase();
+          const tb=document.getElementById('nb_tbody'); tb.innerHTML='';
+          const entries=Object.entries(BOOK)
+            .filter(([n,u])=>!q || n.toLowerCase().includes(q)||u.toLowerCase().includes(q))
+            .sort((a,b)=>a[0].localeCompare(b[0],'th'));
+          if(entries.length===0){
+            tb.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#777;">ไม่มีรายการ</td></tr>';
+            return;
+          }
+          for(const [name,uid] of entries){
+            const tr=document.createElement('tr');
+            tr.innerHTML = \`
+              <td>\${name}</td>
+              <td style="font-family:monospace;">\${uid}</td>
+              <td>
+                <button class="primary" data-edit="\${name}">แก้ไข</button>
+                <button class="danger" data-del="\${name}">ลบ</button>
+              </td>\`;
+            tb.appendChild(tr);
+          }
+        }
+
+        document.getElementById('nb_save').onclick = ()=>{
+          const n=(document.getElementById('nb_name').value||'').trim();
+          const u=(document.getElementById('nb_uid').value||'').trim();
+          if(!n){ alert('กรุณากรอกชื่อ'); return; }
+          if(!u || !/^U[a-fA-F0-9]{16,}$/.test(u)){ alert('UID ไม่ถูกต้อง'); return; }
+          BOOK[n]=u; save(BOOK); render();
+          document.getElementById('nb_name').value='';
+          document.getElementById('nb_uid').value='';
+        };
+
+        document.getElementById('nb_search').oninput = render;
+
+        document.body.addEventListener('click', (e)=>{
+          if(e.target.dataset.edit){
+            const name=e.target.dataset.edit;
+            document.getElementById('nb_name').value = name;
+            document.getElementById('nb_uid').value = BOOK[name]||'';
+          }
+          if(e.target.dataset.del){
+            const name=e.target.dataset.del;
+            if(confirm('ลบรายชื่อ "'+name+'"?')){
+              delete BOOK[name]; save(BOOK); render();
+            }
+          }
+        });
+
+        render();
+      <\/script>
+    </body></html>
+  `);
+  w.document.close();
+};
+
