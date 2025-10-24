@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===== [ADD] LINE auto-send helpers & contact learning =====
-const CHANNEL_ACCESS_TOKEN = ""; // แนะนำย้ายไป proxy ฝั่งเซิร์ฟเวอร์จริงจัง
+const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU="; // แนะนำย้ายไป proxy ฝั่งเซิร์ฟเวอร์จริงจัง
 
 const LINE_ID_STORE_KEY = "line_id_book";
 function loadLineIdBook(){ try{ return JSON.parse(localStorage.getItem(LINE_ID_STORE_KEY) || "{}"); }catch(e){ return {}; } }
