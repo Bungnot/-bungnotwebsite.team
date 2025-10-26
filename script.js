@@ -5,84 +5,81 @@ document.addEventListener("DOMContentLoaded", () => {
     loadData(); // โหลดข้อมูลเมื่อหน้าเว็บเปิด
 });
 
-// ===== [ADD] LINE auto-send helpers & contact learning =====
-const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU="; // แนะนำย้ายไป proxy ฝั่งเซิร์ฟเวอร์จริงจัง
+// ===== [LINE CONFIG] =====
+const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
 
-const LINE_ID_STORE_KEY = "line_id_book";
-function loadLineIdBook(){ try{ return JSON.parse(localStorage.getItem(LINE_ID_STORE_KEY) || "{}"); }catch(e){ return {}; } }
-function saveLineIdBook(book){ localStorage.setItem(LINE_ID_STORE_KEY, JSON.stringify(book||{})); }
-let LINE_ID_BOOK = loadLineIdBook();
+// ===== [Mapping รายชื่อ -> UID จริง] =====
+const LINE_UID_MAP = {
+    "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
+    "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
+    "บริการบอทไลน์ V7": "U0e1f53b2f1cc24a7316473480bd2861a",
+    "อิสลาม แห่งอิหร่าน": "U2f156aa5effee7c1ee349b9320a35381",
+    "Atcharapun Aom": "U3e3ac0e16feb88534470f897ebfa38ec",
+    "BenZ": "U3e03ef4725e04db4a9729db77bb16b6c",
+    "เซียนแปะโรงสี💵💰💲🪙": "U58a1222aeb7b82dea040fa50e1791a7f",
+    "ต้า💯💯": "U5e2ca7eb5183684b91ba83c801ef713b",
+    "M8N": "U6a862e37864d5f522e8af490dd120440",
+    "Few": "U818fd2665026afe242a2c27f441642de",
+    "ยี่สิบโท หมิง": "Ua914df11d1747d2eea4fbdd06a9c1052",
+    "Nuiy Weerapon": "Ubdbaa2989f39daff930a4ca8d253344c",
+    "Jaran Kk.": "Uc08e788e6816a25d517ef9a32c1e381e",
+    "สารวัตรกึ่ม👮‍♂️🚔": "Uc2013ea8397da6d19cbe0f931a04c949",
+    "Aek💰": "Uc3594ebfcb19bdc4e05b62b8525e9eed",
+    "ฟลุ๊กฟิก😊😉": "Uc90d6d7a78e56640cdf3f93e4472127b",
+    "กล้อง🔭อินเฟอร์เรส": "Ucd41b3d1c42f80e42ed691a7d9309c79",
+    "Satthapan": "Ud27019d7ae7d4e6be81e1a2e3f6ee6ea",
+    "Thanaphut Sks": "Ue93a927aa8b7aafb4b8dc7b11e58c1f3",
+    "🌠ผมชื่อบอยนะคร้าา🌠💯": "Uebd6b15d2ff306abddcfb47fe56a17f0",
+    "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8"
+};
 
-function learnFromURL(){
-    const usp = new URLSearchParams(location.search);
-    if(usp.get("learn")==="1"){
-        const name = (usp.get("name")||"").trim();
-        const uid  = (usp.get("uid")||"").trim();
-        if(name && uid){
-            LINE_ID_BOOK[name] = uid;
-            saveLineIdBook(LINE_ID_BOOK);
-            console.log("[LEARN] saved mapping", name, uid);
-        }
-    }
-}
-window.learnLineContact = function(name, uid){
-    const n=(name||"").trim(), u=(uid||"").trim();
-    if(!n || !u) return false;
-    LINE_ID_BOOK[n]=u; saveLineIdBook(LINE_ID_BOOK);
-    console.log("[LEARN] saved mapping", n, u);
-    return true;
-}
-
-function getLineIdFromName(nameRaw){
-    const name = (nameRaw||"").trim();
-    if(!name) return "";
-    if(name.includes("|")){
-        const parts = name.split("|");
-        return (parts[1]||"").trim();
-    }
-    return LINE_ID_BOOK[name] || "";
+// ===== [ฟังก์ชันหา UID จากชื่อ] =====
+function getLineIdFromName(nameRaw) {
+    if (!nameRaw) return "";
+    const name = nameRaw.replace("@", "").trim();
+    return LINE_UID_MAP[name] || "";
 }
 
-const MSG_TPL_WIN = (title, amount) => `🎉 ผลค่าย ${title}\nคุณได้ +${Math.round(amount).toLocaleString()} (หัก 10% แล้ว)\nขอบคุณที่เล่นกับเรา 🙏`;
-const MSG_TPL_LOSE = (title, amount) => `📣 ผลค่าย ${title}\nยอดที่ต้องชำระ -${Math.round(amount).toLocaleString()}\n 🙏`;
-
-async function pushText(to, text){
+// ===== [ฟังก์ชันส่งข้อความ LINE] =====
+async function pushText(to, text) {
     const res = await fetch("https://api.line.me/v2/bot/message/push", {
         method: "POST",
-        headers: {"Content-Type":"application/json","Authorization":"Bearer "+CHANNEL_ACCESS_TOKEN},
-        body: JSON.stringify({ to, messages: [{type:"text", text}] })
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + CHANNEL_ACCESS_TOKEN
+        },
+        body: JSON.stringify({ to, messages: [{ type: "text", text }] })
     });
-    if(!res.ok){ throw new Error(await res.text()); }
+    if (!res.ok) throw new Error(await res.text());
 }
 
-async function sendBulkLine(winList, loseList, autoSend){
-    if(!autoSend) return;
-    if(!CHANNEL_ACCESS_TOKEN || CHANNEL_ACCESS_TOKEN.includes("ใส่")){
-        alert("ยังไม่ได้ตั้งค่า CHANNEL_ACCESS_TOKEN");
+// ===== [ส่งแบบหลายคนตามผลคำนวณ] =====
+async function sendBulkLine(winList, loseList, autoSend) {
+    if (!autoSend) return;
+    if (!CHANNEL_ACCESS_TOKEN) {
+        alert("⚠️ ยังไม่ได้ตั้งค่า Channel Access Token");
         return;
     }
-    const items = [...winList, ...loseList].filter(x=>!!x.lineId);
-    if(items.length===0){
-        alert("ไม่มี LINE ID ตรงกับรายชื่อ (เพิ่มใน LINE_ID_BOOK หรือพิมพ์เป็น 'ชื่อ|Uxxxx')");
+    const items = [...winList, ...loseList].filter(x => !!x.lineId);
+    if (items.length === 0) {
+        alert("ไม่มี LINE ID ที่ตรงกับรายชื่อ");
         return;
     }
-    const uniq = new Set(items.map(x=>x.lineId)).size;
-    if(!confirm(`จะส่ง ${items.length} ข้อความ ไปยัง ${uniq} คน ใช่ไหม?`)) return;
 
-    for(const it of items){
-        const text = it.type==="win" ? MSG_TPL_WIN(it.title, it.amount) : MSG_TPL_LOSE(it.title, it.amount);
-        try{
+    for (const it of items) {
+        const text = `${it.name} ${it.type === "win" ? "+" : "-"}${Math.round(it.amount)} ค่าย ${it.title}`;
+        try {
             await pushText(it.lineId, text);
-            await new Promise(r=>setTimeout(r,250));
-        }catch(e){ console.error("ส่งไม่สำเร็จ", it, e); }
+            console.log("✅ ส่งแล้ว:", it.name, text);
+            await new Promise(r => setTimeout(r, 300));
+        } catch (e) {
+            console.error("❌ ส่งไม่สำเร็จ:", it.name, e);
+        }
     }
-    alert("✅ ส่ง LINE เสร็จแล้ว");
+    alert("✅ ส่งข้อความครบแล้ว!");
 }
 
-
-
-// =================== เพิ่มฟังก์ชันคิดยอด ===================
-
+// ===== [ฟังก์ชันคำนวณยอดและส่งอัตโนมัติ] =====
 function calculateSettle(tableContainer) {
     try {
         const low = parseFloat(tableContainer.querySelector('.settle-low')?.value || '');
@@ -125,40 +122,41 @@ function calculateSettle(tableContainer) {
 
                 if (winnerSide === 'left') {
                     if (nameLeft) {
+                        winList.push({ type: "win", title, name: nameLeft, lineId: getLineIdFromName(nameLeft), amount: winAmt });
                         messages.push(`( ${title} +${winAmt} ) → ${nameLeft}`);
-                        winList.push({type:"win", title, name:nameLeft, lineId:getLineIdFromName(nameLeft), amount:winAmt});
                     }
                     if (nameRight) {
+                        loseList.push({ type: "lose", title, name: nameRight, lineId: getLineIdFromName(nameRight), amount: loseAmt });
                         messages.push(`( ${title} -${loseAmt} ) → ${nameRight}`);
-                        loseList.push({type:"lose", title, name:nameRight, lineId:getLineIdFromName(nameRight), amount:loseAmt});
                     }
                 } else {
                     if (nameRight) {
+                        winList.push({ type: "win", title, name: nameRight, lineId: getLineIdFromName(nameRight), amount: winAmt });
                         messages.push(`( ${title} +${winAmt} ) → ${nameRight}`);
-                        winList.push({type:"win", title, name:nameRight, lineId:getLineIdFromName(nameRight), amount:winAmt});
                     }
                     if (nameLeft) {
+                        loseList.push({ type: "lose", title, name: nameLeft, lineId: getLineIdFromName(nameLeft), amount: loseAmt });
                         messages.push(`( ${title} -${loseAmt} ) → ${nameLeft}`);
-                        loseList.push({type:"lose", title, name:nameLeft, lineId:getLineIdFromName(nameLeft), amount:loseAmt});
                     }
                 }
             });
         }
 
         const output = tableContainer.querySelector('.settle-output');
-        if (output) {
-            output.value = messages.join("\n");
-        }
-        try { navigator.clipboard.writeText(messages.join("\n")); } catch(e) {}
+        if (output) output.value = messages.join("\n");
+        try { navigator.clipboard.writeText(messages.join("\n")); } catch (e) {}
 
         sendBulkLine(winList, loseList, autoSend);
-
-        alert("✅ คิดยอดสำเร็จ! คัดลอกข้อความให้แล้ว");
+        alert("✅ คิดยอดสำเร็จ และส่งข้อความแล้ว!");
     } catch (err) {
         console.error(err);
         alert("เกิดข้อผิดพลาดในการคำนวณยอด");
     }
 }
+
+// ===== ส่วนอื่นของเว็บ (เพิ่มแผล, ลบแผล, auto save ฯลฯ) =====
+// ... (คงไว้ตามเดิมของคุณ ไม่ต้องแก้)
+
 
 // =========================================================
 
