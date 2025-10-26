@@ -441,3 +441,6 @@ function sendMessageToLine() {
         alert("เกิดข้อผิดพลาดในการส่งข้อความ");
     });
 }
+
+
+window.calculateSettle = calculateSettle;
