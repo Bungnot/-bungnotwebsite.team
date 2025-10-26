@@ -42,15 +42,15 @@ function getLineIdFromName(nameRaw) {
 
 // ===== [ฟังก์ชันส่งข้อความ LINE] =====
 async function pushText(to, text) {
-    const res = await fetch("https://api.line.me/v2/bot/message/push", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + CHANNEL_ACCESS_TOKEN
-        },
-        body: JSON.stringify({ to, messages: [{ type: "text", text }] })
-    });
-    if (!res.ok) throw new Error(await res.text());
+  const res = await fetch("https://YOUR_DOMAIN/send_line", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to, text })
+  });
+  if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+  }
 }
 
 // ===== [ส่งแบบหลายคนตามผลคำนวณ] =====
