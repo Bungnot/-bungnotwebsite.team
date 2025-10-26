@@ -42,25 +42,26 @@ function getLineIdFromName(nameRaw) {
 
 // ===== [ฟังก์ชันส่งข้อความ LINE] =====
 async function pushText(to, text) {
+  console.log("🔹 เริ่มส่งข้อความไป Flask...");
+
   try {
     const res = await fetch("http://102.129.229.219:5000/send_line", {
-      method: "POST", // ✅ สำคัญมาก
+      method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ to, text }) // ✅ ต้องมี body แบบนี้
+      body: JSON.stringify({ to, text }),
     });
 
+    console.log("🔹 ได้ response จาก Flask แล้ว:", res.status);
     const data = await res.json();
     console.log("📤 ส่งผล:", data);
 
-    if (!res.ok) throw new Error(data.error || "ไม่สามารถส่งข้อความได้");
-    return data;
   } catch (err) {
-    console.error("❌ ส่ง LINE ไม่สำเร็จ:", err);
-    alert("❌ ส่ง LINE ไม่สำเร็จ: " + err.message);
+    console.error("❌ เกิดข้อผิดพลาด:", err);
   }
 }
+
 
 
 
