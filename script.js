@@ -42,16 +42,22 @@ function getLineIdFromName(nameRaw) {
 
 // ===== [ฟังก์ชันส่งข้อความ LINE] =====
 async function pushText(to, text) {
-  const res = await fetch("https://YOUR_DOMAIN/send_line", {
+  try {
+    const res = await fetch("http://102.129.229.219:5000/send_line", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ to, text })
-  });
-  if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
+    });
+    const data = await res.json();
+    console.log("📤 ส่งผล:", data);
+    if (!res.ok) throw new Error(data.error || "ไม่สามารถส่งข้อความได้");
+    return data;
+  } catch (err) {
+    console.error("❌ ส่ง LINE ไม่สำเร็จ:", err);
+    alert("❌ ส่ง LINE ไม่สำเร็จ: " + err.message);
   }
 }
+
 
 // ===== [ส่งแบบหลายคนตามผลคำนวณ] =====
 async function sendBulkLine(winList, loseList, autoSend) {
