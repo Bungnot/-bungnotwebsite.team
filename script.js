@@ -44,12 +44,16 @@ function getLineIdFromName(nameRaw) {
 async function pushText(to, text) {
   try {
     const res = await fetch("http://102.129.229.219:5000/send_line", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to, text })
+      method: "POST", // ✅ สำคัญมาก
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ to, text }) // ✅ ต้องมี body แบบนี้
     });
+
     const data = await res.json();
     console.log("📤 ส่งผล:", data);
+
     if (!res.ok) throw new Error(data.error || "ไม่สามารถส่งข้อความได้");
     return data;
   } catch (err) {
@@ -57,6 +61,7 @@ async function pushText(to, text) {
     alert("❌ ส่ง LINE ไม่สำเร็จ: " + err.message);
   }
 }
+
 
 
 
