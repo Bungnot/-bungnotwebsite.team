@@ -422,7 +422,7 @@ function sendMessageToLine() {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer [ใส่ Channel Access Token ของคุณที่นี่]"
+            "Authorization": "Bearer vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU="
         },
         body: JSON.stringify({
             to: "[User ID ของผู้รับข้อความ (หรือ Group ID)]",
