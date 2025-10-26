@@ -59,6 +59,7 @@ async function pushText(to, text) {
 }
 
 
+
 // ===== [ส่งแบบหลายคนตามผลคำนวณ] =====
 async function sendBulkLine(winList, loseList, autoSend) {
     if (!autoSend) return;
@@ -87,6 +88,7 @@ async function sendBulkLine(winList, loseList, autoSend) {
 
 // ===== [ฟังก์ชันคำนวณยอดและส่งอัตโนมัติ] =====
 function calculateSettle(tableContainer) {
+    console.log("🧮 เริ่มคำนวณยอด...");  // < เพิ่มบรรทัดนี้
     try {
         const low = parseFloat(tableContainer.querySelector('.settle-low')?.value || '');
         const high = parseFloat(tableContainer.querySelector('.settle-high')?.value || '');
