@@ -2,13 +2,13 @@ let historyData = [];
 let totalDeletedProfit = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
-    loadData(); // โหลดข้อมูลเมื่อหน้าเว็บเปิด
+    loadData(); 
 });
 
 // ===== [LINE CONFIG] =====
 const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
 
-// ===== [Mapping รายชื่อ -> UID จริง] =====
+// ===== [Mapping รายชื่อ -> UID] =====
 const LINE_UID_MAP = {
     "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
     "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
@@ -33,148 +33,31 @@ const LINE_UID_MAP = {
     "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8"
 };
 
-// ===== [ฟังก์ชันหา UID จากชื่อ] =====
 function getLineIdFromName(nameRaw) {
     if (!nameRaw) return "";
     const name = nameRaw.replace("@", "").trim();
     return LINE_UID_MAP[name] || "";
 }
 
-// ===== [ฟังก์ชันส่งข้อความ LINE] =====
+// ===== ส่งข้อความไป Flask =====
 async function pushText(to, text) {
-  console.log("🔹 เริ่มส่งข้อความไป Flask...");
-
+  console.log("🔹 ส่งข้อความไป Flask...");
   try {
     const res = await fetch("http://102.129.229.219:5000/send_line", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ to, text }),
     });
 
-    console.log("🔹 ได้ response จาก Flask แล้ว:", res.status);
     const data = await res.json();
     console.log("📤 ส่งผล:", data);
 
   } catch (err) {
-    console.error("❌ เกิดข้อผิดพลาด:", err);
+    console.error("❌ Error:", err);
   }
 }
 
-
-
-
-
-// ===== [ส่งแบบหลายคนตามผลคำนวณ] =====
-async function sendBulkLine(winList, loseList, autoSend) {
-    if (!autoSend) return;
-    if (!CHANNEL_ACCESS_TOKEN) {
-        alert("⚠️ ยังไม่ได้ตั้งค่า Channel Access Token");
-        return;
-    }
-    const items = [...winList, ...loseList].filter(x => !!x.lineId);
-    if (items.length === 0) {
-        alert("ไม่มี LINE ID ที่ตรงกับรายชื่อ");
-        return;
-    }
-
-    for (const it of items) {
-        const text = `${it.name} ${it.type === "win" ? "+" : "-"}${Math.round(it.amount)} ค่าย ${it.title}`;
-        try {
-            await pushText(it.lineId, text);
-            console.log("✅ ส่งแล้ว:", it.name, text);
-            await new Promise(r => setTimeout(r, 300));
-        } catch (e) {
-            console.error("❌ ส่งไม่สำเร็จ:", it.name, e);
-        }
-    }
-    alert("✅ ส่งข้อความครบแล้ว!");
-}
-
-// ===== [ฟังก์ชันคำนวณยอดและส่งอัตโนมัติ] =====
-function calculateSettle(tableContainer) {
-    console.log("🧮 เริ่มคำนวณยอด...");  // < เพิ่มบรรทัดนี้
-    try {
-        const low = parseFloat(tableContainer.querySelector('.settle-low')?.value || '');
-        const high = parseFloat(tableContainer.querySelector('.settle-high')?.value || '');
-        const result = parseFloat(tableContainer.querySelector('.settle-result')?.value || '');
-        const title = tableContainer.querySelector('.table-title-input')?.value?.trim() || 'ค่ายนี้';
-        const autoSend = !!tableContainer.querySelector('.settle-autosend')?.checked;
-
-        if (isNaN(low) || isNaN(high) || isNaN(result)) {
-            alert("⚠️ กรุณากรอก ราคาช่างต่ำ–สูง และผลบั้งไฟ ให้ครบก่อน");
-            return;
-        }
-
-        let outcome = '';
-        if (result < low) outcome = 'ต่ำ';
-        else if (result > high) outcome = 'สูง';
-        else outcome = 'เสมอ';
-
-        const rows = tableContainer.querySelectorAll("tbody tr");
-        const messages = [];
-        const winList = [];
-        const loseList = [];
-
-        if (outcome === 'เสมอ') {
-            messages.push(`ผล ${result} อยู่ในช่วง ${low}-${high} → เสมอ (ไม่คิดยอด)`);
-        } else {
-            const winnerSide = outcome === 'ต่ำ' ? 'right' : 'left';
-            rows.forEach(row => {
-                const cells = row.querySelectorAll("td input");
-                const nameLeft = (cells[0]?.value || '').trim();
-                const priceStr = (cells[1]?.value || '').trim();
-                const nameRight = (cells[2]?.value || '').trim();
-
-                const match = priceStr.match(/\d{2,}/g);
-                const price = match ? parseFloat(match[0]) : NaN;
-                if (isNaN(price)) return;
-
-                const winAmt = price * 0.9;
-                const loseAmt = price;
-
-                if (winnerSide === 'left') {
-                    if (nameLeft) {
-                        winList.push({ type: "win", title, name: nameLeft, lineId: getLineIdFromName(nameLeft), amount: winAmt });
-                        messages.push(`( ${title} +${winAmt} ) → ${nameLeft}`);
-                    }
-                    if (nameRight) {
-                        loseList.push({ type: "lose", title, name: nameRight, lineId: getLineIdFromName(nameRight), amount: loseAmt });
-                        messages.push(`( ${title} -${loseAmt} ) → ${nameRight}`);
-                    }
-                } else {
-                    if (nameRight) {
-                        winList.push({ type: "win", title, name: nameRight, lineId: getLineIdFromName(nameRight), amount: winAmt });
-                        messages.push(`( ${title} +${winAmt} ) → ${nameRight}`);
-                    }
-                    if (nameLeft) {
-                        loseList.push({ type: "lose", title, name: nameLeft, lineId: getLineIdFromName(nameLeft), amount: loseAmt });
-                        messages.push(`( ${title} -${loseAmt} ) → ${nameLeft}`);
-                    }
-                }
-            });
-        }
-
-        const output = tableContainer.querySelector('.settle-output');
-        if (output) output.value = messages.join("\n");
-        try { navigator.clipboard.writeText(messages.join("\n")); } catch (e) {}
-
-        sendBulkLine(winList, loseList, autoSend);
-        alert("✅ คิดยอดสำเร็จ และส่งข้อความแล้ว!");
-    } catch (err) {
-        console.error(err);
-        alert("เกิดข้อผิดพลาดในการคำนวณยอด");
-    }
-}
-
-// ===== ส่วนอื่นของเว็บ (เพิ่มแผล, ลบแผล, auto save ฯลฯ) =====
-// ... (คงไว้ตามเดิมของคุณ ไม่ต้องแก้)
-
-
-// =========================================================
-
-
+// ===== เพิ่มแผล =====
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
@@ -187,13 +70,16 @@ function addRow(table) {
     tbody.appendChild(newRow);
 }
 
+// ===== เพิ่มค่ายใหม่ (ลบส่วนคิดยอดออกแล้ว) =====
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
     newTable.classList.add("table-container");
+
     newTable.innerHTML = `
         <button class="remove-table" onclick="removeTable(this)">X</button>
         <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย">
+
         <table>
             <thead>
                 <tr>
@@ -205,143 +91,117 @@ function addTable() {
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder="ใส่ชื่อ"></td>
-                    <td><input type="text" placeholder=" "></td>
-                    <td><input type="text" placeholder="ใส่ชื่อ"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
                     <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- ✅ เพิ่มส่วนคิดยอดบั้งไฟ -->
-        <div style="margin-top:10px; border-top:1px dashed #aaa; padding-top:8px;">
-            <label>ราคาช่าง:</label>
-            <input type="number" class="settle-low" placeholder="ต่ำ">
-            -
-            <input type="number" class="settle-high" placeholder="สูง">
-            <label style="margin-left:10px;">ผลบั้งไฟ:</label>
-            <input type="number" class="settle-result" placeholder="ผล">
-            <button style="margin-left:10px; background:#0ea5e9;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;"
-                onclick="calculateSettle(this.closest('.table-container'))">💰 คิดยอดค่ายนี้</button>
-            <label style="margin-left:10px; user-select:none;"><input type="checkbox" class="settle-autosend"> ส่ง LINE อัตโนมัติ</label>
-            <textarea class="settle-output" placeholder="ผลลัพธ์จะมาแสดงตรงนี้..." style="width:100%;margin-top:8px;height:80px;"></textarea>
-        </div>
-
-        <button class="add-row-button" onclick="addRow(this.previousElementSibling.previousElementSibling)">เพิ่มแผลที่เล่น</button>
+        <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
     `;
+
     container.appendChild(newTable);
 }
 
+// ===== ลบตาราง =====
 function removeTable(button) {
     const tableContainer = button.parentElement;
     const inputs = tableContainer.querySelectorAll('input');
 
-    let hasInput = Array.from(inputs).some(input => input.value.trim() !== "");
+    let hasInput = Array.from(inputs).some(i => i.value.trim() !== "");
     if (!hasInput) {
-        alert("ต้องกรอกข้อมูลในช่องก่อนถึงจะสามารถ X ได้");
+        alert("ต้องกรอกข้อมูลก่อนจึงลบได้");
         return;
     }
 
+    // คำนวณกำไรเดิม (ยังคงไว้ให้เหมือนระบบเก่า)
     const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
     let totalProfit = 0;
     priceInputs.forEach(input => {
-        const priceStr = input.value.match(/\d{3,}/g);
-        if (priceStr) {
-            const price = parseFloat(priceStr[0]);
-            const profit = price * 0.10;
-            totalProfit += profit;
-        }
+        const match = input.value.match(/\d{3,}/);
+        if (match) totalProfit += (parseFloat(match[0]) * 0.10);
     });
 
-    const confirmDelete = confirm(`คุณต้องการลบตารางนี้จริงหรือ? กำไรที่คำนวณได้คือ: ฿${totalProfit.toFixed(2)}`);
-    if (confirmDelete) {
-        html2canvas(tableContainer).then(canvas => {
-            const imgData = canvas.toDataURL("image/png");
-            historyData.push({ imgData, profit: totalProfit });
-            totalDeletedProfit += totalProfit;
-            alert("ตารางถูกลบแล้ว! คุณสามารถดูประวัติได้");
+    const ok = confirm(`ลบตารางนี้? กำไร: ฿${totalProfit.toFixed(2)}`);
+    if (!ok) return;
+
+    html2canvas(tableContainer).then(canvas => {
+        historyData.push({
+            imgData: canvas.toDataURL("image/png"),
+            profit: totalProfit
         });
-        tableContainer.remove();
-        saveData(); // บันทึกหลังลบ
-    }
+        totalDeletedProfit += totalProfit;
+    });
+
+    tableContainer.remove();
+    saveData();
 }
 
+// ===== ลบแถว =====
 function removeRow(button) {
     const row = button.parentElement.parentElement;
     const inputs = row.querySelectorAll('input');
-
-    let hasInput = Array.from(inputs).some(input => input.value.trim() !== "");
+    let hasInput = Array.from(inputs).some(i => i.value.trim() !== "");
     if (!hasInput) {
-        alert("ต้องกรอกข้อมูลในช่องก่อนถึงจะสามารถ X ได้");
+        alert("ต้องกรอกข้อมูลก่อนลบ");
         return;
     }
-
     row.remove();
-    saveData(); // บันทึกหลังลบแถว
+    saveData();
 }
 
+// ===== ประวัติการลบ =====
 function showHistory() {
-    if (historyData.length === 0) {
-        alert("ยังไม่มีประวัติการลบตาราง");
-        return;
-    }
+    if (historyData.length === 0) return alert("ยังไม่มีประวัติ");
 
     let newWindow = window.open("", "History", "width=800,height=600");
+
     newWindow.document.write(`
-        <html>
-        <head>
-            <title>ประวัติการลบตาราง</title>
-            <style>
-                body {font-family: 'Sarabun', sans-serif; padding: 20px; background-color: #f9f9f9;}
-                h2 {color: #e91e63;}
-                .total-profit {font-size: 20px; font-weight: bold; color: #4CAF50; margin-bottom: 20px;}
-                img {max-width: 100%; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px;}
-                .entry {margin-bottom: 30px; padding: 10px; border: 1px solid #ddd; background: #fff; border-radius: 10px;}
-            </style>
-        </head>
-        <body>
-            <h2>ประวัติการลบตาราง</h2>
-            <div class="total-profit">กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</div>
+        <html><body>
+        <h2>ประวัติการลบตาราง</h2>
+        <div><b>กำไรรวม:</b> ฿${totalDeletedProfit.toFixed(2)}</div>
     `);
 
-    historyData.forEach(data => {
+    historyData.forEach(h => {
         newWindow.document.write(`
-            <div class="entry">
-                <img src='${data.imgData}'>
-                <p>กำไรที่คำนวณได้: ฿${data.profit.toFixed(2)}</p>
+            <div>
+                <img src="${h.imgData}" style="max-width:100%">
+                <p>กำไร: ฿${h.profit.toFixed(2)}</p>
             </div>
         `);
     });
 
-    newWindow.document.write(`</body></html>`);
+    newWindow.document.write("</body></html>");
     newWindow.document.close();
 }
 
-
+// ===== บันทึก =====
 function saveData() {
     const data = [];
     const tables = document.querySelectorAll(".table-container");
 
-    tables.forEach(tableContainer => {
-        const title = tableContainer.querySelector(".table-title-input").value;
+    tables.forEach(table => {
+        const title = table.querySelector(".table-title-input").value;
         const rows = [];
-        tableContainer.querySelectorAll("tbody tr").forEach(row => {
-            const cells = row.querySelectorAll("input");
+
+        table.querySelectorAll("tbody tr").forEach(r => {
+            const cells = r.querySelectorAll("input");
             rows.push([
                 cells[0]?.value || "",
                 cells[1]?.value || "",
                 cells[2]?.value || ""
             ]);
         });
-        const low = tableContainer.querySelector('.settle-low')?.value || "";
-        const high = tableContainer.querySelector('.settle-high')?.value || "";
-        const res = tableContainer.querySelector('.settle-result')?.value || "";
-        data.push({ title, rows, low, high, res });
+
+        data.push({ title, rows });
     });
 
     localStorage.setItem("savedTables", JSON.stringify(data));
 }
 
+// ===== โหลดข้อมูล (ไม่มีส่วนคิดยอดแล้ว) =====
 function loadData() {
     const data = JSON.parse(localStorage.getItem("savedTables"));
     if (!data) return;
@@ -354,12 +214,12 @@ function loadData() {
         newTable.classList.add("table-container");
 
         let rowsHtml = "";
-        table.rows.forEach(row => {
+        table.rows.forEach(r => {
             rowsHtml += `
                 <tr>
-                    <td><input type="text" value="${row[0] || ""}"></td>
-                    <td><input type="text" value="${row[1] || ""}"></td>
-                    <td><input type="text" value="${row[2] || ""}"></td>
+                    <td><input type="text" value="${r[0]}"></td>
+                    <td><input type="text" value="${r[1]}"></td>
+                    <td><input type="text" value="${r[2]}"></td>
                     <td><button class="remove-row" onclick="removeRow(this)">X</button></td>
                 </tr>
             `;
@@ -367,7 +227,8 @@ function loadData() {
 
         newTable.innerHTML = `
             <button class="remove-table" onclick="removeTable(this)">X</button>
-            <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่าย" value="${table.title || ""}">
+            <input type="text" class="table-title-input" value="${table.title}">
+
             <table>
                 <thead>
                     <tr>
@@ -377,25 +238,12 @@ function loadData() {
                         <th>แผลยกเลิก X ได้เลย</th>
                     </tr>
                 </thead>
-                <tbody>
-                    ${rowsHtml}
-                </tbody>
+                <tbody>${rowsHtml}</tbody>
             </table>
 
-            <div style="margin-top:10px; border-top:1px dashed #aaa; padding-top:8px;">
-                <label>ราคาช่าง:</label>
-                <input type="number" class="settle-low" placeholder="ต่ำ" value="${table.low || ""}">
-                -
-                <input type="number" class="settle-high" placeholder="สูง" value="${table.high || ""}">
-                <label style="margin-left:10px;">ผลบั้งไฟ:</label>
-                <input type="number" class="settle-result" placeholder="ผล" value="${table.res || ""}">
-                <button style="margin-left:10px; background:#0ea5e9;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;"
-                    onclick="calculateSettle(this.closest('.table-container'))">💰 คิดยอดค่ายนี้</button>
-                <textarea class="settle-output" placeholder="ผลลัพธ์จะมาแสดงตรงนี้..." style="width:100%;margin-top:8px;height:80px;"></textarea>
-            </div>
-
-            <button class="add-row-button" onclick="addRow(this.previousElementSibling.previousElementSibling)">เพิ่มแผลที่เล่น</button>
+            <button class="add-row-button" onclick="addRow(this.previousElementSibling)">เพิ่มแผลที่เล่น</button>
         `;
+
         container.appendChild(newTable);
     });
 }
@@ -407,46 +255,8 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
-function showAutoSaveAlert() {
-    const alertBox = document.getElementById("auto-save-alert");
-    alertBox.style.opacity = "1";
-    setTimeout(() => {
-        alertBox.style.opacity = "0";
-    }, 2000);
-}
-
+// ===== Auto Save =====
 setInterval(() => {
     saveData();
     console.log("ข้อมูลถูกบันทึกอัตโนมัติ");
-    showAutoSaveAlert();
 }, 15000);
-
-function sendMessageToLine() {
-    const name = document.getElementById("lineName").value;
-    const msg = document.getElementById("messageToSend").value;
-    const fullMsg = `ชื่อผู้ส่ง: ${name}\nข้อความ: ${msg}`;
-
-    fetch("https://api.line.me/v2/bot/message/push", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU="
-        },
-        body: JSON.stringify({
-            to: "[User ID ของผู้รับข้อความ (หรือ Group ID)]",
-            messages: [{ type: "text", text: fullMsg }]
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log("ส่งสำเร็จ", data);
-        alert("ส่งข้อความสำเร็จแล้ว!");
-    })
-    .catch(err => {
-        console.error("ส่งไม่สำเร็จ", err);
-        alert("เกิดข้อผิดพลาดในการส่งข้อความ");
-    });
-}
-
-
-window.calculateSettle = calculateSettle;
