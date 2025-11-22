@@ -1,14 +1,17 @@
 let historyData = [];
 let totalDeletedProfit = 0;
 
+// ===== Admin Logs =====
+let adminLogs = JSON.parse(localStorage.getItem("adminLogs") || "[]");
+
 document.addEventListener("DOMContentLoaded", () => {
-    loadData(); 
+    loadData();
 });
 
 // ===== [LINE CONFIG] =====
 const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
 
-// ===== [Mapping รายชื่อ -> UID] =====
+// ===== Mapping รายชื่อ → UID =====
 const LINE_UID_MAP = {
     "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
     "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
@@ -41,20 +44,20 @@ function getLineIdFromName(nameRaw) {
 
 // ===== ส่งข้อความไป Flask =====
 async function pushText(to, text) {
-  console.log("🔹 ส่งข้อความไป Flask...");
-  try {
-    const res = await fetch("http://102.129.229.219:5000/send_line", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to, text }),
-    });
+    console.log("🔹 ส่งข้อความไป Flask...");
+    try {
+        const res = await fetch("http://102.129.229.219:5000/send_line", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ to, text }),
+        });
 
-    const data = await res.json();
-    console.log("📤 ส่งผล:", data);
+        const data = await res.json();
+        console.log("📤 ส่งผล:", data);
 
-  } catch (err) {
-    console.error("❌ Error:", err);
-  }
+    } catch (err) {
+        console.error("❌ Error:", err);
+    }
 }
 
 // ===== เพิ่มแผล =====
@@ -70,7 +73,7 @@ function addRow(table) {
     tbody.appendChild(newRow);
 }
 
-// ===== เพิ่มค่ายใหม่ (ลบส่วนคิดยอดออกแล้ว) =====
+// ===== เพิ่มตารางใหม่ =====
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -116,9 +119,9 @@ function removeTable(button) {
         return;
     }
 
-    // คำนวณกำไรเดิม (ยังคงไว้ให้เหมือนระบบเก่า)
     const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
     let totalProfit = 0;
+
     priceInputs.forEach(input => {
         const match = input.value.match(/\d{3,}/);
         if (match) totalProfit += (parseFloat(match[0]) * 0.10);
@@ -143,16 +146,18 @@ function removeTable(button) {
 function removeRow(button) {
     const row = button.parentElement.parentElement;
     const inputs = row.querySelectorAll('input');
+
     let hasInput = Array.from(inputs).some(i => i.value.trim() !== "");
     if (!hasInput) {
         alert("ต้องกรอกข้อมูลก่อนลบ");
         return;
     }
+
     row.remove();
     saveData();
 }
 
-// ===== ประวัติการลบ =====
+// ===== ดูประวัติการลบ =====
 function showHistory() {
     if (historyData.length === 0) return alert("ยังไม่มีประวัติ");
 
@@ -177,7 +182,7 @@ function showHistory() {
     newWindow.document.close();
 }
 
-// ===== บันทึก =====
+// ===== บันทึกข้อมูล =====
 function saveData() {
     const data = [];
     const tables = document.querySelectorAll(".table-container");
@@ -201,7 +206,7 @@ function saveData() {
     localStorage.setItem("savedTables", JSON.stringify(data));
 }
 
-// ===== โหลดข้อมูล (ไม่มีส่วนคิดยอดแล้ว) =====
+// ===== โหลดข้อมูล =====
 function loadData() {
     const data = JSON.parse(localStorage.getItem("savedTables"));
     if (!data) return;
@@ -248,6 +253,7 @@ function loadData() {
     });
 }
 
+// ===== ป้องกันกด Ctrl+U =====
 document.addEventListener("keydown", function (e) {
     if (e.ctrlKey && e.key.toLowerCase() === "u") {
         e.preventDefault();
@@ -260,3 +266,32 @@ setInterval(() => {
     saveData();
     console.log("ข้อมูลถูกบันทึกอัตโนมัติ");
 }, 15000);
+
+
+// ===============================
+//          ADMIN LOGIN
+// ===============================
+function adminLogin() {
+    const name = prompt("กรอกชื่อ Admin");
+    if (!name) return;
+
+    const time = new Date().toLocaleString("th-TH");
+    adminLogs.push({ name, time });
+
+    localStorage.setItem("adminLogs", JSON.stringify(adminLogs));
+    alert("เข้าสู่ระบบสำเร็จ ✔");
+}
+
+function showAdminLogs() {
+    if (adminLogs.length === 0) {
+        alert("ยังไม่มีประวัติการเข้าใช้งาน");
+        return;
+    }
+
+    let msg = "📜 ประวัติผู้เข้าใช้งาน Admin\n\n";
+    adminLogs.forEach((log, i) => {
+        msg += `${i + 1}. ${log.name} - ${log.time}\n`;
+    });
+
+    alert(msg);
+}
