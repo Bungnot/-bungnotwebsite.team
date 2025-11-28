@@ -40,23 +40,16 @@ function getLineIdFromName(nameRaw) {
 }
 
 async function pushText(to, text) {
-    console.log("🔹 ส่งข้อความไป Flask...");
     try {
-        const res = await fetch("http://102.129.229.219:5000/send_line", {
+        await fetch("http://102.129.229.219:5000/send_line", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ to, text }),
         });
-        const data = await res.json();
-        console.log("📤 ส่งผล:", data);
-    } catch (err) {
-        console.error("❌ Error:", err);
-    }
+    } catch (err) { console.error("Error:", err); }
 }
 
-// ==========================================
-//   CUSTOM MODAL LOGIC (ระบบ Popup ใหม่)
-// ==========================================
+// ===== CUSTOM MODAL LOGIC =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -66,18 +59,14 @@ function showModal(title, message, type = "alert", callback = null) {
 
     titleEl.innerText = title;
     msgEl.innerText = message;
-    actionsEl.innerHTML = ""; // Clear old buttons
+    actionsEl.innerHTML = ""; 
 
     if (type === "confirm") {
         iconEl.className = "fas fa-question-circle modal-icon icon-warn";
-        
         const btnYes = document.createElement("button");
         btnYes.className = "btn-modal btn-confirm";
         btnYes.innerText = "ยืนยันลบ";
-        btnYes.onclick = () => {
-            closeModal();
-            if (callback) callback();
-        };
+        btnYes.onclick = () => { closeModal(); if (callback) callback(); };
 
         const btnNo = document.createElement("button");
         btnNo.className = "btn-modal btn-cancel";
@@ -86,9 +75,7 @@ function showModal(title, message, type = "alert", callback = null) {
 
         actionsEl.appendChild(btnNo);
         actionsEl.appendChild(btnYes);
-
     } else {
-        // Alert type
         iconEl.className = "fas fa-info-circle modal-icon icon-warn";
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-cancel";
@@ -98,7 +85,6 @@ function showModal(title, message, type = "alert", callback = null) {
         btnOk.onclick = closeModal;
         actionsEl.appendChild(btnOk);
     }
-
     modal.classList.add('active');
 }
 
@@ -106,20 +92,20 @@ function closeModal() {
     document.getElementById('custom-modal').classList.remove('active');
 }
 
-// ===== เพิ่มแผล (Row) =====
+// ===== เพิ่มแผล =====
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td><input type="text" placeholder=""></td>
-        <td><input type="text" placeholder=""></td>
-        <td><input type="text" placeholder=""></td>
+        <td><input type="text" placeholder="ชื่อคนไล่"></td>
+        <td><input type="text" placeholder="ราคา"></td>
+        <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
     `;
     tbody.appendChild(newRow);
 }
 
-// ===== เพิ่มตารางใหม่ (Table) =====
+// ===== เพิ่มตาราง =====
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -154,7 +140,7 @@ function addTable() {
     newTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// ===== ลบตาราง (อัปเดตใช้ Popup ใหม่ + แก้ภาพชัด) =====
+// ===== ลบตาราง (HD Mode) =====
 function removeTable(button) {
     const tableContainer = button.parentElement;
     const inputs = tableContainer.querySelectorAll('input');
@@ -167,238 +153,138 @@ function removeTable(button) {
 
     const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
     let totalProfit = 0;
-
     priceInputs.forEach(input => {
         const match = input.value.match(/\d{3,}/);
         if (match) totalProfit += (parseFloat(match[0]) * 0.10);
     });
 
-    // เรียกใช้ Modal ใหม่ แทน confirm()
-    showModal(
-        "ยืนยันการลบ", 
-        `คุณต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, 
-        "confirm", 
-        () => {
-            // Callback เมื่อกดปุ่ม "ยืนยัน"
-            html2canvas(tableContainer, {
-                scale: 2, 
-                backgroundColor: '#ffffff',
-                useCORS: true,
-                logging: false,
-                onclone: (clonedDoc) => {
-                    const clonedDiv = clonedDoc.querySelector('.table-container');
-                    if (clonedDiv) {
-                        clonedDiv.style.boxShadow = 'none';
-                        clonedDiv.style.background = '#ffffff';
-                        clonedDiv.style.border = '2px solid #333';
-                        clonedDiv.style.color = '#000000';
+    showModal("ยืนยันการลบ", `ต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, "confirm", () => {
+        html2canvas(tableContainer, {
+            scale: 3, 
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            logging: false,
+            onclone: (clonedDoc) => {
+                const clone = clonedDoc.querySelector('.table-container');
+                if (clone) {
+                    // Style สำหรับถ่ายรูป (เหมือนพิมพ์ A4)
+                    clone.style.boxShadow = 'none';
+                    clone.style.background = '#ffffff';
+                    clone.style.border = '2px solid #000000';
+                    clone.style.color = '#000000';
+                    clone.style.padding = '20px';
 
-                        const clonedInputs = clonedDiv.querySelectorAll('input');
-                        clonedInputs.forEach(input => {
-                            input.style.backgroundColor = '#ffffff';
-                            input.style.color = '#000000';
-                            input.style.border = '1px solid #999';
-                            input.style.fontWeight = 'bold';
-                            input.style.boxShadow = 'none';
-                        });
+                    // ซ่อนปุ่ม
+                    clone.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
 
-                        const headers = clonedDiv.querySelectorAll('th');
-                        headers.forEach(th => {
-                            th.style.color = '#ffffff';
-                            th.style.textShadow = 'none';
-                        });
+                    // Style Input ให้ชัด
+                    clone.querySelectorAll('input').forEach(input => {
+                        input.style.backgroundColor = '#ffffff';
+                        input.style.color = '#000000';
+                        input.style.border = '1px solid #999';
+                        input.style.fontSize = '18px';
+                        input.style.fontWeight = 'bold';
+                        input.style.boxShadow = 'none';
+                    });
+
+                    // Style Header
+                    clone.querySelectorAll('th').forEach(th => {
+                        th.style.background = '#333333';
+                        th.style.color = '#ffffff';
+                        th.style.border = '1px solid #000';
+                    });
+                    
+                    // Style Title
+                    const title = clone.querySelector('.table-title-input');
+                    if(title) {
+                        title.style.background = 'transparent';
+                        title.style.border = 'none';
+                        title.style.borderBottom = '2px solid #000';
+                        title.style.color = '#000';
+                        title.style.fontSize = '24px';
                     }
                 }
-            }).then(canvas => {
-                historyData.push({
-                    imgData: canvas.toDataURL("image/png"),
-                    profit: totalProfit
-                });
-                totalDeletedProfit += totalProfit;
-
-                tableContainer.style.transition = "opacity 0.5s";
-                tableContainer.style.opacity = '0';
-                setTimeout(() => {
-                    tableContainer.remove();
-                    saveData();
-                }, 500);
-            });
-        }
-    );
+            }
+        }).then(canvas => {
+            historyData.push({ imgData: canvas.toDataURL("image/png"), profit: totalProfit });
+            totalDeletedProfit += totalProfit;
+            tableContainer.style.transition = "opacity 0.5s";
+            tableContainer.style.opacity = '0';
+            setTimeout(() => { tableContainer.remove(); saveData(); }, 500);
+        });
+    });
 }
 
-// ===== ลบแถว =====
 function removeRow(button) {
     const row = button.parentElement.parentElement;
-    const inputs = row.querySelectorAll('input');
-
-    let hasInput = Array.from(inputs).some(i => i.value.trim() !== "");
-    if (!hasInput) {
+    if (!Array.from(row.querySelectorAll('input')).some(i => i.value.trim() !== "")) {
         showModal("แจ้งเตือน", "ต้องกรอกข้อมูลก่อนลบ", "alert");
         return;
     }
-
     row.remove();
     saveData();
 }
 
-// ===== ดูประวัติการลบ =====
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ยังไม่มีประวัติ", "alert");
-
     let newWindow = window.open("", "History", "width=800,height=600");
     newWindow.document.write(`
-        <html>
-        <head>
-            <title>ประวัติการลบ</title>
-            <style>
-                body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
-                .card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-                h2 { color: #1e3c72; }
-                .total { font-size: 1.2rem; font-weight: bold; color: green; margin-bottom: 20px; }
-            </style>
-        </head>
-        <body>
-        <h2>📜 ประวัติการลบตาราง</h2>
-        <div class="total">💰 กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</div>
+        <html><head><title>ประวัติ</title><style>body{font-family:sans-serif;padding:20px;background:#f0f2f5}.card{background:white;padding:15px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}</style></head>
+        <body><h2>📜 ประวัติการลบ</h2><h3 style="color:green">💰 กำไรรวม: ฿${totalDeletedProfit.toFixed(2)}</h3>
     `);
-
-    historyData.forEach(h => {
-        newWindow.document.write(`
-            <div class="card">
-                <img src="${h.imgData}" style="max-width:100%; border:1px solid #ddd;">
-                <p style="margin-top:10px; font-weight:bold;">กำไร: ฿${h.profit.toFixed(2)}</p>
-            </div>
-        `);
-    });
-
+    historyData.forEach(h => newWindow.document.write(`<div class="card"><img src="${h.imgData}" style="width:100%"><p>กำไร: ฿${h.profit.toFixed(2)}</p></div>`));
     newWindow.document.write("</body></html>");
     newWindow.document.close();
 }
 
-// ===== บันทึกข้อมูล =====
 function saveData() {
     const data = [];
-    const tables = document.querySelectorAll(".table-container");
-
-    tables.forEach(table => {
+    document.querySelectorAll(".table-container").forEach(table => {
         const title = table.querySelector(".table-title-input").value;
         const rows = [];
         table.querySelectorAll("tbody tr").forEach(r => {
             const cells = r.querySelectorAll("input");
-            rows.push([
-                cells[0]?.value || "",
-                cells[1]?.value || "",
-                cells[2]?.value || ""
-            ]);
+            rows.push([cells[0]?.value||"", cells[1]?.value||"", cells[2]?.value||""]);
         });
         data.push({ title, rows });
     });
-
     localStorage.setItem("savedTables", JSON.stringify(data));
-    
     const badge = document.getElementById("auto-save-alert");
-    if(badge) {
-        badge.style.opacity = "1";
-        setTimeout(() => badge.style.opacity = "0", 2000);
-    }
+    if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
 }
 
-// ===== โหลดข้อมูล =====
 function loadData() {
     const data = JSON.parse(localStorage.getItem("savedTables"));
     if (!data) return;
-
     const container = document.getElementById("tables-container");
     container.innerHTML = "";
-
     data.forEach(table => {
         const newTable = document.createElement("div");
         newTable.classList.add("table-container", "table-card");
-
         let rowsHtml = "";
         table.rows.forEach(r => {
-            rowsHtml += `
-                <tr>
-                    <td><input type="text" value="${r[0]}" placeholder="ชื่อคนไล่"></td>
-                    <td><input type="text" value="${r[1]}" placeholder="ราคา"></td>
-                    <td><input type="text" value="${r[2]}" placeholder="ชื่อคนยั้ง"></td>
-                    <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
-                </tr>
-            `;
+            rowsHtml += `<tr><td><input type="text" value="${r[0]}" placeholder="ชื่อคนไล่"></td><td><input type="text" value="${r[1]}" placeholder="ราคา"></td><td><input type="text" value="${r[2]}" placeholder="ชื่อคนยั้ง"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td></tr>`;
         });
-
-        newTable.innerHTML = `
-            <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
-            <div class="card-header">
-                <input type="text" class="table-title-input" value="${table.title}" placeholder="ใส่ชื่อค่ายที่นี่...">
-            </div>
-            <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th class="th-green">รายชื่อคนไล่</th>
-                        <th class="th-orange">ราคาเล่น</th>
-                        <th class="th-red">รายชื่อคนยั้ง</th>
-                        <th class="th-purple">จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody>${rowsHtml}</tbody>
-            </table>
-            <button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button>
-        `;
+        newTable.innerHTML = `<button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button><div class="card-header"><input type="text" class="table-title-input" value="${table.title}" placeholder="ใส่ชื่อค่ายที่นี่..."></div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rowsHtml}</tbody></table><button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button>`;
         container.appendChild(newTable);
     });
 }
 
-// ===== ป้องกันกด Ctrl+U =====
-document.addEventListener("keydown", function (e) {
-    if (e.ctrlKey && e.key.toLowerCase() === "u") {
-        e.preventDefault();
-        showModal("แจ้งเตือน", "ไม่อนุญาตให้ดูซอร์สโค้ดหน้านี้", "alert");
-    }
-});
+document.addEventListener("keydown", e => { if (e.ctrlKey && e.key.toLowerCase() === "u") { e.preventDefault(); showModal("เตือน", "ไม่อนุญาตให้ดูซอร์สโค้ด", "alert"); }});
+setInterval(() => { saveData(); console.log("Auto saved"); }, 15000);
 
-// ===== Auto Save Interval =====
-setInterval(() => {
-    saveData();
-    console.log("ข้อมูลถูกบันทึกอัตโนมัติ");
-}, 15000);
-
-// ===== Admin Login =====
 function adminLogin() {
-    // เนื่องจาก prompt ตกแต่งไม่ได้ง่ายๆ อาจจะใช้ modal แบบ input ในอนาคต
-    // แต่เพื่อความง่ายใน version นี้ใช้ prompt เดิมไปก่อน หรือถ้าอยากแก้แจ้งได้ครับ
     const name = prompt("กรอกชื่อ Admin");
     if (!name) return;
-
-    const time = new Date().toLocaleString("th-TH");
-    adminLogs.push({ name, time });
-
+    adminLogs.push({ name, time: new Date().toLocaleString("th-TH") });
     localStorage.setItem("adminLogs", JSON.stringify(adminLogs));
     showModal("ยินดีต้อนรับ", "เข้าสู่ระบบสำเร็จ ✔", "alert");
-}
-
-function showAdminLogs() {
-    if (adminLogs.length === 0) {
-        showModal("Admin Logs", "ยังไม่มีประวัติการเข้าใช้งาน", "alert");
-        return;
-    }
-    let msg = "";
-    adminLogs.forEach((log, i) => {
-        msg += `${i + 1}. ${log.name} - ${log.time}\n`;
-    });
-    alert(msg); // ใช้ alert เดิมเพราะข้อความยาว (หรือจะสร้าง Modal แบบ List ก็ได้)
 }
 
 function sendMessageToLine() {
     const name = document.getElementById('lineName').value;
     const msg = document.getElementById('messageToSend').value;
     if(!name || !msg) return showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบ", "alert");
-    
     const uid = getLineIdFromName(name);
-    if(uid) {
-        pushText(uid, msg);
-    } else {
-        showModal("ไม่พบผู้ใช้", "ไม่พบรายชื่อในระบบ", "alert");
-    }
+    uid ? pushText(uid, msg) : showModal("ไม่พบผู้ใช้", "ไม่พบรายชื่อในระบบ", "alert");
 }
