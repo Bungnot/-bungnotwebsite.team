@@ -1,9 +1,16 @@
-let historyData = [];
+let historyData = []; // เก็บข้อมูลเป็น Object {title, rows, profit} แทนรูปภาพ
 let totalDeletedProfit = 0;
 let adminLogs = JSON.parse(localStorage.getItem("adminLogs") || "[]");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
+    // โหลดประวัติเก่าจาก LocalStorage (ถ้ามี)
+    const savedHistory = localStorage.getItem("historyData");
+    if (savedHistory) {
+        historyData = JSON.parse(savedHistory);
+        // คำนวณกำไรรวมใหม่จากข้อมูลที่โหลดมา
+        totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
+    }
 });
 
 // ===== [LINE CONFIG] =====
@@ -127,9 +134,9 @@ function addTable() {
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder=""></td>
-                    <td><input type="text" placeholder=""></td>
-                    <td><input type="text" placeholder=""></td>
+                    <td><input type="text" placeholder="ชื่อคนไล่"></td>
+                    <td><input type="text" placeholder="ราคา"></td>
+                    <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
                     <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
                 </tr>
             </tbody>
@@ -140,7 +147,7 @@ function addTable() {
     newTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// ===== ลบตาราง (ปรับปรุง: เอาแบบสีสดเหมือนหน้าจอจริง) =====
+// ===== ลบตาราง (เก็บเป็น Data Text) =====
 function removeTable(button) {
     const tableContainer = button.parentElement;
     const inputs = tableContainer.querySelectorAll('input');
@@ -151,6 +158,7 @@ function removeTable(button) {
         return;
     }
 
+    // 1. คำนวณกำไร
     const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
     let totalProfit = 0;
     priceInputs.forEach(input => {
@@ -159,42 +167,40 @@ function removeTable(button) {
     });
 
     showModal("ยืนยันการลบ", `ต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, "confirm", () => {
-        html2canvas(tableContainer, {
-            scale: 3, // ความชัด HD
-            backgroundColor: '#ffffff', // พื้นหลังสีขาว (ตามสีการ์ด)
-            useCORS: true,
-            onclone: (clonedDoc) => {
-                const clone = clonedDoc.querySelector('.table-container');
-                if (clone) {
-                    // *** ไม่มีการเปลี่ยนสี (ปล่อยให้เป็นสีเดิมตาม CSS) ***
-                    clone.style.transform = 'none'; // ป้องกันภาพเบี้ยว
-                    
-                    // ซ่อนเฉพาะปุ่มที่รกตา (ปุ่มกากบาทมุมขวาบน และ ปุ่มเพิ่มแถวด้านล่าง)
-                    const closeBtn = clone.querySelector('.btn-close-table');
-                    if(closeBtn) closeBtn.style.display = 'none';
-
-                    const addBtn = clone.querySelector('.btn-add-row');
-                    if(addBtn) addBtn.style.display = 'none';
-
-                    // ซ่อนปุ่มลบในแต่ละแถวด้วย เพื่อให้ภาพดูสะอาด (ถ้าอยากให้มีปุ่มลบ ให้ลบบรรทัดล่างนี้ออก)
-                    const removeRowBtns = clone.querySelectorAll('.btn-remove-row');
-                    removeRowBtns.forEach(btn => btn.style.display = 'none');
-                    
-                    // ซ่อน header คอลัมน์ "จัดการ" เพราะไม่มีปุ่มแล้ว
-                    const manageHeader = clone.querySelector('th:last-child');
-                    if(manageHeader) manageHeader.style.display = 'none';
-                    
-                    const manageCells = clone.querySelectorAll('td:last-child');
-                    manageCells.forEach(td => td.style.display = 'none');
-                }
-            }
-        }).then(canvas => {
-            historyData.push({ imgData: canvas.toDataURL("image/png"), profit: totalProfit });
-            totalDeletedProfit += totalProfit;
-            tableContainer.style.transition = "opacity 0.5s";
-            tableContainer.style.opacity = '0';
-            setTimeout(() => { tableContainer.remove(); saveData(); }, 500);
+        
+        // 2. ดึงข้อมูลทั้งหมดเก็บใส่ตัวแปร (ไม่ถ่ายรูปแล้ว)
+        const title = tableContainer.querySelector('.table-title-input').value;
+        const rowsData = [];
+        
+        tableContainer.querySelectorAll("tbody tr").forEach(tr => {
+            const cells = tr.querySelectorAll("input");
+            rowsData.push([
+                cells[0]?.value || "", // ชื่อคนไล่
+                cells[1]?.value || "", // ราคา
+                cells[2]?.value || ""  // ชื่อคนยั้ง
+            ]);
         });
+
+        // 3. บันทึกลง Array
+        historyData.push({
+            title: title,
+            rows: rowsData,
+            profit: totalProfit,
+            timestamp: new Date().toLocaleString("th-TH")
+        });
+        
+        // บันทึก History ลง LocalStorage กันหาย
+        localStorage.setItem("historyData", JSON.stringify(historyData));
+
+        totalDeletedProfit += totalProfit;
+        
+        // Animation ลบ
+        tableContainer.style.transition = "opacity 0.5s";
+        tableContainer.style.opacity = '0';
+        setTimeout(() => { 
+            tableContainer.remove(); 
+            saveData(); 
+        }, 500);
     });
 }
 
@@ -208,15 +214,116 @@ function removeRow(button) {
     saveData();
 }
 
+// ===== แสดงประวัติ (สร้างตาราง HTML จริงๆ) =====
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ยังไม่มีประวัติ", "alert");
-    let newWindow = window.open("", "History", "width=800,height=600");
-    newWindow.document.write(`
-        <html><head><title>ประวัติ</title><style>body{font-family:sans-serif;padding:20px;background:#f0f2f5}.card{background:white;padding:15px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden;}</style></head>
-        <body><h2>📜 ประวัติการลบ</h2><h3 style="color:green">💰 กำไรรวม: ฿${totalDeletedProfit.toFixed(2)}</h3>
-    `);
-    historyData.forEach(h => newWindow.document.write(`<div class="card"><img src="${h.imgData}" style="width:100%"><p>กำไร: ฿${h.profit.toFixed(2)}</p></div>`));
-    newWindow.document.write("</body></html>");
+    
+    let newWindow = window.open("", "History", "width=1000,height=800");
+    
+    // สร้าง HTML สำหรับหน้าประวัติ โดยก๊อปปี้ CSS จากหน้าหลักไปด้วย เพื่อให้สวยเหมือนกันเป๊ะ
+    let content = `
+        <html>
+        <head>
+            <title>ประวัติการลบ (Text Mode)</title>
+            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+            <style>
+                body { font-family: 'Sarabun', sans-serif; padding: 20px; background: #f0f2f5; }
+                
+                /* ก๊อปปี้ CSS ของ Table Card มาใส่ */
+                .table-card { 
+                    background: white; 
+                    border-radius: 20px; 
+                    padding: 25px; 
+                    margin-bottom: 30px; 
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+                    max-width: 900px;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+                
+                .header-title {
+                    font-size: 1.5rem; 
+                    font-weight: bold; 
+                    color: #1e3c72; 
+                    text-align: center; 
+                    background: #f0f4f8; 
+                    padding: 10px;
+                    border-radius: 10px;
+                    margin-bottom: 15px;
+                }
+
+                table { width: 100%; border-collapse: separate; border-spacing: 0; }
+                th { padding: 12px; color: white; font-weight: 600; text-align: center; }
+                td { padding: 10px; border-bottom: 1px solid #eee; }
+                
+                /* สีหัวตารางเหมือนเดิม */
+                .th-green { background: linear-gradient(45deg, #11998e, #38ef7d); border-radius: 10px 0 0 0; }
+                .th-orange { background: linear-gradient(45deg, #f2994a, #f2c94c); }
+                .th-red { background: linear-gradient(45deg, #eb3349, #f45c43); border-radius: 0 10px 0 0; }
+
+                /* Input แบบ Readonly ให้เหมือนหน้าจอจริง */
+                input { 
+                    width: 100%; 
+                    padding: 8px; 
+                    border: 1px solid #ddd; 
+                    border-radius: 8px; 
+                    text-align: center; 
+                    background: white; 
+                    font-family: 'Sarabun';
+                    font-size: 1rem;
+                    color: #333;
+                }
+                
+                .timestamp { font-size: 0.8rem; color: #888; text-align: right; margin-top: 10px; }
+                .profit-tag { font-weight: bold; color: green; float: left; }
+                
+                h2 { text-align: center; color: #1e3c72; }
+                .summary { text-align: center; font-size: 1.2rem; font-weight: bold; color: green; margin-bottom: 30px; }
+            </style>
+        </head>
+        <body>
+            <h2>📜 ประวัติการลบตาราง (ค้นหาได้)</h2>
+            <div class="summary">💰 กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</div>
+    `;
+
+    // Loop ข้อมูลสร้างตารางทีละอัน
+    historyData.forEach((h, index) => {
+        let rowsHtml = "";
+        h.rows.forEach(r => {
+            // สร้างช่อง input แต่ใส่ readonly ไว้ (ห้ามแก้)
+            rowsHtml += `
+                <tr>
+                    <td><input type="text" value="${r[0]}" readonly></td>
+                    <td><input type="text" value="${r[1]}" readonly></td>
+                    <td><input type="text" value="${r[2]}" readonly></td>
+                </tr>
+            `;
+        });
+
+        content += `
+            <div class="table-card">
+                <div class="header-title">${h.title || "(ไม่มีชื่อค่าย)"}</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="th-green">รายชื่อคนไล่</th>
+                            <th class="th-orange">ราคาเล่น</th>
+                            <th class="th-red">รายชื่อคนยั้ง</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+                <div class="timestamp">
+                    <span class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</span>
+                    ลบเมื่อ: ${h.timestamp}
+                </div>
+            </div>
+        `;
+    });
+
+    content += "</body></html>";
+
+    newWindow.document.write(content);
     newWindow.document.close();
 }
 
