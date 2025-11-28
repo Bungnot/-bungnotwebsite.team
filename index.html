@@ -15,11 +15,8 @@
         :root {
             --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: rgba(255, 255, 255, 0.2);
             --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             --text-color: #333;
-            --accent-color: #00d2ff;
-            --danger-color: #ff4b4b;
         }
 
         body {
@@ -32,298 +29,92 @@
             color: var(--text-color);
         }
 
-        /* Header Section */
-        .header-container {
-            text-align: center;
-            margin-bottom: 30px;
-            color: white;
-        }
+        /* --- Header & Buttons --- */
+        .header-container { text-align: center; margin-bottom: 30px; color: white; }
+        .profile-group img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.5); margin: 0 5px; transition: transform 0.3s; }
+        .profile-group img:hover { transform: scale(1.1) rotate(5deg); }
+        h2 { font-weight: 700; font-size: 2.5rem; margin: 10px 0; background: -webkit-linear-gradient(top, #fff, #e0e0e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .profile-group img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid rgba(255,255,255,0.5);
-            margin: 0 5px;
-            transition: transform 0.3s;
-        }
+        .action-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
+        .btn-main { background: white; color: #1e3c72; border: none; padding: 12px 25px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+        .btn-main:hover { transform: translateY(-3px); background: #f0f8ff; }
+        .btn-history { background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); }
+
+        /* --- Cards & Grid --- */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto 30px; }
+        .info-card { background: var(--glass-bg); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); }
+        .info-card h3 { margin-top: 0; color: #1e3c72; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .info-content { font-size: 0.95rem; line-height: 1.6; color: #555; }
+
+        input[type="text"], textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px; font-family: 'Sarabun'; margin-bottom: 10px; box-sizing: border-box; transition: 0.3s; background: #f9f9f9; }
+        input[type="text"]:focus, textarea:focus { border-color: #2a5298; outline: none; background: white; }
+
+        /* --- Table Styling --- */
+        #tables-container { max-width: 1000px; margin: 0 auto; }
+        .table-card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: relative; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-header { display: flex; justify-content: center; margin-bottom: 15px; }
+        .table-title-input { font-size: 1.2rem !important; font-weight: bold; color: #1e3c72; text-align: center; border: none !important; background: #f0f4f8 !important; max-width: 80%; }
         
-        .profile-group img:hover {
-            transform: scale(1.1) rotate(5deg);
-        }
+        .btn-close-table { position: absolute; top: 15px; right: 15px; background: #ffebee; color: #d32f2f; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-close-table:hover { background: #ffcdd2; transform: rotate(90deg); }
 
-        h2 {
-            font-weight: 700;
-            font-size: 2.5rem;
-            margin: 10px 0;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            background: -webkit-linear-gradient(top, #fff, #e0e0e0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Main Control Buttons */
-        .action-bar {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .btn-main {
-            background: white;
-            color: #1e3c72;
-            border: none;
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-main:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            background: #f0f8ff;
-        }
-
-        .btn-history {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        /* Layout Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto 30px;
-        }
-
-        .info-card {
-            background: var(--glass-bg);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .info-card h3 {
-            margin-top: 0;
-            color: #1e3c72;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .info-content {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #555;
-        }
-
-        /* Input Styles */
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-family: 'Sarabun';
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            transition: 0.3s;
-            background: #f9f9f9;
-        }
-
-        input[type="text"]:focus, textarea:focus {
-            border-color: #2a5298;
-            outline: none;
-            background: white;
-        }
-
-        /* Table Container (The Dynamic Part) */
-        #tables-container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .table-card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            position: relative;
-            border: 1px solid rgba(0,0,0,0.05);
-            animation: slideUp 0.4s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        .table-title-input {
-            font-size: 1.2rem !important;
-            font-weight: bold;
-            color: #1e3c72;
-            text-align: center;
-            border: none !important;
-            background: #f0f4f8 !important;
-            max-width: 80%;
-        }
-
-        .btn-close-table {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #ffebee;
-            color: #d32f2f;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-        }
-
-        .btn-close-table:hover {
-            background: #ffcdd2;
-            transform: rotate(90deg);
-        }
-
-        /* Modern Table Styles */
-        .custom-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .custom-table th {
-            padding: 12px;
-            color: white;
-            font-weight: 500;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-        }
-
+        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 15px; }
+        .custom-table th { padding: 12px; color: white; font-weight: 500; font-size: 0.9rem; }
         .th-green { background: linear-gradient(45deg, #11998e, #38ef7d); }
         .th-orange { background: linear-gradient(45deg, #f2994a, #f2c94c); }
         .th-red { background: linear-gradient(45deg, #eb3349, #f45c43); }
         .th-purple { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
+        .custom-table td { padding: 8px; border-bottom: 1px solid #eee; }
+        .custom-table input { border: 1px solid #ddd; border-radius: 8px; text-align: center; margin-bottom: 0; background: white; }
+        .custom-table input:focus { border-color: #38ef7d; box-shadow: 0 0 0 3px rgba(56, 239, 125, 0.2); }
 
-        .custom-table td {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-        }
+        .btn-remove-row { background: #ffeba7; color: #d35400; border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+        .btn-add-row { width: 100%; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-add-row:hover { background: #c8e6c9; }
 
-        .custom-table tr:last-child td {
-            border-bottom: none;
+        /* --- NEW: CUSTOM MODAL STYLES (Popup แต่งเอง) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s;
         }
-
-        .custom-table input {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 0;
-            background: white;
-        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
         
-        .custom-table input:focus {
-            border-color: #38ef7d;
-            box-shadow: 0 0 0 3px rgba(56, 239, 125, 0.2);
+        .modal-box {
+            background: white; width: 90%; max-width: 400px;
+            border-radius: 20px; padding: 30px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform: scale(0.8); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .modal-overlay.active .modal-box { transform: scale(1); }
 
-        .btn-remove-row {
-            background: #ffeba7;
-            color: #d35400;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .modal-icon { font-size: 3rem; margin-bottom: 15px; display: block; }
+        .icon-warn { color: #f2994a; }
+        .icon-success { color: #2ecc71; }
         
-        .btn-remove-row:hover { background: #ffe082; }
+        .modal-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; color: #333; }
+        .modal-text { font-size: 1rem; color: #666; margin-bottom: 25px; }
 
-        .btn-add-row {
-            width: 100%;
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px dashed #2e7d32;
-            padding: 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .btn-add-row:hover {
-            background: #c8e6c9;
-        }
+        .modal-actions { display: flex; justify-content: center; gap: 10px; }
+        .btn-modal { padding: 10px 25px; border-radius: 50px; border: none; font-size: 1rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-confirm { background: #e74c3c; color: white; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4); }
+        .btn-confirm:hover { background: #c0392b; transform: translateY(-2px); }
+        .btn-cancel { background: #ecf0f1; color: #7f8c8d; }
+        .btn-cancel:hover { background: #bdc3c7; }
 
         /* Auto Save Badge */
-        #auto-save-alert {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 25px;
-            border-radius: 30px;
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        #auto-save-alert { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 25px; border-radius: 30px; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; z-index: 9999; }
+        .credit { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(255,255,255,0.4); }
 
-        /* Responsive */
-        @media screen and (max-width: 768px) {
-            h2 { font-size: 1.8rem; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .action-bar { flex-direction: column; }
-            .btn-main { width: 100%; justify-content: center; }
-        }
-
-        .credit {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            font-size: 10px;
-            color: rgba(255,255,255,0.4);
-        }
+        @media screen and (max-width: 768px) { h2 { font-size: 1.8rem; } .dashboard-grid { grid-template-columns: 1fr; } .action-bar { flex-direction: column; } .btn-main { width: 100%; justify-content: center; } }
     </style>
 </head>
 <body>
 
-    <div class="credit">Web dev by Bungnot v2.0.0 (Remastered)</div>
+    <div class="credit">Web dev by Bungnot v2.1.0 (Popup Update)</div>
     <div id="auto-save-alert"><i class="fas fa-check-circle"></i> บันทึกข้อมูลอัตโนมัติแล้ว</div>
 
     <div class="header-container">
@@ -332,7 +123,6 @@
             <img src="https://i.postimg.cc/W4QQVdX7/3f9d7965-5b59-442d-94ca-c0c6a324f9d1.png" alt="Profile">
         </div>
         <h2>ระบบจัดการหลังบ้าน OG</h2>
-        <p style="opacity: 0.8;">จัดการยอด บั้งไฟ และคำนวณกำไร</p>
     </div>
 
     <div class="action-bar">
@@ -385,6 +175,16 @@
     </div>
 
     <div id="tables-container"></div>
+
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <i id="modal-icon" class="fas fa-exclamation-circle modal-icon icon-warn"></i>
+            <div id="modal-title" class="modal-title">แจ้งเตือน</div>
+            <div id="modal-msg" class="modal-text">ข้อความแจ้งเตือน...</div>
+            <div class="modal-actions" id="modal-actions">
+                </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
