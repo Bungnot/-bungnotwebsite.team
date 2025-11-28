@@ -1,14 +1,13 @@
-let historyData = []; // เก็บข้อมูลเป็น Object {title, rows, profit} แทนรูปภาพ
+let historyData = [];
 let totalDeletedProfit = 0;
 let adminLogs = JSON.parse(localStorage.getItem("adminLogs") || "[]");
+let currentModalKeyHandler = null; // ตัวแปรเก็บฟังก์ชันกดปุ่ม (เพื่อกันการกดซ้อน)
 
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
-    // โหลดประวัติเก่าจาก LocalStorage (ถ้ามี)
     const savedHistory = localStorage.getItem("historyData");
     if (savedHistory) {
         historyData = JSON.parse(savedHistory);
-        // คำนวณกำไรรวมใหม่จากข้อมูลที่โหลดมา
         totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
     }
 });
@@ -56,7 +55,7 @@ async function pushText(to, text) {
     } catch (err) { console.error("Error:", err); }
 }
 
-// ===== CUSTOM MODAL LOGIC =====
+// ===== CUSTOM MODAL LOGIC (รองรับ Keyboard) =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -68,20 +67,51 @@ function showModal(title, message, type = "alert", callback = null) {
     msgEl.innerText = message;
     actionsEl.innerHTML = ""; 
 
+    // --- จัดการปุ่มกด (ESC / Enter) ---
+    // ล้าง Event เก่าก่อนเพื่อกันเบิ้ล
+    if (currentModalKeyHandler) {
+        document.removeEventListener("keydown", currentModalKeyHandler);
+    }
+
+    // สร้าง Event ใหม่
+    currentModalKeyHandler = (e) => {
+        if (e.key === "Escape") {
+            closeModal(); // กด ESC ปิดเลย
+        } else if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault(); // กัน Spacebar เลื่อนหน้าจอ
+            
+            // ถ้าเป็นหน้า Confirm ให้กดตกลง ถ้าเป็น Alert ธรรมดาให้กดปิด
+            if (type === "confirm" && callback) {
+                closeModal();
+                callback();
+            } else {
+                closeModal();
+            }
+        }
+    };
+    
+    // เริ่มดักจับปุ่มกด
+    document.addEventListener("keydown", currentModalKeyHandler);
+
+
     if (type === "confirm") {
         iconEl.className = "fas fa-question-circle modal-icon icon-warn";
         const btnYes = document.createElement("button");
         btnYes.className = "btn-modal btn-confirm";
-        btnYes.innerText = "ยืนยันลบ";
+        btnYes.innerText = "ยืนยันลบ"; // (กด Enter)
         btnYes.onclick = () => { closeModal(); if (callback) callback(); };
 
         const btnNo = document.createElement("button");
         btnNo.className = "btn-modal btn-cancel";
-        btnNo.innerText = "ยกเลิก";
+        btnNo.innerText = "ยกเลิก"; // (กด ESC)
         btnNo.onclick = closeModal;
 
         actionsEl.appendChild(btnNo);
         actionsEl.appendChild(btnYes);
+        
+        // Auto Focus ปุ่มยืนยัน (เผื่อใช้ Tab)
+        setTimeout(() => btnYes.focus(), 100);
+
     } else {
         iconEl.className = "fas fa-info-circle modal-icon icon-warn";
         const btnOk = document.createElement("button");
@@ -91,12 +121,20 @@ function showModal(title, message, type = "alert", callback = null) {
         btnOk.style.color = "white";
         btnOk.onclick = closeModal;
         actionsEl.appendChild(btnOk);
+        
+        setTimeout(() => btnOk.focus(), 100);
     }
     modal.classList.add('active');
 }
 
 function closeModal() {
     document.getElementById('custom-modal').classList.remove('active');
+    
+    // เลิกดักจับปุ่มกดเมื่อปิด Modal
+    if (currentModalKeyHandler) {
+        document.removeEventListener("keydown", currentModalKeyHandler);
+        currentModalKeyHandler = null;
+    }
 }
 
 // ===== เพิ่มแผล =====
@@ -104,9 +142,9 @@ function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td><input type="text" placeholder=""></td>
-        <td><input type="text" placeholder=""></td>
-        <td><input type="text" placeholder=""></td>
+        <td><input type="text" placeholder="ชื่อคนไล่"></td>
+        <td><input type="text" placeholder="ราคา"></td>
+        <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
     `;
     tbody.appendChild(newRow);
@@ -158,7 +196,6 @@ function removeTable(button) {
         return;
     }
 
-    // 1. คำนวณกำไร
     const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
     let totalProfit = 0;
     priceInputs.forEach(input => {
@@ -168,20 +205,18 @@ function removeTable(button) {
 
     showModal("ยืนยันการลบ", `ต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, "confirm", () => {
         
-        // 2. ดึงข้อมูลทั้งหมดเก็บใส่ตัวแปร (ไม่ถ่ายรูปแล้ว)
         const title = tableContainer.querySelector('.table-title-input').value;
         const rowsData = [];
         
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
             const cells = tr.querySelectorAll("input");
             rowsData.push([
-                cells[0]?.value || "", // ชื่อคนไล่
-                cells[1]?.value || "", // ราคา
-                cells[2]?.value || ""  // ชื่อคนยั้ง
+                cells[0]?.value || "",
+                cells[1]?.value || "",
+                cells[2]?.value || ""
             ]);
         });
 
-        // 3. บันทึกลง Array
         historyData.push({
             title: title,
             rows: rowsData,
@@ -189,12 +224,9 @@ function removeTable(button) {
             timestamp: new Date().toLocaleString("th-TH")
         });
         
-        // บันทึก History ลง LocalStorage กันหาย
         localStorage.setItem("historyData", JSON.stringify(historyData));
-
         totalDeletedProfit += totalProfit;
         
-        // Animation ลบ
         tableContainer.style.transition = "opacity 0.5s";
         tableContainer.style.opacity = '0';
         setTimeout(() => { 
@@ -214,13 +246,12 @@ function removeRow(button) {
     saveData();
 }
 
-// ===== แสดงประวัติ (สร้างตาราง HTML จริงๆ) =====
+// ===== แสดงประวัติ (Text Mode) =====
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ยังไม่มีประวัติ", "alert");
     
     let newWindow = window.open("", "History", "width=1000,height=800");
     
-    // สร้าง HTML สำหรับหน้าประวัติ โดยก๊อปปี้ CSS จากหน้าหลักไปด้วย เพื่อให้สวยเหมือนกันเป๊ะ
     let content = `
         <html>
         <head>
@@ -228,55 +259,20 @@ function showHistory() {
             <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
             <style>
                 body { font-family: 'Sarabun', sans-serif; padding: 20px; background: #f0f2f5; }
-                
-                /* ก๊อปปี้ CSS ของ Table Card มาใส่ */
                 .table-card { 
-                    background: white; 
-                    border-radius: 20px; 
-                    padding: 25px; 
-                    margin-bottom: 30px; 
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-                    max-width: 900px;
-                    margin-left: auto;
-                    margin-right: auto;
+                    background: white; border-radius: 20px; padding: 25px; margin-bottom: 30px; 
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 900px; margin-left: auto; margin-right: auto;
                 }
-                
-                .header-title {
-                    font-size: 1.5rem; 
-                    font-weight: bold; 
-                    color: #1e3c72; 
-                    text-align: center; 
-                    background: #f0f4f8; 
-                    padding: 10px;
-                    border-radius: 10px;
-                    margin-bottom: 15px;
-                }
-
+                .header-title { font-size: 1.5rem; font-weight: bold; color: #1e3c72; text-align: center; background: #f0f4f8; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
                 table { width: 100%; border-collapse: separate; border-spacing: 0; }
                 th { padding: 12px; color: white; font-weight: 600; text-align: center; }
                 td { padding: 10px; border-bottom: 1px solid #eee; }
-                
-                /* สีหัวตารางเหมือนเดิม */
                 .th-green { background: linear-gradient(45deg, #11998e, #38ef7d); border-radius: 10px 0 0 0; }
                 .th-orange { background: linear-gradient(45deg, #f2994a, #f2c94c); }
                 .th-red { background: linear-gradient(45deg, #eb3349, #f45c43); border-radius: 0 10px 0 0; }
-
-                /* Input แบบ Readonly ให้เหมือนหน้าจอจริง */
-                input { 
-                    width: 100%; 
-                    padding: 8px; 
-                    border: 1px solid #ddd; 
-                    border-radius: 8px; 
-                    text-align: center; 
-                    background: white; 
-                    font-family: 'Sarabun';
-                    font-size: 1rem;
-                    color: #333;
-                }
-                
+                input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; text-align: center; background: white; font-family: 'Sarabun'; font-size: 1rem; color: #333; }
                 .timestamp { font-size: 0.8rem; color: #888; text-align: right; margin-top: 10px; }
                 .profit-tag { font-weight: bold; color: green; float: left; }
-                
                 h2 { text-align: center; color: #1e3c72; }
                 .summary { text-align: center; font-size: 1.2rem; font-weight: bold; color: green; margin-bottom: 30px; }
             </style>
@@ -286,11 +282,9 @@ function showHistory() {
             <div class="summary">💰 กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</div>
     `;
 
-    // Loop ข้อมูลสร้างตารางทีละอัน
     historyData.forEach((h, index) => {
         let rowsHtml = "";
         h.rows.forEach(r => {
-            // สร้างช่อง input แต่ใส่ readonly ไว้ (ห้ามแก้)
             rowsHtml += `
                 <tr>
                     <td><input type="text" value="${r[0]}" readonly></td>
@@ -322,7 +316,6 @@ function showHistory() {
     });
 
     content += "</body></html>";
-
     newWindow.document.write(content);
     newWindow.document.close();
 }
