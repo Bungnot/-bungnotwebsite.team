@@ -208,7 +208,22 @@ function removeRow(button) {
     saveData();
 }
 
-// ===== แสดงประวัติ (ปุ่มล้างประวัติเล็กๆ) =====
+// ===== ฟังก์ชันล้างประวัติจากหน้าหลัก =====
+function clearAllHistory() {
+    if(historyData.length === 0) {
+        showModal("แจ้งเตือน", "ไม่มีประวัติให้ลบ", "alert");
+        return;
+    }
+    
+    showModal("ยืนยันการลบ", "คุณต้องการลบประวัติการคำนวณทั้งหมดใช่หรือไม่?\n(ข้อมูลจะหายไปถาวร)", "confirm", () => {
+        localStorage.removeItem('historyData');
+        historyData = [];
+        totalDeletedProfit = 0;
+        showModal("สำเร็จ", "ล้างประวัติเรียบร้อยแล้ว", "alert");
+    });
+}
+
+// ===== แสดงประวัติ (Text Mode) =====
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ยังไม่มีประวัติ", "alert");
     
@@ -219,7 +234,6 @@ function showHistory() {
         <head>
             <title>ประวัติการลบ (Text Mode)</title>
             <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
                 body { font-family: 'Sarabun', sans-serif; padding: 20px; background: #f0f2f5; }
                 .table-card { 
@@ -237,35 +251,12 @@ function showHistory() {
                 .timestamp { font-size: 0.8rem; color: #888; text-align: right; margin-top: 10px; }
                 .profit-tag { font-weight: bold; color: green; float: left; }
                 h2 { text-align: center; color: #1e3c72; }
-                
-                /* Container สรุปยอด */
-                .summary { 
-                    text-align: center; 
-                    font-size: 1.2rem; 
-                    font-weight: bold; 
-                    color: green; 
-                    margin-bottom: 30px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    gap: 15px;
-                }
-                
-                /* ปุ่มล้างประวัติเล็กๆ */
-                .btn-clear-all {
-                    background: #ff6b6b; color: white; border: none; padding: 5px 12px;
-                    border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-family: 'Sarabun';
-                    transition: 0.2s; display: inline-flex; align-items: center; gap: 5px;
-                }
-                .btn-clear-all:hover { background: #fa5252; transform: scale(1.05); }
+                .summary { text-align: center; font-size: 1.2rem; font-weight: bold; color: green; margin-bottom: 30px; }
             </style>
         </head>
         <body>
             <h2>📜 ประวัติการลบตาราง (ค้นหาได้)</h2>
-            <div class="summary">
-                <span>💰 กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</span>
-                <button onclick="clearAllHistory()" class="btn-clear-all"><i class="fas fa-trash"></i> ล้างประวัติ</button>
-            </div>
+            <div class="summary">💰 กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</div>
     `;
 
     historyData.forEach((h) => {
@@ -276,22 +267,7 @@ function showHistory() {
         content += `<div class="table-card"><div class="header-title">${h.title || "(ไม่มีชื่อค่าย)"}</div><table><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="timestamp"><span class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</span>ลบเมื่อ: ${h.timestamp}</div></div>`;
     });
 
-    content += `
-        <script>
-            function clearAllHistory() {
-                if(confirm('ยืนยันลบประวัติทั้งหมด?')) {
-                    localStorage.removeItem('historyData');
-                    if(window.opener) {
-                        window.opener.historyData = [];
-                        window.opener.totalDeletedProfit = 0;
-                        window.opener.alert('ล้างประวัติแล้ว');
-                    }
-                    window.close();
-                }
-            }
-        </script>
-    </body></html>`;
-    
+    content += "</body></html>";
     newWindow.document.write(content);
     newWindow.document.close();
 }
