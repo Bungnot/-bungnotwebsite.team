@@ -97,9 +97,9 @@ function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td><input type="text" placeholder=""></td>
-        <td><input type="text" placeholder=""></td>
-        <td><input type="text" placeholder=""></td>
+        <td><input type="text" placeholder="ชื่อคนไล่"></td>
+        <td><input type="text" placeholder="ราคา"></td>
+        <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
     `;
     tbody.appendChild(newRow);
@@ -140,7 +140,7 @@ function addTable() {
     newTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// ===== ลบตาราง (HD Mode) =====
+// ===== ลบตาราง (ปรับปรุง: เอาแบบสีสดเหมือนหน้าจอจริง) =====
 function removeTable(button) {
     const tableContainer = button.parentElement;
     const inputs = tableContainer.querySelectorAll('input');
@@ -160,49 +160,32 @@ function removeTable(button) {
 
     showModal("ยืนยันการลบ", `ต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, "confirm", () => {
         html2canvas(tableContainer, {
-            scale: 3, 
-            backgroundColor: '#ffffff',
+            scale: 3, // ความชัด HD
+            backgroundColor: '#ffffff', // พื้นหลังสีขาว (ตามสีการ์ด)
             useCORS: true,
-            logging: false,
             onclone: (clonedDoc) => {
                 const clone = clonedDoc.querySelector('.table-container');
                 if (clone) {
-                    // Style สำหรับถ่ายรูป (เหมือนพิมพ์ A4)
-                    clone.style.boxShadow = 'none';
-                    clone.style.background = '#ffffff';
-                    clone.style.border = '2px solid #000000';
-                    clone.style.color = '#000000';
-                    clone.style.padding = '20px';
-
-                    // ซ่อนปุ่ม
-                    clone.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
-
-                    // Style Input ให้ชัด
-                    clone.querySelectorAll('input').forEach(input => {
-                        input.style.backgroundColor = '#ffffff';
-                        input.style.color = '#000000';
-                        input.style.border = '1px solid #999';
-                        input.style.fontSize = '18px';
-                        input.style.fontWeight = 'bold';
-                        input.style.boxShadow = 'none';
-                    });
-
-                    // Style Header
-                    clone.querySelectorAll('th').forEach(th => {
-                        th.style.background = '#333333';
-                        th.style.color = '#ffffff';
-                        th.style.border = '1px solid #000';
-                    });
+                    // *** ไม่มีการเปลี่ยนสี (ปล่อยให้เป็นสีเดิมตาม CSS) ***
+                    clone.style.transform = 'none'; // ป้องกันภาพเบี้ยว
                     
-                    // Style Title
-                    const title = clone.querySelector('.table-title-input');
-                    if(title) {
-                        title.style.background = 'transparent';
-                        title.style.border = 'none';
-                        title.style.borderBottom = '2px solid #000';
-                        title.style.color = '#000';
-                        title.style.fontSize = '24px';
-                    }
+                    // ซ่อนเฉพาะปุ่มที่รกตา (ปุ่มกากบาทมุมขวาบน และ ปุ่มเพิ่มแถวด้านล่าง)
+                    const closeBtn = clone.querySelector('.btn-close-table');
+                    if(closeBtn) closeBtn.style.display = 'none';
+
+                    const addBtn = clone.querySelector('.btn-add-row');
+                    if(addBtn) addBtn.style.display = 'none';
+
+                    // ซ่อนปุ่มลบในแต่ละแถวด้วย เพื่อให้ภาพดูสะอาด (ถ้าอยากให้มีปุ่มลบ ให้ลบบรรทัดล่างนี้ออก)
+                    const removeRowBtns = clone.querySelectorAll('.btn-remove-row');
+                    removeRowBtns.forEach(btn => btn.style.display = 'none');
+                    
+                    // ซ่อน header คอลัมน์ "จัดการ" เพราะไม่มีปุ่มแล้ว
+                    const manageHeader = clone.querySelector('th:last-child');
+                    if(manageHeader) manageHeader.style.display = 'none';
+                    
+                    const manageCells = clone.querySelectorAll('td:last-child');
+                    manageCells.forEach(td => td.style.display = 'none');
                 }
             }
         }).then(canvas => {
@@ -229,7 +212,7 @@ function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ยังไม่มีประวัติ", "alert");
     let newWindow = window.open("", "History", "width=800,height=600");
     newWindow.document.write(`
-        <html><head><title>ประวัติ</title><style>body{font-family:sans-serif;padding:20px;background:#f0f2f5}.card{background:white;padding:15px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}</style></head>
+        <html><head><title>ประวัติ</title><style>body{font-family:sans-serif;padding:20px;background:#f0f2f5}.card{background:white;padding:15px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden;}</style></head>
         <body><h2>📜 ประวัติการลบ</h2><h3 style="color:green">💰 กำไรรวม: ฿${totalDeletedProfit.toFixed(2)}</h3>
     `);
     historyData.forEach(h => newWindow.document.write(`<div class="card"><img src="${h.imgData}" style="width:100%"><p>กำไร: ฿${h.profit.toFixed(2)}</p></div>`));
