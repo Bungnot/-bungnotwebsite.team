@@ -1,7 +1,6 @@
 let historyData = [];
 let totalDeletedProfit = 0;
-let adminLogs = JSON.parse(localStorage.getItem("adminLogs") || "[]");
-let currentModalKeyHandler = null; // ตัวแปรเก็บฟังก์ชันกดปุ่ม (เพื่อกันการกดซ้อน)
+let currentModalKeyHandler = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
@@ -14,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ===== [LINE CONFIG] =====
 const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
-
 const LINE_UID_MAP = {
     "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
     "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
@@ -55,7 +53,7 @@ async function pushText(to, text) {
     } catch (err) { console.error("Error:", err); }
 }
 
-// ===== CUSTOM MODAL LOGIC (รองรับ Keyboard) =====
+// ===== CUSTOM MODAL LOGIC (Keyboard Support) =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -67,51 +65,34 @@ function showModal(title, message, type = "alert", callback = null) {
     msgEl.innerText = message;
     actionsEl.innerHTML = ""; 
 
-    // --- จัดการปุ่มกด (ESC / Enter) ---
-    // ล้าง Event เก่าก่อนเพื่อกันเบิ้ล
     if (currentModalKeyHandler) {
         document.removeEventListener("keydown", currentModalKeyHandler);
     }
-
-    // สร้าง Event ใหม่
     currentModalKeyHandler = (e) => {
-        if (e.key === "Escape") {
-            closeModal(); // กด ESC ปิดเลย
-        } else if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault(); // กัน Spacebar เลื่อนหน้าจอ
-            
-            // ถ้าเป็นหน้า Confirm ให้กดตกลง ถ้าเป็น Alert ธรรมดาให้กดปิด
-            if (type === "confirm" && callback) {
-                closeModal();
-                callback();
-            } else {
-                closeModal();
-            }
+        if (e.key === "Escape") closeModal();
+        else if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            if (type === "confirm" && callback) { closeModal(); callback(); } 
+            else closeModal();
         }
     };
-    
-    // เริ่มดักจับปุ่มกด
     document.addEventListener("keydown", currentModalKeyHandler);
-
 
     if (type === "confirm") {
         iconEl.className = "fas fa-question-circle modal-icon icon-warn";
         const btnYes = document.createElement("button");
         btnYes.className = "btn-modal btn-confirm";
-        btnYes.innerText = "ยืนยันลบ"; // (กด Enter)
+        btnYes.innerText = "ยืนยันลบ";
         btnYes.onclick = () => { closeModal(); if (callback) callback(); };
 
         const btnNo = document.createElement("button");
         btnNo.className = "btn-modal btn-cancel";
-        btnNo.innerText = "ยกเลิก"; // (กด ESC)
+        btnNo.innerText = "ยกเลิก";
         btnNo.onclick = closeModal;
 
         actionsEl.appendChild(btnNo);
         actionsEl.appendChild(btnYes);
-        
-        // Auto Focus ปุ่มยืนยัน (เผื่อใช้ Tab)
         setTimeout(() => btnYes.focus(), 100);
-
     } else {
         iconEl.className = "fas fa-info-circle modal-icon icon-warn";
         const btnOk = document.createElement("button");
@@ -121,7 +102,6 @@ function showModal(title, message, type = "alert", callback = null) {
         btnOk.style.color = "white";
         btnOk.onclick = closeModal;
         actionsEl.appendChild(btnOk);
-        
         setTimeout(() => btnOk.focus(), 100);
     }
     modal.classList.add('active');
@@ -129,15 +109,13 @@ function showModal(title, message, type = "alert", callback = null) {
 
 function closeModal() {
     document.getElementById('custom-modal').classList.remove('active');
-    
-    // เลิกดักจับปุ่มกดเมื่อปิด Modal
     if (currentModalKeyHandler) {
         document.removeEventListener("keydown", currentModalKeyHandler);
         currentModalKeyHandler = null;
     }
 }
 
-// ===== เพิ่มแผล =====
+// ===== Function หลัก =====
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
@@ -150,7 +128,6 @@ function addRow(table) {
     tbody.appendChild(newRow);
 }
 
-// ===== เพิ่มตาราง =====
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -172,9 +149,9 @@ function addTable() {
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder=""></td>
-                    <td><input type="text" placeholder=""></td>
-                    <td><input type="text" placeholder=""></td>
+                    <td><input type="text" placeholder="ชื่อคนไล่"></td>
+                    <td><input type="text" placeholder="ราคา"></td>
+                    <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
                     <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
                 </tr>
             </tbody>
@@ -185,13 +162,10 @@ function addTable() {
     newTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// ===== ลบตาราง (เก็บเป็น Data Text) =====
 function removeTable(button) {
     const tableContainer = button.parentElement;
     const inputs = tableContainer.querySelectorAll('input');
-
-    let hasInput = Array.from(inputs).some(i => i.value.trim() !== "");
-    if (!hasInput) {
+    if (!Array.from(inputs).some(i => i.value.trim() !== "")) {
         showModal("แจ้งเตือน", "ต้องกรอกข้อมูลก่อนจึงลบได้", "alert");
         return;
     }
@@ -204,24 +178,15 @@ function removeTable(button) {
     });
 
     showModal("ยืนยันการลบ", `ต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, "confirm", () => {
-        
         const title = tableContainer.querySelector('.table-title-input').value;
         const rowsData = [];
-        
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
             const cells = tr.querySelectorAll("input");
-            rowsData.push([
-                cells[0]?.value || "",
-                cells[1]?.value || "",
-                cells[2]?.value || ""
-            ]);
+            rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
         });
 
         historyData.push({
-            title: title,
-            rows: rowsData,
-            profit: totalProfit,
-            timestamp: new Date().toLocaleString("th-TH")
+            title: title, rows: rowsData, profit: totalProfit, timestamp: new Date().toLocaleString("th-TH")
         });
         
         localStorage.setItem("historyData", JSON.stringify(historyData));
@@ -229,10 +194,7 @@ function removeTable(button) {
         
         tableContainer.style.transition = "opacity 0.5s";
         tableContainer.style.opacity = '0';
-        setTimeout(() => { 
-            tableContainer.remove(); 
-            saveData(); 
-        }, 500);
+        setTimeout(() => { tableContainer.remove(); saveData(); }, 500);
     });
 }
 
@@ -246,7 +208,7 @@ function removeRow(button) {
     saveData();
 }
 
-// ===== แสดงประวัติ (Text Mode) =====
+// ===== แสดงประวัติ (ปุ่มล้างประวัติเล็กๆ) =====
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ยังไม่มีประวัติ", "alert");
     
@@ -257,6 +219,7 @@ function showHistory() {
         <head>
             <title>ประวัติการลบ (Text Mode)</title>
             <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
                 body { font-family: 'Sarabun', sans-serif; padding: 20px; background: #f0f2f5; }
                 .table-card { 
@@ -274,48 +237,61 @@ function showHistory() {
                 .timestamp { font-size: 0.8rem; color: #888; text-align: right; margin-top: 10px; }
                 .profit-tag { font-weight: bold; color: green; float: left; }
                 h2 { text-align: center; color: #1e3c72; }
-                .summary { text-align: center; font-size: 1.2rem; font-weight: bold; color: green; margin-bottom: 30px; }
+                
+                /* Container สรุปยอด */
+                .summary { 
+                    text-align: center; 
+                    font-size: 1.2rem; 
+                    font-weight: bold; 
+                    color: green; 
+                    margin-bottom: 30px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 15px;
+                }
+                
+                /* ปุ่มล้างประวัติเล็กๆ */
+                .btn-clear-all {
+                    background: #ff6b6b; color: white; border: none; padding: 5px 12px;
+                    border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-family: 'Sarabun';
+                    transition: 0.2s; display: inline-flex; align-items: center; gap: 5px;
+                }
+                .btn-clear-all:hover { background: #fa5252; transform: scale(1.05); }
             </style>
         </head>
         <body>
             <h2>📜 ประวัติการลบตาราง (ค้นหาได้)</h2>
-            <div class="summary">💰 กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</div>
+            <div class="summary">
+                <span>💰 กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</span>
+                <button onclick="clearAllHistory()" class="btn-clear-all"><i class="fas fa-trash"></i> ล้างประวัติ</button>
+            </div>
     `;
 
-    historyData.forEach((h, index) => {
+    historyData.forEach((h) => {
         let rowsHtml = "";
         h.rows.forEach(r => {
-            rowsHtml += `
-                <tr>
-                    <td><input type="text" value="${r[0]}" readonly></td>
-                    <td><input type="text" value="${r[1]}" readonly></td>
-                    <td><input type="text" value="${r[2]}" readonly></td>
-                </tr>
-            `;
+            rowsHtml += `<tr><td><input type="text" value="${r[0]}" readonly></td><td><input type="text" value="${r[1]}" readonly></td><td><input type="text" value="${r[2]}" readonly></td></tr>`;
         });
-
-        content += `
-            <div class="table-card">
-                <div class="header-title">${h.title || "(ไม่มีชื่อค่าย)"}</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="th-green">รายชื่อคนไล่</th>
-                            <th class="th-orange">ราคาเล่น</th>
-                            <th class="th-red">รายชื่อคนยั้ง</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rowsHtml}</tbody>
-                </table>
-                <div class="timestamp">
-                    <span class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</span>
-                    ลบเมื่อ: ${h.timestamp}
-                </div>
-            </div>
-        `;
+        content += `<div class="table-card"><div class="header-title">${h.title || "(ไม่มีชื่อค่าย)"}</div><table><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="timestamp"><span class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</span>ลบเมื่อ: ${h.timestamp}</div></div>`;
     });
 
-    content += "</body></html>";
+    content += `
+        <script>
+            function clearAllHistory() {
+                if(confirm('ยืนยันลบประวัติทั้งหมด?')) {
+                    localStorage.removeItem('historyData');
+                    if(window.opener) {
+                        window.opener.historyData = [];
+                        window.opener.totalDeletedProfit = 0;
+                        window.opener.alert('ล้างประวัติแล้ว');
+                    }
+                    window.close();
+                }
+            }
+        </script>
+    </body></html>`;
+    
     newWindow.document.write(content);
     newWindow.document.close();
 }
@@ -355,14 +331,6 @@ function loadData() {
 
 document.addEventListener("keydown", e => { if (e.ctrlKey && e.key.toLowerCase() === "u") { e.preventDefault(); showModal("เตือน", "ไม่อนุญาตให้ดูซอร์สโค้ด", "alert"); }});
 setInterval(() => { saveData(); console.log("Auto saved"); }, 15000);
-
-function adminLogin() {
-    const name = prompt("กรอกชื่อ Admin");
-    if (!name) return;
-    adminLogs.push({ name, time: new Date().toLocaleString("th-TH") });
-    localStorage.setItem("adminLogs", JSON.stringify(adminLogs));
-    showModal("ยินดีต้อนรับ", "เข้าสู่ระบบสำเร็จ ✔", "alert");
-}
 
 function sendMessageToLine() {
     const name = document.getElementById('lineName').value;
