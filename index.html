@@ -1,333 +1,386 @@
-<!DOCTYPE html>More actions
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://img5.pic.in.th/file/secure-sv1/ChatGPT-Image-13-..-2568-15_31_37.png">
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/W4QQVdX7/3f9d7965-5b59-442d-94ca-c0c6a324f9d1.png">
-    <title>เว็บคิดยอดแอดมิน </title>
+    <title>เว็บคิดยอดแอดมิน (Modern Version)</title>
+    
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script defer data-domain="bungnot.pages.dev" src="https://plausible.io/js/script.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- เพิ่มฟอนต์จาก Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --text-color: #333;
+            --accent-color: #00d2ff;
+            --danger-color: #ff4b4b;
+        }
 
-        /* ใส่สไตล์ต่างๆ ที่ไม่ต้องแก้ไข */
         body {
-            font-family: 'Sarabun', sans-serif; /* เปลี่ยนฟอนต์ให้เป็น Sarabun */
-            background-color: #E3F2FD;
-            text-align: center;
+            font-family: 'Sarabun', sans-serif;
+            background: var(--primary-bg);
+            background-attachment: fixed;
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
+            color: var(--text-color);
+        }
+
+        /* Header Section */
+        .header-container {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .profile-group img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.5);
+            margin: 0 5px;
+            transition: transform 0.3s;
+        }
+        
+        .profile-group img:hover {
+            transform: scale(1.1) rotate(5deg);
         }
 
         h2 {
-            font-size: 36px;
-            margin-bottom: 15px;
-            font-family: 'Sarabun', sans-serif;
-            font-weight: bold;
-            color: rgb(255, 0, 0);
-            padding: 10px;
-            border-radius: 10px;
-            background: linear-gradient(to right, rgb(255, 0, 0), rgb(0, 255, 0), rgb(0, 0, 255));
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin: 10px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            background: -webkit-linear-gradient(top, #fff, #e0e0e0);
             -webkit-background-clip: text;
-            color: transparent;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            -webkit-text-fill-color: transparent;
         }
 
-        .button-container {
+        /* Main Control Buttons */
+        .action-bar {
             display: flex;
-            justify-content: center; /* ทำให้ปุ่มอยู่กลาง */
-            margin-top: 70px; /* ขยับลงมาให้มากขึ้น */
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
         }
 
-        button {
-            background-color: #00796B;
-            color: white;
+        .btn-main {
+            background: white;
+            color: #1e3c72;
             border: none;
-            padding: 15px 30px; /* เพิ่มขนาดปุ่ม */
-            font-size: 20px; /* เพิ่มขนาดตัวอักษร */
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
             cursor: pointer;
-            border-radius: 10px; /* ทำให้กรอบปุ่มนุ่มนวล */
-            transition: background-color 0.3s ease, transform 0.3s ease; /* เพิ่ม transition สำหรับสีและการขยาย */
-            margin: 5px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        button:hover {
-            background-color: #004D40;
-            transform: scale(1.1); /* เพิ่มขนาดปุ่มเมื่อ hover */
+        .btn-main:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            background: #f0f8ff;
         }
 
-        .table-container {
-            position: relative;
-            margin-bottom: 20px;
-            margin-top: 30px; /* เพิ่ม margin-top เพื่อขยับลงมา */
-            width: 90%;
-            margin-left: auto;
-            margin-right: auto;
-            background-color: white;
+        .btn-history {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Layout Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto 30px;
+        }
+
+        .info-card {
+            background: var(--glass-bg);
+            border-radius: 20px;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-card h3 {
+            margin-top: 0;
+            color: #1e3c72;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-
-        th:nth-child(1) { background-color: #4CAF50; color: white; }
-        th:nth-child(2) { background-color: #FFA500; color: white; }
-        th:nth-child(3) { background-color: #FF0000; color: white; }
-        th:nth-child(4) { background-color: #8A2BE2; color: white; }
-        tbody tr:nth-child(odd) { background-color: #F1F8E9; }
-        tbody tr:nth-child(even) { background-color: #FFFFFF; }
-
-        table input {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
-        .credit {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 14px;
-            color: #888;
-            font-weight: 300;
-        }
-
-        .wrapper {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .instructions, .prohibited {
-            font-size: 16px;
-            font-weight: 300;
+        .info-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
             color: #555;
-            width: 48%; /* ให้กรอบแสดงข้างๆ กัน */
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         }
 
-        .image-container {
+        /* Input Styles */
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: 'Sarabun';
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            transition: 0.3s;
+            background: #f9f9f9;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: #2a5298;
+            outline: none;
+            background: white;
+        }
+
+        /* Table Container (The Dynamic Part) */
+        #tables-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.05);
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
             display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        .image-container img {
-            width: 150px;
-            height: auto;
-            margin: 10px;
-        }
-
-        .remove-table {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            background-color: red;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 50%;
-            transition: background-color 0.3s ease;
-        }
-
-        .remove-table:hover {
-            background-color: darkred;
+            justify-content: center;
+            margin-bottom: 15px;
         }
 
         .table-title-input {
-            width: 300px;
-            padding: 12px;
-            font-size: 16px;
+            font-size: 1.2rem !important;
+            font-weight: bold;
+            color: #1e3c72;
             text-align: center;
-            border: 2px solid #00796B;
-            border-radius: 10px;
-            background-color: #F0F4C3;
+            border: none !important;
+            background: #f0f4f8 !important;
+            max-width: 80%;
         }
 
-        .add-row-button {
-            padding: 12px 20px;
-            background-color: #00796B;
-            color: white;
+        .btn-close-table {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ffebee;
+            color: #d32f2f;
             border: none;
-            border-radius: 5px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
             cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
         }
 
-        .add-row-button:hover {
-            background-color: #004D40;
+        .btn-close-table:hover {
+            background: #ffcdd2;
+            transform: rotate(90deg);
         }
 
-
-        @media screen and (max-width: 768px) {
-    h2 {
-        font-size: 24px;
-        padding: 8px;
-    }
-
-    .button-container {
-        flex-direction: column;
-        gap: 10px;
-        margin-top: 30px;
-    }
-
-    button {
-        width: 90%;
-        font-size: 18px;
-        padding: 12px;
-    }
-
-    .wrapper {
-        flex-direction: column;
-    }
-
-    .instructions, .prohibited {
-        width: 100%;
-        margin-bottom: 15px;
-    }
-
-    .table-container {
-        width: 100%;
-        padding: 10px;
-    }
-
-    table input {
-        font-size: 14px;
-        padding: 8px;
-    }
-
-    .table-title-input {
-        width: 90%;
-        font-size: 14px;
-        padding: 10px;
-    }
-
-    .image-container {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .image-container img {
-        width: 120px;
-    }
-
-    #lineName, #messageToSend {
-        width: 90%;
-    }
-
-    .credit {
-        font-size: 12px;
-    }
-
-    .add-row-button {
-        width: 100%;
-        font-size: 14px;
-    }
-
-    .remove-table {
-        top: 5px;
-        right: 10px;
-        font-size: 14px;
-        padding: 3px 10px;
+        /* Modern Table Styles */
+        .custom-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            overflow: hidden;
         }
-    }
 
+        .custom-table th {
+            padding: 12px;
+            color: white;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .th-green { background: linear-gradient(45deg, #11998e, #38ef7d); }
+        .th-orange { background: linear-gradient(45deg, #f2994a, #f2c94c); }
+        .th-red { background: linear-gradient(45deg, #eb3349, #f45c43); }
+        .th-purple { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
+
+        .custom-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .custom-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .custom-table input {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 0;
+            background: white;
+        }
         
+        .custom-table input:focus {
+            border-color: #38ef7d;
+            box-shadow: 0 0 0 3px rgba(56, 239, 125, 0.2);
+        }
+
+        .btn-remove-row {
+            background: #ffeba7;
+            color: #d35400;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-remove-row:hover { background: #ffe082; }
+
+        .btn-add-row {
+            width: 100%;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px dashed #2e7d32;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-add-row:hover {
+            background: #c8e6c9;
+        }
+
+        /* Auto Save Badge */
+        #auto-save-alert {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 768px) {
+            h2 { font-size: 1.8rem; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .action-bar { flex-direction: column; }
+            .btn-main { width: 100%; justify-content: center; }
+        }
+
+        .credit {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+        }
     </style>
 </head>
 <body>
-    <div class="credit">Web development by Bungnot version update 2.0.0</div>
 
-    <div style="margin-top: 10px;">
-        <img src="https://img5.pic.in.th/file/secure-sv1/ChatGPT-Image-13-..-2568-15_31_37.png" alt="รูปโปรไฟล์" style="width: 100px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-        <img src="https://i.postimg.cc/W4QQVdX7/3f9d7965-5b59-442d-94ca-c0c6a324f9d1.png" alt="รูปโปรไฟล์" style="width: 100px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+    <div class="credit">Web dev by Bungnot v2.0.0 (Remastered)</div>
+    <div id="auto-save-alert"><i class="fas fa-check-circle"></i> บันทึกข้อมูลอัตโนมัติแล้ว</div>
+
+    <div class="header-container">
+        <div class="profile-group">
+            <img src="https://img5.pic.in.th/file/secure-sv1/ChatGPT-Image-13-..-2568-15_31_37.png" alt="Profile">
+            <img src="https://i.postimg.cc/W4QQVdX7/3f9d7965-5b59-442d-94ca-c0c6a324f9d1.png" alt="Profile">
+        </div>
+        <h2>ระบบจัดการหลังบ้าน OG</h2>
+        <p style="opacity: 0.8;">จัดการยอด บั้งไฟ และคำนวณกำไร</p>
     </div>
 
-    <h2>หลังบ้านใหม่ OG</h2>
-    <div class="button-container">
-        <button onclick="addTable()">🚀 เพิ่มบั้งใหม่</button>
-        <button onclick="showHistory()">📖 ประวัติการคิดยอด</button>
+    <div class="action-bar">
+        <button class="btn-main" onclick="addTable()">
+            <i class="fas fa-rocket"></i> เพิ่มบั้งใหม่
+        </button>
+        <button class="btn-main btn-history" onclick="showHistory()">
+            <i class="fas fa-history"></i> ประวัติการคิดยอด
+        </button>
+        <button class="btn-main btn-history" onclick="adminLogin()">
+            <i class="fas fa-user-shield"></i> Admin
+        </button>
     </div>
 
-    <div class="image-container">
-        <img src="https://img5.pic.in.th/file/secure-sv1/-esan-rocket.gif" alt="บั้งไฟ esan rocket" border="0">
-        <img src="https://img2.pic.in.th/pic/-ab541a779db05b6d.gif" alt="บั้งไฟ ตนไฟบิน" border="0">
-    </div>
-
-    <div class="wrapper">
-        <div class="instructions">
-            วิธีการคิดยอดง่ายๆ ตามนี้:<br><br>
-            - ให้เอาชื่อคนไล่ ไว้ข้างหน้าจะดูง่ายกว่า<br>
-            - ราคาถ้าคนเล่น 280/300 ให้เฮาใส่เป็น 80/00 แล้วใส่ ราคาที่เล่น 500<br>
-            - ถ้าคนเล่นแผล 400 ขึ้น แบบนี้ให้ใส่เป็นตัว 4OO ตัวโอ เอา หรือ 415 ให้ใส่เป็น 4I5 <br>
-            - เว็บจะคำนวนกำไรให้เอง ตอนที่กด X ดูได้ใน ดูประวัติการคิดยอด
+    <div class="dashboard-grid">
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> วิธีคิดยอด</h3>
+            <div class="info-content">
+                <ul>
+                    <li>เอาชื่อคนไล่ไว้ข้างหน้า</li>
+                    <li>ราคาเล่น 280/300 ใส่เป็น 80/00</li>
+                    <li>ถ้า 400+ ให้ใช้ตัวอักษรแทน (เช่น 4OO, 4I5)</li>
+                    <li>เว็บคำนวณกำไรอัตโนมัติเมื่อกดลบ (X)</li>
+                </ul>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <img src="https://img5.pic.in.th/file/secure-sv1/-esan-rocket.gif" style="height: 50px;">
+            </div>
         </div>
 
-        <div id="auto-save-alert" style="
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(76, 175, 80, 0.4);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        opacity: 0;
-        transition: opacity 0.5s ease;
-        pointer-events: none;
-        z-index: 9999;
-        font-weight: 500;
-        font-size: 16px;
-    ">
-        ✅ กันไฟดับ Auto นะจ๊ะ
-    </div>
-
-
-
-
-        <div style="margin-top: 50px;">
-            <h3>ส่งข้อความเข้า Line OA (ยังไม่อัพเดท)</h3>
-            <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA" style="padding:10px; width:300px; margin:10px;"><br>
-            <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" style="padding:10px; width:300px; height:100px; margin:10px;"></textarea><br>
-            <button onclick="sendMessageToLine()" style="padding:10px 20px; font-size:16px;">ส่งข้อความ</button>
+        <div class="info-card">
+            <h3><i class="fab fa-line"></i> ส่งข้อความ Line OA</h3>
+            <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA">
+            <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" rows="3"></textarea>
+            <button onclick="sendMessageToLine()" class="btn-main" style="width:100%; justify-content:center; background: #06c755; color: white;">
+                ส่งข้อความ
+            </button>
         </div>
 
-
-
-        <div class="prohibited">
-            วิธีการใช้งาน:<br><br>
-            - ห้ามใส่ตัวเลข 3 หลักที่อื่น นอกจากช่อง ราคาบั้งไฟ ใส่ได้<br>
-            - ถ้าคนยกเลิกแผลให้ลบแถวไปได้เลย<br>
-            - เวลาจะลบแถว ให้พิมพ์อะไรก็ได้ลงในช่องก่อน
+        <div class="info-card">
+            <h3><i class="fas fa-exclamation-triangle"></i> ข้อห้าม & คำแนะนำ</h3>
+            <div class="info-content">
+                <ul>
+                    <li>ห้ามใส่เลข 3 หลักในช่องอื่นนอกจากช่องราคา</li>
+                    <li>หากยกเลิกแผล กดลบแถวได้เลย</li>
+                    <li>**ต้องกรอกข้อมูลก่อนลบแถวเสมอ**</li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -336,7 +389,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
