@@ -120,9 +120,9 @@ function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td><input type="text" placeholder="ชื่อคนไล่"></td>
-        <td><input type="text" placeholder="ราคา"></td>
-        <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
+        <td><input type="text" placeholder=""></td>
+        <td><input type="text" placeholder=""></td>
+        <td><input type="text" placeholder=""></td>
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
     `;
     tbody.appendChild(newRow);
@@ -149,9 +149,9 @@ function addTable() {
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder="ชื่อคนไล่"></td>
-                    <td><input type="text" placeholder="ราคา"></td>
-                    <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
+                    <td><input type="text" placeholder=""></td>
+                    <td><input type="text" placeholder=""></td>
+                    <td><input type="text" placeholder=""></td>
                     <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
                 </tr>
             </tbody>
