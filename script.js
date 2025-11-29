@@ -11,6 +11,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+
+// ในไฟล์ script (12).js, เพิ่มโค้ดส่วนนี้
+
+// ===== [REAL-TIME LOCAL STORAGE SYNC] =====
+window.addEventListener('storage', (event) => {
+    // ตรวจสอบว่าคีย์ที่เปลี่ยนคือ 'savedTables' (ข้อมูลตาราง) หรือไม่
+    if (event.key === 'savedTables') {
+        // โหลดข้อมูลใหม่ทันที
+        loadData(); 
+        
+        // (ทางเลือก) หากต้องการแจ้งเตือนผู้ใช้
+        const badge = document.getElementById("auto-save-alert");
+        if(badge) {
+            badge.innerText = "🔄 ข้อมูลอัปเดตจากหน้าต่างอื่นแล้ว";
+            badge.style.opacity = "1"; 
+            setTimeout(() => {
+                badge.style.opacity = "0";
+                badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว"; // คืนค่าข้อความเดิม
+            }, 3000); 
+        }
+        console.log("Data loaded from other window's storage event.");
+    }
+});
+
 // ===== [LINE CONFIG] =====
 const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
 const LINE_UID_MAP = {
