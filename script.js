@@ -82,7 +82,7 @@ function showModal(title, message, type = "alert", callback = null) {
         const inputField = document.createElement("input");
         inputField.type = "text";
         inputField.id = "modal-input-field";
-        inputField.placeholder = "ชื่อผู้จับเวลา";
+        inputField.placeholder = "ชื่อค่าย";
         inputField.className = "modal-input";
         msgEl.appendChild(inputField);
 
@@ -536,7 +536,7 @@ function createStopwatchWindow(name) {
             </style>
         </head>
         <body>
-            <div class="name-display"><i class="fas fa-user"></i> ผู้จับเวลา: **${name}**</div>
+            <div class="name-display"><i class="fas fa-user"></i> ค่าย: **${name}**</div>
             <div id="digital-display" class="digital-display">00.000</div> 
             
             <div class="clock">
