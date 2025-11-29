@@ -53,7 +53,7 @@ async function pushText(to, text) {
     } catch (err) { console.error("Error:", err); }
 }
 
-// ===== CUSTOM MODAL LOGIC (Keyboard Support) =====
+// ===== CUSTOM MODAL LOGIC (Keyboard Support) - UPDATED TO SUPPORT INPUT FIELD =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -61,25 +61,62 @@ function showModal(title, message, type = "alert", callback = null) {
     const actionsEl = document.getElementById('modal-actions');
     const iconEl = document.getElementById('modal-icon');
 
-    titleEl.innerText = title;
-    msgEl.innerText = message;
-    actionsEl.innerHTML = ""; 
-
+    // ลบการจัดการคีย์บอร์ดเดิมออกก่อน
     if (currentModalKeyHandler) {
         document.removeEventListener("keydown", currentModalKeyHandler);
     }
-    currentModalKeyHandler = (e) => {
-        if (e.key === "Escape") closeModal();
-        else if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            if (type === "confirm" && callback) { closeModal(); callback(); } 
-            else closeModal();
-        }
-    };
-    document.addEventListener("keydown", currentModalKeyHandler);
+    
+    titleEl.innerText = title;
+    msgEl.innerHTML = ""; // เคลียร์ข้อความเดิมเพื่อรองรับการใส่ Input
+    actionsEl.innerHTML = ""; 
 
-    if (type === "confirm") {
+    if (type === "input") {
+        iconEl.className = "fas fa-user modal-icon icon-warn";
+        
+        // แสดงข้อความนำ
+        const promptText = document.createElement("div");
+        promptText.innerText = message;
+        msgEl.appendChild(promptText);
+
+        // สร้างช่อง Input
+        const inputField = document.createElement("input");
+        inputField.type = "text";
+        inputField.id = "modal-input-field";
+        inputField.placeholder = "ชื่อผู้จับเวลา";
+        inputField.className = "modal-input";
+        msgEl.appendChild(inputField);
+
+        const btnStart = document.createElement("button");
+        btnStart.className = "btn-modal btn-confirm";
+        btnStart.innerText = "เริ่มจับเวลา";
+        btnStart.style.background = "#2ecc71";
+        btnStart.style.boxShadow = "0 5px 15px rgba(46, 204, 113, 0.4)";
+        btnStart.onclick = () => { closeModal(); if (callback) callback(inputField.value); };
+
+        const btnNo = document.createElement("button");
+        btnNo.className = "btn-modal btn-cancel";
+        btnNo.innerText = "ยกเลิก";
+        btnNo.onclick = closeModal;
+
+        actionsEl.appendChild(btnNo);
+        actionsEl.appendChild(btnStart);
+        
+        setTimeout(() => { 
+            inputField.focus(); 
+            // Enter key submits the input
+            inputField.addEventListener('keydown', (e) => {
+                if (e.key === "Enter") btnStart.click();
+            }); 
+        }, 100);
+
+        currentModalKeyHandler = (e) => {
+            if (e.key === "Escape") closeModal();
+        };
+
+    } else if (type === "confirm") {
         iconEl.className = "fas fa-question-circle modal-icon icon-warn";
+        msgEl.innerText = message;
+
         const btnYes = document.createElement("button");
         btnYes.className = "btn-modal btn-confirm";
         btnYes.innerText = "ยืนยันลบ";
@@ -93,8 +130,20 @@ function showModal(title, message, type = "alert", callback = null) {
         actionsEl.appendChild(btnNo);
         actionsEl.appendChild(btnYes);
         setTimeout(() => btnYes.focus(), 100);
-    } else {
+
+        currentModalKeyHandler = (e) => {
+            if (e.key === "Escape") closeModal();
+            else if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                closeModal(); 
+                if (callback) callback();
+            }
+        };
+
+    } else { // type === "alert"
         iconEl.className = "fas fa-info-circle modal-icon icon-warn";
+        msgEl.innerText = message;
+
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-cancel";
         btnOk.innerText = "ตกลง";
@@ -103,7 +152,13 @@ function showModal(title, message, type = "alert", callback = null) {
         btnOk.onclick = closeModal;
         actionsEl.appendChild(btnOk);
         setTimeout(() => btnOk.focus(), 100);
+
+        currentModalKeyHandler = (e) => {
+            if (e.key === "Escape" || e.key === "Enter" || e.key === " ") closeModal();
+        };
     }
+    
+    document.addEventListener("keydown", currentModalKeyHandler);
     modal.classList.add('active');
 }
 
@@ -314,4 +369,222 @@ function sendMessageToLine() {
     if(!name || !msg) return showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบ", "alert");
     const uid = getLineIdFromName(name);
     uid ? pushText(uid, msg) : showModal("ไม่พบผู้ใช้", "ไม่พบรายชื่อในระบบ", "alert");
+}
+
+
+// ===== [ANALOG STOPWATCH LOGIC] - โค้ดที่เพิ่มใหม่ =====
+
+function openStopwatchWindow() {
+    // ใช้ showModal เพื่อให้ผู้ใช้กรอกชื่อ
+    showModal("เริ่มจับเวลา", "กรุณากรอกชื่อสำหรับรอบการจับเวลานี้:", "input", (name) => {
+        if (name && name.trim() !== "") {
+            createStopwatchWindow(name.trim());
+        } else {
+            // หากผู้ใช้ไม่ได้กรอกชื่อ ให้แจ้งเตือนและเรียก Modal ป้อนค่าขึ้นมาใหม่
+            showModal("ข้อผิดพลาด", "กรุณากรอกชื่อก่อนเริ่มจับเวลา", "alert");
+        }
+    });
+}
+
+function createStopwatchWindow(name) {
+    let newWindow = window.open("", "Stopwatch", "width=400,height=650");
+    let startTime = 0;
+    let elapsed = 0;
+    let timerInterval = null;
+
+    const updateClock = () => {
+        elapsed = Date.now() - startTime;
+        
+        // คำนวณองศาของเข็มวินาที: 360 องศา / 60 วินาที = 6 องศาต่อวินาที
+        const totalSeconds = elapsed / 1000;
+        const currentSecondOnClock = totalSeconds % 60; 
+        const secondDegrees = currentSecondOnClock * 6; 
+
+        newWindow.document.getElementById('sec-hand').style.transform = `rotate(${secondDegrees}deg)`;
+        
+        // แสดงผลแบบ Digital Timer (MM:SS.ms)
+        const ms = String(elapsed % 1000).padStart(3, '0');
+        const secs = String(Math.floor(elapsed / 1000) % 60).padStart(2, '0');
+        const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0');
+        
+        newWindow.document.getElementById('digital-display').innerText = `${mins}:${secs}.${ms}`;
+    };
+
+    const startTimer = () => {
+        if (timerInterval) return; // ไม่ทำซ้ำถ้ากำลังทำงานอยู่
+
+        // หากมีการหยุดก่อนหน้า ให้นับต่อจากเวลาที่หยุด
+        startTime = Date.now() - elapsed; 
+        
+        timerInterval = newWindow.setInterval(updateClock, 10); // อัพเดททุก 10ms
+        newWindow.document.getElementById('start-btn').disabled = true;
+        newWindow.document.getElementById('pause-btn').disabled = false;
+        newWindow.document.getElementById('reset-btn').disabled = false;
+    };
+
+    const pauseTimer = () => {
+        newWindow.clearInterval(timerInterval);
+        timerInterval = null;
+        newWindow.document.getElementById('start-btn').disabled = false;
+        newWindow.document.getElementById('pause-btn').disabled = true;
+    };
+
+    const resetTimer = () => {
+        pauseTimer();
+        elapsed = 0;
+        newWindow.document.getElementById('sec-hand').style.transform = `rotate(0deg)`;
+        newWindow.document.getElementById('digital-display').innerText = `00:00.000`;
+        newWindow.document.getElementById('start-btn').disabled = false;
+        newWindow.document.getElementById('reset-btn').disabled = true;
+    };
+
+    // สร้างเนื้อหา HTML สำหรับหน้าต่างนาฬิกาจับเวลา
+    let content = `
+        <html>
+        <head>
+            <title>นาฬิกาจับเวลา: ${name}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                body { 
+                    font-family: 'Sarabun', sans-serif; 
+                    display: flex; flex-direction: column; align-items: center; 
+                    justify-content: flex-start; padding: 20px; margin: 0;
+                    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                    color: white;
+                }
+                .name-display { font-size: 1.1rem; margin-bottom: 20px; font-weight: 600; color: #f2c94c; }
+                .digital-display { 
+                    font-family: monospace; font-size: 2.5rem; margin-bottom: 30px; 
+                    background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 10px;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                }
+                
+                /* Analog Clock Styling */
+                .clock {
+                    width: 250px; height: 250px; border: 15px solid #fff; border-radius: 50%;
+                    position: relative; margin-bottom: 40px; background: #333;
+                    box-shadow: 0 0 0 4px #000, inset 0 0 0 3px #e74c3c;
+                }
+                .center-dot {
+                    width: 15px; height: 15px; background: #e74c3c; border-radius: 50%;
+                    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    z-index: 10;
+                }
+                .hand {
+                    position: absolute; left: 50%; bottom: 50%;
+                    transform-origin: bottom; 
+                    transition: transform 0.1s linear;
+                }
+                #sec-hand {
+                    width: 4px; height: 110px; background: #e74c3c;
+                    border-radius: 2px; transform: rotate(0deg); 
+                    margin-left: -2px; 
+                }
+                
+                /* Clock Marks */
+                .mark { position: absolute; width: 100%; height: 100%; }
+                .mark:before {
+                    content: ''; position: absolute; top: 0; left: 50%;
+                    transform: translateX(-50%); width: 2px; height: 10px;
+                    background: rgba(255, 255, 255, 0.7);
+                }
+                /* เน้น mark ทุก 5 วินาที */
+                ${Array.from({length: 12}, (_, i) => `.mark:nth-child(${i * 5 + 1}):before { height: 15px; background: white; width: 3px; }`).join('')}
+
+                .actions { display: flex; gap: 15px; }
+                .btn-sw { 
+                    padding: 10px 20px; border: none; border-radius: 30px; font-weight: 600;
+                    cursor: pointer; transition: 0.2s; font-size: 1rem;
+                }
+                #start-btn { background: #2ecc71; color: white; }
+                #start-btn:hover:not(:disabled) { background: #27ae60; transform: translateY(-2px); }
+                #pause-btn { background: #f39c12; color: white; }
+                #pause-btn:hover:not(:disabled) { background: #e67e22; transform: translateY(-2px); }
+                #reset-btn { background: #e74c3c; color: white; }
+                #reset-btn:hover:not(:disabled) { background: #c0392b; transform: translateY(-2px); }
+                .btn-sw:disabled { opacity: 0.5; cursor: not-allowed; }
+            </style>
+        </head>
+        <body>
+            <div class="name-display"><i class="fas fa-user"></i> ผู้จับเวลา: **${name}**</div>
+            <div id="digital-display" class="digital-display">00:00.000</div>
+            
+            <div class="clock">
+                <div id="sec-hand" class="hand"></div>
+                <div class="center-dot"></div>
+                ${Array.from({length: 60}, (_, i) => `<div class="mark" style="transform: rotate(${i * 6}deg);"></div>`).join('')}
+            </div>
+
+            <div class="actions">
+                <button id="start-btn" class="btn-sw"><i class="fas fa-play"></i> เริ่ม</button>
+                <button id="pause-btn" class="btn-sw" disabled><i class="fas fa-pause"></i> หยุด</button>
+                <button id="reset-btn" class="btn-sw" disabled><i class="fas fa-sync-alt"></i> รีเซ็ต</button>
+            </div>
+
+            <script>
+                // ต้องประกาศฟังก์ชันและตัวแปรทั้งหมดภายใน window ใหม่ เพื่อให้ทำงานอย่างอิสระ
+                let startTime = 0;
+                let elapsed = 0;
+                let timerInterval = null;
+                
+                // คัดลอกฟังก์ชันมาใช้ใน window ใหม่
+                const updateClock = ${updateClock.toString()};
+                const startTimer = () => {
+                    if (timerInterval) return;
+                    startTime = Date.now() - elapsed;
+                    timerInterval = setInterval(updateClock, 10);
+                    document.getElementById('start-btn').disabled = true;
+                    document.getElementById('pause-btn').disabled = false;
+                    document.getElementById('reset-btn').disabled = false;
+                };
+                const pauseTimer = () => {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    document.getElementById('start-btn').disabled = false;
+                    document.getElementById('pause-btn').disabled = true;
+                };
+                const resetTimer = () => {
+                    pauseTimer();
+                    elapsed = 0;
+                    document.getElementById('sec-hand').style.transform = \`rotate(0deg)\`;
+                    document.getElementById('digital-display').innerText = \`00:00.000\`;
+                    document.getElementById('start-btn').disabled = false;
+                    document.getElementById('reset-btn').disabled = true;
+                };
+
+                // กำหนด Event Listeners
+                document.getElementById('start-btn').onclick = startTimer;
+                document.getElementById('pause-btn').onclick = pauseTimer;
+                document.getElementById('reset-btn').onclick = resetTimer;
+
+                // จัดการเมื่อปิดหน้าต่าง
+                window.onbeforeunload = function() {
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                };
+
+                // Keyboard shortcuts (Space to Start/Pause, R to Reset)
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === ' ') { 
+                        e.preventDefault(); 
+                        if (timerInterval) { 
+                            pauseTimer(); 
+                        } else { 
+                            startTimer(); 
+                        } 
+                    } else if (e.key === 'r' || e.key === 'R') {
+                        e.preventDefault();
+                        resetTimer();
+                    }
+                });
+            </script>
+        </body>
+        </html>
+    `;
+
+    newWindow.document.write(content);
+    newWindow.document.close();
+    newWindow.focus();
 }
