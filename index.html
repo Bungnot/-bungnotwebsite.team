@@ -101,6 +101,8 @@
         .btn-confirm:hover { background: #c0392b; transform: translateY(-2px); }
         .btn-cancel { background: #ecf0f1; color: #7f8c8d; }
         .btn-cancel:hover { background: #bdc3c7; }
+        .modal-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-top: 15px; font-family: 'Sarabun'; box-sizing: border-box; }
+
 
         /* Auto Save Badge */
         #auto-save-alert { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 25px; border-radius: 30px; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; z-index: 9999; }
@@ -128,6 +130,9 @@
         </button>
         <button class="btn-main btn-history" onclick="showHistory()">
             <i class="fas fa-history"></i> ประวัติการคิดยอด
+        </button>
+        <button class="btn-main" onclick="openStopwatchWindow()"> 
+            <i class="fas fa-stopwatch"></i> นาฬิกาจับเวลา (วินาที)
         </button>
         <button class="btn-main btn-clear" onclick="clearAllHistory()">
             <i class="fas fa-trash-alt"></i> ล้างประวัติ
@@ -185,5 +190,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
