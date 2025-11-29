@@ -372,7 +372,7 @@ function sendMessageToLine() {
 }
 
 
-// ===== [ANALOG STOPWATCH LOGIC] - โค้ดที่เพิ่มใหม่ =====
+// ===== [ANALOG STOPWATCH LOGIC] - โค้ดที่เพิ่มใหม่และแก้ไขแล้ว =====
 
 function openStopwatchWindow() {
     // ใช้ showModal เพื่อให้ผู้ใช้กรอกชื่อ
@@ -388,55 +388,85 @@ function openStopwatchWindow() {
 
 function createStopwatchWindow(name) {
     let newWindow = window.open("", "Stopwatch", "width=400,height=650");
-    let startTime = 0;
-    let elapsed = 0;
-    let timerInterval = null;
+    
+    // สร้างโค้ด JavaScript ที่สมบูรณ์แบบสำหรับ New Window
+    const newWindowScript = `
+        let startTime = 0;
+        let elapsed = 0;
+        let timerInterval = null;
 
-    const updateClock = () => {
-        elapsed = Date.now() - startTime;
-        
-        // คำนวณองศาของเข็มวินาที: 360 องศา / 60 วินาที = 6 องศาต่อวินาที
-        const totalSeconds = elapsed / 1000;
-        const currentSecondOnClock = totalSeconds % 60; 
-        const secondDegrees = currentSecondOnClock * 6; 
+        const updateClock = () => {
+            elapsed = Date.now() - startTime;
+            
+            // --- การคำนวณและการแสดงผลวินาทีเท่านั้น ---
+            const totalSeconds = elapsed / 1000;
+            const currentSecondOnClock = totalSeconds % 60; // เข็มยังคงวนที่ 60s
+            const secondDegrees = currentSecondOnClock * 6; 
 
-        newWindow.document.getElementById('sec-hand').style.transform = `rotate(${secondDegrees}deg)`;
-        
-        // แสดงผลแบบ Digital Timer (MM:SS.ms)
-        const ms = String(elapsed % 1000).padStart(3, '0');
-        const secs = String(Math.floor(elapsed / 1000) % 60).padStart(2, '0');
-        const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0');
-        
-        newWindow.document.getElementById('digital-display').innerText = `${mins}:${secs}.${ms}`;
-    };
+            document.getElementById('sec-hand').style.transform = \`rotate(\${secondDegrees}deg)\`;
+            
+            // แสดงผลเฉพาะ SECONDS และ MILLISECONDS: SS.ms
+            const ms = String(elapsed % 1000).padStart(3, '0');
+            const secs = String(Math.floor(elapsed / 1000)).padStart(2, '0');
+            
+            // แสดงผลเป็น SS.ms (ตัดนาทีออก)
+            document.getElementById('digital-display').innerText = \`\${secs}.\${ms}\`;
+        };
 
-    const startTimer = () => {
-        if (timerInterval) return; // ไม่ทำซ้ำถ้ากำลังทำงานอยู่
+        const startTimer = () => {
+            if (timerInterval) return;
+            startTime = Date.now() - elapsed; 
+            
+            timerInterval = setInterval(updateClock, 10);
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('pause-btn').disabled = false;
+            document.getElementById('reset-btn').disabled = false;
+        };
 
-        // หากมีการหยุดก่อนหน้า ให้นับต่อจากเวลาที่หยุด
-        startTime = Date.now() - elapsed; 
-        
-        timerInterval = newWindow.setInterval(updateClock, 10); // อัพเดททุก 10ms
-        newWindow.document.getElementById('start-btn').disabled = true;
-        newWindow.document.getElementById('pause-btn').disabled = false;
-        newWindow.document.getElementById('reset-btn').disabled = false;
-    };
+        const pauseTimer = () => {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('pause-btn').disabled = true;
+        };
 
-    const pauseTimer = () => {
-        newWindow.clearInterval(timerInterval);
-        timerInterval = null;
-        newWindow.document.getElementById('start-btn').disabled = false;
-        newWindow.document.getElementById('pause-btn').disabled = true;
-    };
+        const resetTimer = () => {
+            pauseTimer();
+            elapsed = 0;
+            document.getElementById('sec-hand').style.transform = \`rotate(0deg)\`;
+            // แก้ไขการแสดงผลเริ่มต้นเป็น 00.000
+            document.getElementById('digital-display').innerText = \`00.000\`; 
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('reset-btn').disabled = true;
+        };
 
-    const resetTimer = () => {
-        pauseTimer();
-        elapsed = 0;
-        newWindow.document.getElementById('sec-hand').style.transform = `rotate(0deg)`;
-        newWindow.document.getElementById('digital-display').innerText = `00:00.000`;
-        newWindow.document.getElementById('start-btn').disabled = false;
-        newWindow.document.getElementById('reset-btn').disabled = true;
-    };
+        // กำหนด Event Listeners
+        document.getElementById('start-btn').onclick = startTimer;
+        document.getElementById('pause-btn').onclick = pauseTimer;
+        document.getElementById('reset-btn').onclick = resetTimer;
+
+        // จัดการเมื่อปิดหน้าต่าง
+        window.onbeforeunload = function() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+        };
+
+        // Keyboard shortcuts (Space to Start/Pause, R to Reset)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') { 
+                e.preventDefault(); 
+                if (timerInterval) { 
+                    pauseTimer(); 
+                } else { 
+                    startTimer(); 
+                } 
+            } else if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                resetTimer();
+            }
+        });
+    `;
 
     // สร้างเนื้อหา HTML สำหรับหน้าต่างนาฬิกาจับเวลา
     let content = `
@@ -489,7 +519,6 @@ function createStopwatchWindow(name) {
                     transform: translateX(-50%); width: 2px; height: 10px;
                     background: rgba(255, 255, 255, 0.7);
                 }
-                /* เน้น mark ทุก 5 วินาที */
                 ${Array.from({length: 12}, (_, i) => `.mark:nth-child(${i * 5 + 1}):before { height: 15px; background: white; width: 3px; }`).join('')}
 
                 .actions { display: flex; gap: 15px; }
@@ -508,7 +537,7 @@ function createStopwatchWindow(name) {
         </head>
         <body>
             <div class="name-display"><i class="fas fa-user"></i> ผู้จับเวลา: **${name}**</div>
-            <div id="digital-display" class="digital-display">00:00.000</div>
+            <div id="digital-display" class="digital-display">00.000</div> 
             
             <div class="clock">
                 <div id="sec-hand" class="hand"></div>
@@ -523,62 +552,7 @@ function createStopwatchWindow(name) {
             </div>
 
             <script>
-                // ต้องประกาศฟังก์ชันและตัวแปรทั้งหมดภายใน window ใหม่ เพื่อให้ทำงานอย่างอิสระ
-                let startTime = 0;
-                let elapsed = 0;
-                let timerInterval = null;
-                
-                // คัดลอกฟังก์ชันมาใช้ใน window ใหม่
-                const updateClock = ${updateClock.toString()};
-                const startTimer = () => {
-                    if (timerInterval) return;
-                    startTime = Date.now() - elapsed;
-                    timerInterval = setInterval(updateClock, 10);
-                    document.getElementById('start-btn').disabled = true;
-                    document.getElementById('pause-btn').disabled = false;
-                    document.getElementById('reset-btn').disabled = false;
-                };
-                const pauseTimer = () => {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                    document.getElementById('start-btn').disabled = false;
-                    document.getElementById('pause-btn').disabled = true;
-                };
-                const resetTimer = () => {
-                    pauseTimer();
-                    elapsed = 0;
-                    document.getElementById('sec-hand').style.transform = \`rotate(0deg)\`;
-                    document.getElementById('digital-display').innerText = \`00:00.000\`;
-                    document.getElementById('start-btn').disabled = false;
-                    document.getElementById('reset-btn').disabled = true;
-                };
-
-                // กำหนด Event Listeners
-                document.getElementById('start-btn').onclick = startTimer;
-                document.getElementById('pause-btn').onclick = pauseTimer;
-                document.getElementById('reset-btn').onclick = resetTimer;
-
-                // จัดการเมื่อปิดหน้าต่าง
-                window.onbeforeunload = function() {
-                    if (timerInterval) {
-                        clearInterval(timerInterval);
-                    }
-                };
-
-                // Keyboard shortcuts (Space to Start/Pause, R to Reset)
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === ' ') { 
-                        e.preventDefault(); 
-                        if (timerInterval) { 
-                            pauseTimer(); 
-                        } else { 
-                            startTimer(); 
-                        } 
-                    } else if (e.key === 'r' || e.key === 'R') {
-                        e.preventDefault();
-                        resetTimer();
-                    }
-                });
+                ${newWindowScript}
             </script>
         </body>
         </html>
