@@ -67,14 +67,13 @@ const LINE_UID_MAP = {
     "กู๋จิ สิบธันวา": "U_ID_FOR_กู๋จิ_สิบธันวา",
 };
 
-// ใช้สำหรับฟังก์ชันเดิม (ไม่จำเป็นต้องเปลี่ยน)
 function getLineIdFromName(nameRaw) {
     if (!nameRaw) return "";
     const name = nameRaw.replace("@", "").trim();
     return LINE_UID_MAP[name] || "";
 }
 
-// ใช้สำหรับฟังก์ชันเดิม (แก้ไขให้รองรับ Token ใหม่)
+// ฟังก์ชันส่ง LINE พร้อม Debugging และแจ้งเตือน
 async function pushText(to, text) {
     const endpoint = "https://api.line.me/v2/bot/message/push";
     const headers = {
@@ -100,19 +99,27 @@ async function pushText(to, text) {
         const data = await response.json();
         
         if (response.ok) {
-            return true;
+            console.log(`LINE message sent successfully to UID: ${to}`);
+            return { success: true, message: "Sent" };
         } else {
-            console.error("LINE sending failed. Error:", data);
-            return false;
+            console.error(`LINE sending failed for UID: ${to}. Error:`, data);
+            
+            let errorMessage = `LINE API Error (${response.status}): UID/Token ผิดพลาด`;
+            if (data.message && data.details && data.details.length > 0) {
+                 errorMessage = `LINE API Error: ${data.details[0].message} (UID: ${to})`;
+            }
+            // แจ้งเตือนผู้ใช้ทันทีเมื่อมีข้อผิดพลาด API 
+            showModal("ข้อผิดพลาด LINE API", `ไม่สามารถส่งข้อความหา UID: ${to} ได้<br>สาเหตุ: **${errorMessage}**<br>โปรดตรวจสอบ Channel Access Token หรือ UID`, "alert");
+            return { success: false, message: errorMessage };
         }
     } catch (err) { 
         console.error("Network or parsing error during LINE push:", err); 
-        return false;
+        showModal("ข้อผิดพลาดเครือข่าย", `ไม่สามารถเชื่อมต่อ LINE API ได้: ${err.message}<br>โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต`, "alert");
+        return { success: false, message: "Network Error" };
     }
 }
 
 // ===== CUSTOM MODAL LOGIC (Keyboard Support) - UPDATED TO SUPPORT INPUT FIELD =====
-// ฟังก์ชันเดิมของคุณ ถูกแก้ไขให้รองรับ 'success' type
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -132,8 +139,6 @@ function showModal(title, message, type = "alert", callback = null) {
     if (type === "input") {
         iconEl.className = "fas fa-user modal-icon icon-warn";
         
-        // สร้างช่อง Input สำหรับชื่อค่าย (ถูกแทนที่ด้วย showCalculateModal สำหรับการคิดยอด)
-        // แต่ยังเก็บไว้เผื่อใช้ในฟังก์ชัน openStopwatchWindow() เดิม
         const inputField = document.createElement("input");
         inputField.type = "text";
         inputField.id = "modal-input-field";
@@ -158,7 +163,6 @@ function showModal(title, message, type = "alert", callback = null) {
         
         setTimeout(() => { 
             inputField.focus(); 
-            // Enter key submits the input
             inputField.addEventListener('keydown', (e) => {
                 if (e.key === "Enter") btnStart.click();
             }); 
@@ -170,7 +174,6 @@ function showModal(title, message, type = "alert", callback = null) {
 
     } else if (type === "confirm") {
         iconEl.className = "fas fa-question-circle modal-icon icon-warn";
-        // msgEl.innerText = message; // ใช้ innerHTML แทน
 
         const btnYes = document.createElement("button");
         btnYes.className = "btn-modal btn-confirm";
@@ -195,9 +198,8 @@ function showModal(title, message, type = "alert", callback = null) {
             }
         };
 
-    } else if (type === "success") { // เพิ่มการแสดงผลสำเร็จ
+    } else if (type === "success") { 
         iconEl.className = "fas fa-check-circle modal-icon icon-success";
-        // msgEl.innerText = message; // ใช้ innerHTML แทน
 
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-confirm";
@@ -214,7 +216,6 @@ function showModal(title, message, type = "alert", callback = null) {
 
     } else { // type === "alert"
         iconEl.className = "fas fa-info-circle modal-icon icon-warn";
-        // msgEl.innerText = message; // ใช้ innerHTML แทน
 
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-cancel";
@@ -242,13 +243,12 @@ function closeModal() {
     }
 }
 
-// ===== [ฟังก์ชันคิดยอดใหม่] =====
+
+// ===== [ฟังก์ชันคิดยอดใหม่ - รองรับราคาต่ำ/สูง] =====
 function showCalculateModal(tableContainer) {
-    // โค้ดสำหรับแสดง Modal กรอก ราคาต่ำ/สูง และเวลาตก
     const tableTitleInput = tableContainer.querySelector(".table-title-input");
     const defaultTitle = tableTitleInput ? tableTitleInput.value : "(ไม่มีชื่อค่าย)";
     
-    // ลบการจัดการคีย์บอร์ดเดิมออกก่อน
     if (currentModalKeyHandler) {
         document.removeEventListener("keydown", currentModalKeyHandler);
     }
@@ -264,12 +264,11 @@ function showCalculateModal(tableContainer) {
     msgEl.innerHTML = ""; 
     actionsEl.innerHTML = ""; 
 
-    // แสดงข้อความนำ
     const promptText = document.createElement("div");
-    promptText.innerHTML = `**ค่าย:** ${defaultTitle}<br>กรุณากรอก <b>เวลาตกบั้งไฟ (วินาที)</b> และ <b>ราคาตั้งต่ำ</b>`;
+    promptText.innerHTML = `**ค่าย:** ${defaultTitle}<br>กรุณากรอก <b>เวลาตกบั้งไฟ (วินาที)</b> และ **ช่วงราคาตั้ง (ต่ำ-สูง)**`;
     msgEl.appendChild(promptText);
 
-    // สร้างช่อง Input สำหรับเวลาตก
+    // สร้างช่อง Input สำหรับเวลาตก (Fall Time)
     const timeInputField = document.createElement("input");
     timeInputField.type = "number";
     timeInputField.id = "modal-time-input";
@@ -277,13 +276,21 @@ function showCalculateModal(tableContainer) {
     timeInputField.className = "modal-input";
     msgEl.appendChild(timeInputField);
     
-    // สร้างช่อง Input สำหรับราคากลาง (ราคาตั้ง 280-290 ให้กรอก 280)
-    const basePriceInputField = document.createElement("input");
-    basePriceInputField.type = "number";
-    basePriceInputField.id = "modal-base-price-input";
-    basePriceInputField.placeholder = "ราคาตั้งต่ำ (วินาที, เช่น 280)";
-    basePriceInputField.className = "modal-input";
-    msgEl.appendChild(basePriceInputField);
+    // สร้างช่อง Input สำหรับราคาตั้งต่ำ (Low Price)
+    const lowPriceInputField = document.createElement("input");
+    lowPriceInputField.type = "number";
+    lowPriceInputField.id = "modal-low-price-input";
+    lowPriceInputField.placeholder = "ราคาตั้งต่ำ (วินาที, เช่น 280)";
+    lowPriceInputField.className = "modal-input";
+    msgEl.appendChild(lowPriceInputField);
+
+    // สร้างช่อง Input สำหรับราคาตั้งสูง (High Price)
+    const highPriceInputField = document.createElement("input");
+    highPriceInputField.type = "number";
+    highPriceInputField.id = "modal-high-price-input";
+    highPriceInputField.placeholder = "ราคาตั้งสูง (วินาที, เช่น 290)";
+    highPriceInputField.className = "modal-input";
+    msgEl.appendChild(highPriceInputField);
 
     const btnStart = document.createElement("button");
     btnStart.className = "btn-modal btn-confirm";
@@ -292,16 +299,16 @@ function showCalculateModal(tableContainer) {
     btnStart.style.boxShadow = "0 5px 15px rgba(6, 199, 85, 0.4)";
     btnStart.onclick = () => { 
         const fallTime = parseFloat(timeInputField.value);
-        const basePrice = parseFloat(basePriceInputField.value);
+        const lowPrice = parseFloat(lowPriceInputField.value);
+        const highPrice = parseFloat(highPriceInputField.value);
         
-        if (isNaN(fallTime) || isNaN(basePrice) || fallTime <= 0 || basePrice <= 0) {
-            showModal("ข้อผิดพลาด", "กรุณากรอกเวลาตกและราคาตั้งต่ำเป็นตัวเลขที่ถูกต้อง", "alert");
+        if (isNaN(fallTime) || isNaN(lowPrice) || isNaN(highPrice) || fallTime <= 0 || lowPrice <= 0 || highPrice < lowPrice) {
+            showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลเป็นตัวเลขที่ถูกต้อง และราคาตั้งสูงต้องมากกว่าราคาตั้งต่ำ", "alert");
             return;
         }
         
         closeModal(); 
-        // หน่วงเวลาเล็กน้อยเพื่อให้ Modal ปิดก่อน
-        setTimeout(() => sendLineResults(tableContainer, defaultTitle, fallTime, basePrice), 300);
+        setTimeout(() => sendLineResults(tableContainer, defaultTitle, fallTime, lowPrice, highPrice), 300);
     };
 
     const btnNo = document.createElement("button");
@@ -312,21 +319,26 @@ function showCalculateModal(tableContainer) {
     actionsEl.appendChild(btnNo);
     actionsEl.appendChild(btnStart);
     
-    // ตั้งค่าให้ Enter ใช้เพื่อกรอกข้อมูลได้สะดวกขึ้น
     setTimeout(() => { 
         timeInputField.focus(); 
         timeInputField.addEventListener('keydown', (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
-                basePriceInputField.focus();
+                lowPriceInputField.focus();
             }
         }); 
-        basePriceInputField.addEventListener('keydown', (e) => {
+        lowPriceInputField.addEventListener('keydown', (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                highPriceInputField.focus();
+            }
+        });
+        highPriceInputField.addEventListener('keydown', (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
                 btnStart.click();
             }
-        }); 
+        });
     }, 100);
 
     currentModalKeyHandler = (e) => {
@@ -337,8 +349,8 @@ function showCalculateModal(tableContainer) {
     modal.classList.add('active');
 }
 
-async function sendLineResults(tableContainer, title, fallTime, basePrice) {
-    // โค้ดสำหรับคำนวณยอดและส่ง LINE
+// ฟังก์ชันคำนวณยอดและส่ง LINE (ใช้ตรรกะราคาต่ำ/สูง)
+async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPrice) { 
     const rows = tableContainer.querySelectorAll("tbody tr");
     const results = {}; // { "ชื่อผู้เล่น": ยอดสุทธิ }
     
@@ -346,7 +358,7 @@ async function sendLineResults(tableContainer, title, fallTime, basePrice) {
     rows.forEach(tr => {
         const cells = tr.querySelectorAll("input");
         const nameA = cells[0]?.value.trim(); // ชื่อคนไล่
-        const priceRaw = cells[1]?.value.trim(); // ราคาเล่น (เช่น 150, 300, 80/00)
+        const priceRaw = cells[1]?.value.trim(); 
         const nameB = cells[2]?.value.trim(); // ชื่อคนยั้ง
 
         if (!nameA || !priceRaw || !nameB) return; 
@@ -356,26 +368,43 @@ async function sendLineResults(tableContainer, title, fallTime, basePrice) {
         
         if (!cleanedNameA || !cleanedNameB) return;
 
-        // แปลงราคาเล่น (สมมติว่าถ้าเป็น XX/00 ราคาเต็มคือ YYY)
         let price = 0;
         const priceMatch = priceRaw.match(/\d+/); 
         if (priceMatch) {
             price = parseFloat(priceMatch[0]);
         }
         
-        // กฎ: ถ้า บั้งไฟตกต่ำกว่าราคาตั้งต่ำ (fallTime < basePrice) -> คนยั้ง (Name B) ชนะ
-        const isBWinner = fallTime < basePrice;
-        
-        const winnerName = isBWinner ? cleanedNameB : cleanedNameA;
-        const loserName = isBWinner ? cleanedNameA : cleanedNameB;
+        if (price === 0) return; // ข้ามถ้าแปลงราคาไม่ได้
 
-        // คำนวณยอด (หัก 10% จากราคาเล่น)
-        const winAmount = price * 0.90; 
-        const lossAmount = price * -1; 
+        let winnerName;
+        let loserName;
+        let isDraw = false;
 
-        // อัพเดตผลลัพธ์ของแต่ละคน
-        results[winnerName] = (results[winnerName] || 0) + winAmount;
-        results[loserName] = (results[loserName] || 0) + lossAmount;
+        // ตรรกะการตัดสินตาม 3 ช่วงราคา:
+        if (fallTime < lowPrice) {
+            // กรณี 1: ตกต่ำกว่าราคาต่ำสุด (คนยั้งชนะ)
+            winnerName = cleanedNameB; 
+            loserName = cleanedNameA;
+        } else if (fallTime > highPrice) {
+            // กรณี 2: ตกสูงกว่าราคาสูงสุด (คนไล่ชนะ)
+            winnerName = cleanedNameA;
+            loserName = cleanedNameB;
+        } else {
+            // กรณี 3: ตกอยู่ในช่วง (lowPrice <= fallTime <= highPrice) -> เสมอ
+            isDraw = true; 
+        }
+
+        // คำนวณยอด
+        if (!isDraw) {
+            // ผู้ชนะ: ได้เงิน (ราคาเล่น - หัก 10%)
+            const winAmount = price * 0.90; 
+            // ผู้แพ้: เสียเงินเต็มจำนวน
+            const lossAmount = price * -1; 
+
+            results[winnerName] = (results[winnerName] || 0) + winAmount;
+            results[loserName] = (results[loserName] || 0) + lossAmount;
+        } 
+        // ถ้า isDraw เป็น true ยอดจะเป็น 0 ตามค่าเริ่มต้นใน results
     });
 
     // 2. วนลูปส่งข้อความ LINE
@@ -388,32 +417,36 @@ async function sendLineResults(tableContainer, title, fallTime, basePrice) {
         if (uid) {
             const amount = results[name].toFixed(0); // ปัดเศษเป็นจำนวนเต็ม
             const sign = amount >= 0 ? "+" : "";
-            // รูปแบบข้อความ: เพรชประพัน\n+135
             const message = `${title}\n${sign}${amount}`;
             
-            linePromises.push(pushText(uid, message).then(success => {
-                if (success) {
+            linePromises.push(pushText(uid, message).then(result => {
+                if (result.success) {
                     successCount++;
+                } else {
+                    failedNames.push(name); // เพิ่มชื่อที่ส่งไม่สำเร็จ (สาเหตุจาก Token/UID)
                 }
             }));
         } else {
+            // ชื่อผู้เล่นไม่พบใน LINE_UID_MAP
             failedNames.push(name);
         }
     }
     
     await Promise.all(linePromises);
 
-    // 3. แสดงผลลัพธ์
+    // 3. แสดงผลลัพธ์รวม
     let summary = `ส่งข้อความ LINE สำเร็จ ${successCount} คน`;
     if (failedNames.length > 0) {
-        summary += `\n**ไม่พบ LINE ID:** ${failedNames.join(", ")}\nกรุณาเพิ่มใน LINE_UID_MAP ก่อน`;
-        showModal("ส่ง LINE บางส่วนสำเร็จ", summary, "alert");
-    } else {
+        summary += `\n**ไม่พบ LINE ID/ส่งไม่สำเร็จ:** ${failedNames.join(", ")}\nโปรดตรวจสอบ LINE_UID_MAP และ Token`;
+        showModal("ส่ง LINE เสร็จสิ้น", summary, "alert");
+    } else if (successCount > 0) {
         showModal("ส่ง LINE สำเร็จ", summary, "success");
+    } else {
+         showModal("ส่ง LINE ล้มเหลวทั้งหมด", "ไม่สามารถส่งข้อความถึงใครได้เลย โปรดตรวจสอบ Channel Access Token", "alert");
     }
 }
 
-// ===== Function หลัก - เดิม =====
+// ===== Function หลัก - เดิม/แก้ไขเล็กน้อย =====
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
@@ -427,7 +460,6 @@ function addRow(table) {
     saveData();
 }
 
-// ถูกแก้ไขให้มีปุ่มคิดยอด
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -469,7 +501,6 @@ function addTable() {
 function removeTable(button) {
     const tableContainer = button.parentElement;
     const inputs = tableContainer.querySelectorAll('input');
-    // ใช้โค้ดเดิมที่ป้องกันการลบหากยังไม่มีข้อมูล
     if (!Array.from(inputs).some(i => i.value.trim() !== "")) {
         showModal("แจ้งเตือน", "ต้องกรอกข้อมูลก่อนจึงลบได้", "alert");
         return;
@@ -478,7 +509,6 @@ function removeTable(button) {
     const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
     let totalProfit = 0;
     priceInputs.forEach(input => {
-        // ใช้ regex เดิมที่อาจผิดพลาดสำหรับราคาเล่น แต่คงไว้ตามโค้ดเดิม
         const match = input.value.match(/\d{3,}/);
         if (match) totalProfit += (parseFloat(match[0]) * 0.10);
     });
@@ -525,7 +555,7 @@ function clearAllHistory() {
         localStorage.removeItem('historyData');
         historyData = [];
         totalDeletedProfit = 0;
-        showModal("สำเร็จ", "ล้างประวัติเรียบร้อยแล้ว", "success"); // แก้ไขเป็น success
+        showModal("สำเร็จ", "ล้างประวัติเรียบร้อยแล้ว", "success");
     });
 }
 
@@ -594,7 +624,6 @@ function saveData() {
     if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
 }
 
-// ถูกแก้ไขให้มีปุ่มคิดยอด
 function loadData() {
     const data = JSON.parse(localStorage.getItem("savedTables"));
     if (!data) return;
@@ -623,11 +652,12 @@ function sendMessageToLine() {
     const uid = LINE_UID_MAP[name]; // ดึง UID จาก MAP
     
     if (uid) {
-        pushText(uid, msg).then(success => {
-            if (success) {
+        pushText(uid, msg).then(result => {
+            if (result.success) {
                 showModal("ส่งสำเร็จ", `ส่งข้อความถึง ${name} สำเร็จแล้ว!`, "success");
             } else {
-                showModal("ส่งไม่สำเร็จ", `ไม่สามารถส่งข้อความถึง ${name} ได้ กรุณาตรวจสอบ Token และ UID`, "alert");
+                // ข้อความถูกแสดงใน pushText แล้ว
+                console.log(`Manual send to ${name} failed.`);
             }
         });
     } else {
