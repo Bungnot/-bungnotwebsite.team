@@ -31,11 +31,9 @@ window.addEventListener('storage', (event) => {
 });
 
 // ===== [LINE CONFIG - ต้องแก้ไขค่า] =====
-// ** สำคัญ: กรุณาเปลี่ยนเป็น CHANNEL_ACCESS_TOKEN จริงของคุณ **
 const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVX1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixbfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
 
 const LINE_UID_MAP = {
-    // *** กรุณาแก้ไข UID ให้ถูกต้องตามชื่อในไลน์ของสมาชิกเหล่านี้ ***
     "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
     "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
     "บริการบอทไลน์ V7": "U0e1f53b2f1cc24a7316473480bd2861a",
@@ -67,7 +65,7 @@ function getLineIdFromName(nameRaw) {
     return LINE_UID_MAP[name] || "";
 }
 
-// [FIXED] ฟังก์ชันส่ง LINE พร้อม Debugging และแจ้งเตือน
+// ฟังก์ชันส่ง LINE พร้อม Debugging และแจ้งเตือน
 async function pushText(to, text) {
     const endpoint = "https://api.line.me/v2/bot/message/push";
     const headers = {
@@ -102,7 +100,6 @@ async function pushText(to, text) {
             if (data.message && data.details && data.details.length > 0) {
                  errorMessage = `LINE API Error: ${data.details[0].message} (UID: ${to})`;
             }
-            // แจ้งเตือนผู้ใช้ทันทีเมื่อมีข้อผิดพลาด API 
             showModal("ข้อผิดพลาด LINE API", `ไม่สามารถส่งข้อความหา UID: ${to} ได้<br>สาเหตุ: **${errorMessage}**<br>โปรดตรวจสอบ Channel Access Token หรือ UID`, "alert");
             return { success: false, message: errorMessage };
         }
@@ -113,7 +110,7 @@ async function pushText(to, text) {
     }
 }
 
-// ===== CUSTOM MODAL LOGIC (Keyboard Support) - FIXED =====
+// ===== CUSTOM MODAL LOGIC (Keyboard Support) - FIXED AND RESTORED =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -126,12 +123,16 @@ function showModal(title, message, type = "alert", callback = null) {
     }
     
     titleEl.innerText = title;
-    msgEl.innerHTML = message; 
+    msgEl.innerHTML = ""; // เคลียร์ข้อความเดิม
     actionsEl.innerHTML = ""; 
 
     if (type === "input") {
         iconEl.className = "fas fa-user modal-icon icon-warn";
         
+        const promptText = document.createElement("div");
+        promptText.innerText = message;
+        msgEl.appendChild(promptText);
+
         const inputField = document.createElement("input");
         inputField.type = "text";
         inputField.id = "modal-input-field";
@@ -167,6 +168,7 @@ function showModal(title, message, type = "alert", callback = null) {
 
     } else if (type === "confirm") {
         iconEl.className = "fas fa-question-circle modal-icon icon-warn";
+        msgEl.innerText = message; // ใช้ innerText สำหรับ confirm message
 
         const btnYes = document.createElement("button");
         btnYes.className = "btn-modal btn-confirm";
@@ -193,6 +195,7 @@ function showModal(title, message, type = "alert", callback = null) {
 
     } else if (type === "success") { 
         iconEl.className = "fas fa-check-circle modal-icon icon-success";
+        msgEl.innerText = message; // ใช้ innerText สำหรับ success
 
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-confirm";
@@ -209,6 +212,7 @@ function showModal(title, message, type = "alert", callback = null) {
 
     } else { // type === "alert"
         iconEl.className = "fas fa-info-circle modal-icon icon-warn";
+        msgEl.innerText = message; // ใช้ innerText สำหรับ alert
 
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-cancel";
@@ -394,7 +398,6 @@ async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPr
             results[winnerName] = (results[winnerName] || 0) + winAmount;
             results[loserName] = (results[loserName] || 0) + lossAmount;
         } 
-        // ถ้า isDraw เป็น true ยอดจะเป็น 0 ตามค่าเริ่มต้นใน results
     });
 
     // 2. วนลูปส่งข้อความ LINE
@@ -405,7 +408,7 @@ async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPr
     for (const name in results) {
         const uid = LINE_UID_MAP[name];
         if (uid) {
-            const amount = results[name].toFixed(0); // ปัดเศษเป็นจำนวนเต็ม
+            const amount = results[name].toFixed(0);
             const sign = amount >= 0 ? "+" : "";
             const message = `${title}\n${sign}${amount}`;
             
@@ -413,11 +416,10 @@ async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPr
                 if (result.success) {
                     successCount++;
                 } else {
-                    failedNames.push(name); // เพิ่มชื่อที่ส่งไม่สำเร็จ (สาเหตุจาก Token/UID)
+                    failedNames.push(name);
                 }
             }));
         } else {
-            // ชื่อผู้เล่นไม่พบใน LINE_UID_MAP
             failedNames.push(name);
         }
     }
@@ -436,7 +438,7 @@ async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPr
     }
 }
 
-// ===== Function หลัก - เดิม (ตรวจสอบว่าโค้ดเรียกใช้ฟังก์ชันเดิมทั้งหมด) =====
+// ===== Function หลัก - RESTORED ORIGINAL FUNCTIONALITY =====
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
@@ -491,6 +493,7 @@ function addTable() {
 function removeTable(button) {
     const tableContainer = button.parentElement;
     const inputs = tableContainer.querySelectorAll('input');
+    // ใช้โค้ดเดิมที่ป้องกันการลบหากยังไม่มีข้อมูล
     if (!Array.from(inputs).some(i => i.value.trim() !== "")) {
         showModal("แจ้งเตือน", "ต้องกรอกข้อมูลก่อนจึงลบได้", "alert");
         return;
@@ -503,6 +506,7 @@ function removeTable(button) {
         if (match) totalProfit += (parseFloat(match[0]) * 0.10);
     });
 
+    // ใช้ showModal confirm เหมือนเดิม
     showModal("ยืนยันการลบ", `ต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, "confirm", () => {
         const title = tableContainer.querySelector('.table-title-input').value;
         const rowsData = [];
@@ -639,7 +643,7 @@ function sendMessageToLine() {
     const msg = document.getElementById('messageToSend').value.trim();
     if(!name || !msg) return showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบ", "alert");
     
-    const uid = LINE_UID_MAP[name]; // ดึง UID จาก MAP
+    const uid = LINE_UID_MAP[name];
     
     if (uid) {
         pushText(uid, msg).then(result => {
