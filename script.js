@@ -12,23 +12,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// ในไฟล์ script (12).js, เพิ่มโค้ดส่วนนี้
-
 // ===== [REAL-TIME LOCAL STORAGE SYNC] =====
 window.addEventListener('storage', (event) => {
-    // ตรวจสอบว่าคีย์ที่เปลี่ยนคือ 'savedTables' (ข้อมูลตาราง) หรือไม่
     if (event.key === 'savedTables') {
-        // โหลดข้อมูลใหม่ทันที
         loadData(); 
         
-        // (ทางเลือก) หากต้องการแจ้งเตือนผู้ใช้
         const badge = document.getElementById("auto-save-alert");
         if(badge) {
             badge.innerText = "🔄 ข้อมูลอัปเดตจากหน้าต่างอื่นแล้ว";
             badge.style.opacity = "1"; 
             setTimeout(() => {
                 badge.style.opacity = "0";
-                badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว"; // คืนค่าข้อความเดิม
+                badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว";
             }, 3000); 
         }
         console.log("Data loaded from other window's storage event.");
@@ -37,7 +32,7 @@ window.addEventListener('storage', (event) => {
 
 // ===== [LINE CONFIG - ต้องแก้ไขค่า] =====
 // ** สำคัญ: กรุณาเปลี่ยนเป็น CHANNEL_ACCESS_TOKEN จริงของคุณ **
-const CHANNEL_ACCESS_TOKEN = "JI9s4rEtMYgnaeuz4hCwkQxAfCXU6Wpm+J9GZcJ4HV2Y93Vdxt+odXRrhMhKxPRIt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+Izo7syjq3VVgDPDybLSxxjnYpFGcd9W/y13tWWSdQhaQdB04t89/1O/w1cDnyilFU=";
+const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVX1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixbfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
 
 const LINE_UID_MAP = {
     // *** กรุณาแก้ไข UID ให้ถูกต้องตามชื่อในไลน์ของสมาชิกเหล่านี้ ***
@@ -62,7 +57,6 @@ const LINE_UID_MAP = {
     "Thanaphut Sks": "Ue93a927aa8b7aafb4b8dc7b11e58c1f3",
     "🌠ผมชื่อบอยนะคร้าา🌠💯": "Uebd6b15d2ff306abddcfb47fe56a17f0",
     "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8",
-    // เพิ่มชื่อผู้เล่นในตารางของคุณที่นี่
     "Macus William": "U_ID_FOR_Macus_William", 
     "กู๋จิ สิบธันวา": "U_ID_FOR_กู๋จิ_สิบธันวา",
 };
@@ -73,7 +67,7 @@ function getLineIdFromName(nameRaw) {
     return LINE_UID_MAP[name] || "";
 }
 
-// ฟังก์ชันส่ง LINE พร้อม Debugging และแจ้งเตือน
+// [FIXED] ฟังก์ชันส่ง LINE พร้อม Debugging และแจ้งเตือน
 async function pushText(to, text) {
     const endpoint = "https://api.line.me/v2/bot/message/push";
     const headers = {
@@ -119,7 +113,7 @@ async function pushText(to, text) {
     }
 }
 
-// ===== CUSTOM MODAL LOGIC (Keyboard Support) - UPDATED TO SUPPORT INPUT FIELD =====
+// ===== CUSTOM MODAL LOGIC (Keyboard Support) - FIXED =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -127,7 +121,6 @@ function showModal(title, message, type = "alert", callback = null) {
     const actionsEl = document.getElementById('modal-actions');
     const iconEl = document.getElementById('modal-icon');
 
-    // ลบการจัดการคีย์บอร์ดเดิมออกก่อน
     if (currentModalKeyHandler) {
         document.removeEventListener("keydown", currentModalKeyHandler);
     }
@@ -268,7 +261,6 @@ function showCalculateModal(tableContainer) {
     promptText.innerHTML = `**ค่าย:** ${defaultTitle}<br>กรุณากรอก <b>เวลาตกบั้งไฟ (วินาที)</b> และ **ช่วงราคาตั้ง (ต่ำ-สูง)**`;
     msgEl.appendChild(promptText);
 
-    // สร้างช่อง Input สำหรับเวลาตก (Fall Time)
     const timeInputField = document.createElement("input");
     timeInputField.type = "number";
     timeInputField.id = "modal-time-input";
@@ -276,7 +268,6 @@ function showCalculateModal(tableContainer) {
     timeInputField.className = "modal-input";
     msgEl.appendChild(timeInputField);
     
-    // สร้างช่อง Input สำหรับราคาตั้งต่ำ (Low Price)
     const lowPriceInputField = document.createElement("input");
     lowPriceInputField.type = "number";
     lowPriceInputField.id = "modal-low-price-input";
@@ -284,7 +275,6 @@ function showCalculateModal(tableContainer) {
     lowPriceInputField.className = "modal-input";
     msgEl.appendChild(lowPriceInputField);
 
-    // สร้างช่อง Input สำหรับราคาตั้งสูง (High Price)
     const highPriceInputField = document.createElement("input");
     highPriceInputField.type = "number";
     highPriceInputField.id = "modal-high-price-input";
@@ -446,7 +436,7 @@ async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPr
     }
 }
 
-// ===== Function หลัก - เดิม/แก้ไขเล็กน้อย =====
+// ===== Function หลัก - เดิม (ตรวจสอบว่าโค้ดเรียกใช้ฟังก์ชันเดิมทั้งหมด) =====
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
@@ -656,7 +646,6 @@ function sendMessageToLine() {
             if (result.success) {
                 showModal("ส่งสำเร็จ", `ส่งข้อความถึง ${name} สำเร็จแล้ว!`, "success");
             } else {
-                // ข้อความถูกแสดงใน pushText แล้ว
                 console.log(`Manual send to ${name} failed.`);
             }
         });
@@ -669,12 +658,10 @@ function sendMessageToLine() {
 // ===== [ANALOG STOPWATCH LOGIC] - เดิม =====
 
 function openStopwatchWindow() {
-    // ใช้ showModal เพื่อให้ผู้ใช้กรอกชื่อ
     showModal("เริ่มจับเวลา", "กรุณากรอกชื่อสำหรับรอบการจับเวลานี้:", "input", (name) => {
         if (name && name.trim() !== "") {
             createStopwatchWindow(name.trim());
         } else {
-            // หากผู้ใช้ไม่ได้กรอกชื่อ ให้แจ้งเตือนและเรียก Modal ป้อนค่าขึ้นมาใหม่
             showModal("ข้อผิดพลาด", "กรุณากรอกชื่อก่อนเริ่มจับเวลา", "alert");
         }
     });
@@ -683,7 +670,6 @@ function openStopwatchWindow() {
 function createStopwatchWindow(name) {
     let newWindow = window.open("", "Stopwatch", "width=400,height=650");
     
-    // สร้างโค้ด JavaScript ที่สมบูรณ์แบบสำหรับ New Window
     const newWindowScript = `
         let startTime = 0;
         let elapsed = 0;
@@ -691,19 +677,15 @@ function createStopwatchWindow(name) {
 
         const updateClock = () => {
             elapsed = Date.now() - startTime;
-            
-            // --- การคำนวณและการแสดงผลวินาทีเท่านั้น ---
             const totalSeconds = elapsed / 1000;
-            const currentSecondOnClock = totalSeconds % 60; // เข็มยังคงวนที่ 60s
+            const currentSecondOnClock = totalSeconds % 60;
             const secondDegrees = currentSecondOnClock * 6; 
 
             document.getElementById('sec-hand').style.transform = \`rotate(\${secondDegrees}deg)\`;
             
-            // แสดงผลเฉพาะ SECONDS และ MILLISECONDS: SS.ms
             const ms = String(elapsed % 1000).padStart(3, '0');
             const secs = String(Math.floor(elapsed / 1000)).padStart(2, '0');
             
-            // แสดงผลเป็น SS.ms (ตัดนาทีออก)
             document.getElementById('digital-display').innerText = \`\${secs}.\${ms}\`;
         };
 
@@ -728,25 +710,21 @@ function createStopwatchWindow(name) {
             pauseTimer();
             elapsed = 0;
             document.getElementById('sec-hand').style.transform = \`rotate(0deg)\`;
-            // แก้ไขการแสดงผลเริ่มต้นเป็น 00.000
             document.getElementById('digital-display').innerText = \`00.000\`; 
             document.getElementById('start-btn').disabled = false;
             document.getElementById('reset-btn').disabled = true;
         };
 
-        // กำหนด Event Listeners
         document.getElementById('start-btn').onclick = startTimer;
         document.getElementById('pause-btn').onclick = pauseTimer;
         document.getElementById('reset-btn').onclick = resetTimer;
 
-        // จัดการเมื่อปิดหน้าต่าง
         window.onbeforeunload = function() {
             if (timerInterval) {
                 clearInterval(timerInterval);
             }
         };
 
-        // Keyboard shortcuts (Space to Start/Pause, R to Reset)
         document.addEventListener('keydown', (e) => {
             if (e.key === ' ') { 
                 e.preventDefault(); 
@@ -762,7 +740,6 @@ function createStopwatchWindow(name) {
         });
     `;
 
-    // สร้างเนื้อหา HTML สำหรับหน้าต่างนาฬิกาจับเวลา
     let content = `
         <html>
         <head>
@@ -784,7 +761,6 @@ function createStopwatchWindow(name) {
                     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
                 }
                 
-                /* Analog Clock Styling */
                 .clock {
                     width: 250px; height: 250px; border: 15px solid #fff; border-radius: 50%;
                     position: relative; margin-bottom: 40px; background: #333;
@@ -806,7 +782,6 @@ function createStopwatchWindow(name) {
                     margin-left: -2px; 
                 }
                 
-                /* Clock Marks */
                 .mark { position: absolute; width: 100%; height: 100%; }
                 .mark:before {
                     content: ''; position: absolute; top: 0; left: 50%;
