@@ -12,30 +12,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+// ในไฟล์ script (12).js, เพิ่มโค้ดส่วนนี้
+
 // ===== [REAL-TIME LOCAL STORAGE SYNC] =====
 window.addEventListener('storage', (event) => {
+    // ตรวจสอบว่าคีย์ที่เปลี่ยนคือ 'savedTables' (ข้อมูลตาราง) หรือไม่
     if (event.key === 'savedTables') {
+        // โหลดข้อมูลใหม่ทันที
         loadData(); 
         
+        // (ทางเลือก) หากต้องการแจ้งเตือนผู้ใช้
         const badge = document.getElementById("auto-save-alert");
         if(badge) {
             badge.innerText = "🔄 ข้อมูลอัปเดตจากหน้าต่างอื่นแล้ว";
             badge.style.opacity = "1"; 
             setTimeout(() => {
                 badge.style.opacity = "0";
-                badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว";
+                badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว"; // คืนค่าข้อความเดิม
             }, 3000); 
         }
         console.log("Data loaded from other window's storage event.");
     }
 });
 
-// ===== [LINE CONFIG - ต้องแก้ไขค่า] =====
-// ** สำคัญ: กรุณาเปลี่ยนเป็น CHANNEL_ACCESS_TOKEN จริงของคุณ **
-const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVX1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixbfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
-
+// ===== [LINE CONFIG] =====
+const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
 const LINE_UID_MAP = {
-    // *** กรุณาแก้ไข UID ให้ถูกต้องตามชื่อในไลน์ของสมาชิกเหล่านี้ ***
     "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
     "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
     "บริการบอทไลน์ V7": "U0e1f53b2f1cc24a7316473480bd2861a",
@@ -56,9 +58,7 @@ const LINE_UID_MAP = {
     "Satthapan": "Ud27019d7ae7d4e6be81e1a2e3f6ee6ea",
     "Thanaphut Sks": "Ue93a927aa8b7aafb4b8dc7b11e58c1f3",
     "🌠ผมชื่อบอยนะคร้าา🌠💯": "Uebd6b15d2ff306abddcfb47fe56a17f0",
-    "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8",
-    "Macus William": "U_ID_FOR_Macus_William", 
-    "กู๋จิ สิบธันวา": "U_ID_FOR_กู๋จิ_สิบธันวา",
+    "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8"
 };
 
 function getLineIdFromName(nameRaw) {
@@ -67,52 +67,17 @@ function getLineIdFromName(nameRaw) {
     return LINE_UID_MAP[name] || "";
 }
 
-// ฟังก์ชันส่ง LINE พร้อม Debugging
 async function pushText(to, text) {
-    const endpoint = "https://api.line.me/v2/bot/message/push";
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}`
-    };
-
-    const body = {
-        to: to,
-        messages: [{
-            type: "text",
-            text: text
-        }]
-    };
-
     try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(body)
+        await fetch("http://102.129.229.219:5000/send_line", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ to, text }),
         });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log(`LINE message sent successfully to UID: ${to}`);
-            return { success: true, message: "Sent" };
-        } else {
-            console.error(`LINE sending failed for UID: ${to}. Error:`, data);
-            
-            let errorMessage = `LINE API Error (${response.status}): UID/Token ผิดพลาด`;
-            if (data.message && data.details && data.details.length > 0) {
-                 errorMessage = `LINE API Error: ${data.details[0].message} (UID: ${to})`;
-            }
-            showModal("ข้อผิดพลาด LINE API", `ไม่สามารถส่งข้อความหา UID: ${to} ได้<br>สาเหตุ: **${errorMessage}**<br>โปรดตรวจสอบ Channel Access Token หรือ UID`, "alert");
-            return { success: false, message: errorMessage };
-        }
-    } catch (err) { 
-        console.error("Network or parsing error during LINE push:", err); 
-        showModal("ข้อผิดพลาดเครือข่าย", `ไม่สามารถเชื่อมต่อ LINE API ได้: ${err.message}<br>โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต`, "alert");
-        return { success: false, message: "Network Error" };
-    }
+    } catch (err) { console.error("Error:", err); }
 }
 
-// ===== CUSTOM MODAL LOGIC (Keyboard Support) =====
+// ===== CUSTOM MODAL LOGIC (Keyboard Support) - UPDATED TO SUPPORT INPUT FIELD =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -120,21 +85,24 @@ function showModal(title, message, type = "alert", callback = null) {
     const actionsEl = document.getElementById('modal-actions');
     const iconEl = document.getElementById('modal-icon');
 
+    // ลบการจัดการคีย์บอร์ดเดิมออกก่อน
     if (currentModalKeyHandler) {
         document.removeEventListener("keydown", currentModalKeyHandler);
     }
     
     titleEl.innerText = title;
-    msgEl.innerHTML = "";
+    msgEl.innerHTML = ""; // เคลียร์ข้อความเดิมเพื่อรองรับการใส่ Input
     actionsEl.innerHTML = ""; 
 
     if (type === "input") {
         iconEl.className = "fas fa-user modal-icon icon-warn";
         
+        // แสดงข้อความนำ
         const promptText = document.createElement("div");
         promptText.innerText = message;
         msgEl.appendChild(promptText);
 
+        // สร้างช่อง Input
         const inputField = document.createElement("input");
         inputField.type = "text";
         inputField.id = "modal-input-field";
@@ -159,6 +127,7 @@ function showModal(title, message, type = "alert", callback = null) {
         
         setTimeout(() => { 
             inputField.focus(); 
+            // Enter key submits the input
             inputField.addEventListener('keydown', (e) => {
                 if (e.key === "Enter") btnStart.click();
             }); 
@@ -195,23 +164,6 @@ function showModal(title, message, type = "alert", callback = null) {
             }
         };
 
-    } else if (type === "success") { 
-        iconEl.className = "fas fa-check-circle modal-icon icon-success";
-        msgEl.innerText = message;
-
-        const btnOk = document.createElement("button");
-        btnOk.className = "btn-modal btn-confirm";
-        btnOk.innerText = "ตกลง";
-        btnOk.style.background = "#06c755";
-        btnOk.style.color = "white";
-        btnOk.onclick = closeModal;
-        actionsEl.appendChild(btnOk);
-        setTimeout(() => btnOk.focus(), 100);
-
-        currentModalKeyHandler = (e) => {
-            if (e.key === "Escape" || e.key === "Enter" || e.key === " ") closeModal();
-        };
-
     } else { // type === "alert"
         iconEl.className = "fas fa-info-circle modal-icon icon-warn";
         msgEl.innerText = message;
@@ -242,245 +194,17 @@ function closeModal() {
     }
 }
 
-
-// ===== [ฟังก์ชันคิดยอดใหม่ - รองรับราคาต่ำ/สูง] =====
-function showCalculateModal(tableContainer) {
-    const tableTitleInput = tableContainer.querySelector(".table-title-input");
-    const defaultTitle = tableTitleInput ? tableTitleInput.value : "(ไม่มีชื่อค่าย)";
-    
-    if (currentModalKeyHandler) {
-        document.removeEventListener("keydown", currentModalKeyHandler);
-    }
-    
-    const modal = document.getElementById('custom-modal');
-    const titleEl = document.getElementById('modal-title');
-    const msgEl = document.getElementById('modal-msg');
-    const actionsEl = document.getElementById('modal-actions');
-    const iconEl = document.getElementById('modal-icon');
-
-    titleEl.innerText = "💰 คิดยอดและส่ง LINE";
-    iconEl.className = "fas fa-calculator modal-icon icon-warn";
-    msgEl.innerHTML = ""; 
-    actionsEl.innerHTML = ""; 
-
-    const promptText = document.createElement("div");
-    promptText.innerHTML = `**ค่าย:** ${defaultTitle}<br>กรุณากรอก <b>เวลาตกบั้งไฟ (วินาที)</b> และ **ช่วงราคาตั้ง (ต่ำ-สูง)**`;
-    msgEl.appendChild(promptText);
-
-    const timeInputField = document.createElement("input");
-    timeInputField.type = "number";
-    timeInputField.id = "modal-time-input";
-    timeInputField.placeholder = "เวลาตก (วินาที, เช่น 275)";
-    timeInputField.className = "modal-input";
-    msgEl.appendChild(timeInputField);
-    
-    const lowPriceInputField = document.createElement("input");
-    lowPriceInputField.type = "number";
-    lowPriceInputField.id = "modal-low-price-input";
-    lowPriceInputField.placeholder = "ราคาตั้งต่ำ (วินาที, เช่น 280)";
-    lowPriceInputField.className = "modal-input";
-    msgEl.appendChild(lowPriceInputField);
-
-    const highPriceInputField = document.createElement("input");
-    highPriceInputField.type = "number";
-    highPriceInputField.id = "modal-high-price-input";
-    highPriceInputField.placeholder = "ราคาตั้งสูง (วินาที, เช่น 290)";
-    highPriceInputField.className = "modal-input";
-    msgEl.appendChild(highPriceInputField);
-
-    const btnStart = document.createElement("button");
-    btnStart.className = "btn-modal btn-confirm";
-    btnStart.innerText = "คิดยอดตอนนี้";
-    btnStart.style.background = "#06c755";
-    btnStart.style.boxShadow = "0 5px 15px rgba(6, 199, 85, 0.4)";
-    btnStart.onclick = () => { 
-        const fallTime = parseFloat(timeInputField.value);
-        const lowPrice = parseFloat(lowPriceInputField.value);
-        const highPrice = parseFloat(highPriceInputField.value);
-        
-        if (isNaN(fallTime) || isNaN(lowPrice) || isNaN(highPrice) || fallTime <= 0 || lowPrice <= 0 || highPrice < lowPrice) {
-            showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลเป็นตัวเลขที่ถูกต้อง และราคาตั้งสูงต้องมากกว่าราคาตั้งต่ำ", "alert");
-            return;
-        }
-        
-        closeModal(); 
-        setTimeout(() => sendLineResults(tableContainer, defaultTitle, fallTime, lowPrice, highPrice), 300);
-    };
-
-    const btnNo = document.createElement("button");
-    btnNo.className = "btn-modal btn-cancel";
-    btnNo.innerText = "ยกเลิก";
-    btnNo.onclick = closeModal;
-
-    actionsEl.appendChild(btnNo);
-    actionsEl.appendChild(btnStart);
-    
-    setTimeout(() => { 
-        timeInputField.focus(); 
-        timeInputField.addEventListener('keydown', (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                lowPriceInputField.focus();
-            }
-        }); 
-        lowPriceInputField.addEventListener('keydown', (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                highPriceInputField.focus();
-            }
-        });
-        highPriceInputField.addEventListener('keydown', (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                btnStart.click();
-            }
-        });
-    }, 100);
-
-    currentModalKeyHandler = (e) => {
-        if (e.key === "Escape") closeModal();
-    };
-    
-    document.addEventListener("keydown", currentModalKeyHandler);
-    modal.classList.add('active');
-}
-
-async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPrice) { 
-    const rows = tableContainer.querySelectorAll("tbody tr");
-    const results = {};
-    
-    // 1. วนลูปคำนวณกำไร/ขาดทุน
-    rows.forEach(tr => {
-        const cells = tr.querySelectorAll("input");
-        const nameA = cells[0]?.value.trim();
-        const priceRaw = cells[1]?.value.trim(); 
-        const nameB = cells[2]?.value.trim();
-
-        if (!nameA || !priceRaw || !nameB) return; 
-
-        const cleanedNameA = nameA.replace("@", "").trim();
-        const cleanedNameB = nameB.replace("@", "").trim();
-        
-        if (!cleanedNameA || !cleanedNameB) return;
-
-        let price = 0;
-        const priceMatch = priceRaw.match(/\d+/); 
-        if (priceMatch) {
-            price = parseFloat(priceMatch[0]);
-        }
-        
-        if (price === 0) return;
-
-        let winnerName;
-        let loserName;
-        let isDraw = false;
-
-        // ตรรกะการตัดสินตาม 3 ช่วงราคา:
-        if (fallTime < lowPrice) {
-            winnerName = cleanedNameB; 
-            loserName = cleanedNameA;
-        } else if (fallTime > highPrice) {
-            winnerName = cleanedNameA;
-            loserName = cleanedNameB;
-        } else {
-            isDraw = true; 
-        }
-
-        // คำนวณยอด
-        if (!isDraw) {
-            const winAmount = price * 0.90; 
-            const lossAmount = price * -1; 
-
-            results[winnerName] = (results[winnerName] || 0) + winAmount;
-            results[loserName] = (results[loserName] || 0) + lossAmount;
-        } 
-    });
-
-    // 2. วนลูปส่งข้อความ LINE
-    let successCount = 0;
-    let failedNames = [];
-    let linePromises = [];
-
-    for (const name in results) {
-        const uid = LINE_UID_MAP[name];
-        if (uid) {
-            const amount = results[name].toFixed(0);
-            const sign = amount >= 0 ? "+" : "";
-            const message = `${title}\n${sign}${amount}`;
-            
-            linePromises.push(pushText(uid, message).then(result => {
-                if (result.success) {
-                    successCount++;
-                } else {
-                    failedNames.push(name);
-                }
-            }));
-        } else {
-            failedNames.push(name);
-        }
-    }
-    
-    await Promise.all(linePromises);
-
-    // 3. แสดงผลลัพธ์รวม
-    let summary = `ส่งข้อความ LINE สำเร็จ ${successCount} คน`;
-    if (failedNames.length > 0) {
-        summary += `\n**ไม่พบ LINE ID/ส่งไม่สำเร็จ:** ${failedNames.join(", ")}\nโปรดตรวจสอบ LINE_UID_MAP และ Token`;
-        showModal("ส่ง LINE เสร็จสิ้น", summary, "alert");
-    } else if (successCount > 0) {
-        showModal("ส่ง LINE สำเร็จ", summary, "success");
-    } else {
-         showModal("ส่ง LINE ล้มเหลวทั้งหมด", "ไม่สามารถส่งข้อความถึงใครได้เลย โปรดตรวจสอบ Channel Access Token", "alert");
-    }
-}
-
-// ===== Function หลัก - RESTORED ORIGINAL FUNCTIONALITY (พร้อมเพิ่ม saveData() เพื่อให้ปุ่มทำงาน) =====
-function saveData() {
-    const data = [];
-    document.querySelectorAll(".table-container").forEach(table => {
-        const title = table.querySelector(".table-title-input").value;
-        const rows = [];
-        table.querySelectorAll("tbody tr").forEach(r => {
-            const cells = r.querySelectorAll("input");
-            rows.push([cells[0]?.value||"", cells[1]?.value||"", cells[2]?.value||""]);
-        });
-        data.push({ title, rows });
-    });
-    localStorage.setItem("savedTables", JSON.stringify(data));
-    const badge = document.getElementById("auto-save-alert");
-    if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
-}
-
-function loadData() {
-    const data = JSON.parse(localStorage.getItem("savedTables"));
-    if (!data) return;
-    const container = document.getElementById("tables-container");
-    container.innerHTML = "";
-    data.forEach(table => {
-        const newTable = document.createElement("div");
-        newTable.classList.add("table-container", "table-card");
-        let rowsHtml = "";
-        table.rows.forEach(r => {
-            // ** FIXED: เพิ่ม oninput="saveData()" กลับเข้าไปเพื่อให้บันทึกอัตโนมัติเมื่อพิมพ์
-            rowsHtml += `<tr><td><input type="text" value="${r[0]}" placeholder="ชื่อคนไล่" oninput="saveData()"></td><td><input type="text" value="${r[1]}" placeholder="ราคา" oninput="saveData()"></td><td><input type="text" value="${r[2]}" placeholder="ชื่อคนยั้ง" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td></tr>`;
-        });
-        // ** FIXED: เพิ่มปุ่มคิดยอดกลับเข้าไปใน loadData ด้วย
-        newTable.innerHTML = `<button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button><div class="card-header"><input type="text" class="table-title-input" value="${table.title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()"></div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rowsHtml}</tbody></table><button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button><button class="btn-calculate-line" onclick="showCalculateModal(this.parentElement)"><i class="fas fa-calculator"></i> คิดยอดตอนนี้</button>`;
-        container.appendChild(newTable);
-    });
-}
-
+// ===== Function หลัก =====
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td><input type="text" placeholder="" oninput="saveData()"></td>
-        <td><input type="text" placeholder="" oninput="saveData()"></td>
-        <td><input type="text" placeholder="" oninput="saveData()"></td>
+        <td><input type="text" placeholder=""></td>
+        <td><input type="text" placeholder=""></td>
+        <td><input type="text" placeholder=""></td>
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
     `;
     tbody.appendChild(newRow);
-    saveData();
 }
 
 function addTable() {
@@ -491,7 +215,7 @@ function addTable() {
     newTable.innerHTML = `
         <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
         <div class="card-header">
-            <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()">
+            <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่ายที่นี่...">
         </div>
         <table class="custom-table">
             <thead>
@@ -504,21 +228,17 @@ function addTable() {
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder="" oninput="saveData()"></td>
-                    <td><input type="text" placeholder="" oninput="saveData()"></td>
-                    <td><input type="text" placeholder="" oninput="saveData()"></td>
+                    <td><input type="text" placeholder=""></td>
+                    <td><input type="text" placeholder=""></td>
+                    <td><input type="text" placeholder=""></td>
                     <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
                 </tr>
             </tbody>
         </table>
         <button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button>
-        <button class="btn-calculate-line" onclick="showCalculateModal(this.parentElement)">
-            <i class="fas fa-calculator"></i> คิดยอดตอนนี้
-        </button>
     `;
     container.appendChild(newTable);
     newTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    saveData();
 }
 
 function removeTable(button) {
@@ -567,7 +287,7 @@ function removeRow(button) {
     saveData();
 }
 
-// ===== ฟังก์ชันล้างประวัติจากหน้าหลัก - เดิม =====
+// ===== ฟังก์ชันล้างประวัติจากหน้าหลัก =====
 function clearAllHistory() {
     if(historyData.length === 0) {
         showModal("แจ้งเตือน", "ไม่มีประวัติให้ลบ", "alert");
@@ -578,11 +298,11 @@ function clearAllHistory() {
         localStorage.removeItem('historyData');
         historyData = [];
         totalDeletedProfit = 0;
-        showModal("สำเร็จ", "ล้างประวัติเรียบร้อยแล้ว", "success");
+        showModal("สำเร็จ", "ล้างประวัติเรียบร้อยแล้ว", "alert");
     });
 }
 
-// ===== แสดงประวัติ (Text Mode) - เดิม =====
+// ===== แสดงประวัติ (Text Mode) =====
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ยังไม่มีประวัติ", "alert");
     
@@ -647,34 +367,44 @@ function saveData() {
     if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
 }
 
-function sendMessageToLine() {
-    const name = document.getElementById('lineName').value.trim();
-    const msg = document.getElementById('messageToSend').value.trim();
-    if(!name || !msg) return showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบ", "alert");
-    
-    const uid = LINE_UID_MAP[name];
-    
-    if (uid) {
-        pushText(uid, msg).then(result => {
-            if (result.success) {
-                showModal("ส่งสำเร็จ", `ส่งข้อความถึง ${name} สำเร็จแล้ว!`, "success");
-            } else {
-                console.log(`Manual send to ${name} failed.`);
-            }
+function loadData() {
+    const data = JSON.parse(localStorage.getItem("savedTables"));
+    if (!data) return;
+    const container = document.getElementById("tables-container");
+    container.innerHTML = "";
+    data.forEach(table => {
+        const newTable = document.createElement("div");
+        newTable.classList.add("table-container", "table-card");
+        let rowsHtml = "";
+        table.rows.forEach(r => {
+            rowsHtml += `<tr><td><input type="text" value="${r[0]}" placeholder="ชื่อคนไล่"></td><td><input type="text" value="${r[1]}" placeholder="ราคา"></td><td><input type="text" value="${r[2]}" placeholder="ชื่อคนยั้ง"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td></tr>`;
         });
-    } else {
-        showModal("ไม่พบผู้ใช้", `ไม่พบรายชื่อ "${name}" ในระบบ LINE_UID_MAP`, "alert");
-    }
+        newTable.innerHTML = `<button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button><div class="card-header"><input type="text" class="table-title-input" value="${table.title}" placeholder="ใส่ชื่อค่ายที่นี่..."></div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rowsHtml}</tbody></table><button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button>`;
+        container.appendChild(newTable);
+    });
+}
+
+document.addEventListener("keydown", e => { if (e.ctrlKey && e.key.toLowerCase() === "u") { e.preventDefault(); showModal("เตือน", "ไม่อนุญาตให้ดูซอร์สโค้ด", "alert"); }});
+setInterval(() => { saveData(); console.log("Auto saved"); }, 15000);
+
+function sendMessageToLine() {
+    const name = document.getElementById('lineName').value;
+    const msg = document.getElementById('messageToSend').value;
+    if(!name || !msg) return showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบ", "alert");
+    const uid = getLineIdFromName(name);
+    uid ? pushText(uid, msg) : showModal("ไม่พบผู้ใช้", "ไม่พบรายชื่อในระบบ", "alert");
 }
 
 
-// ===== [ANALOG STOPWATCH LOGIC] - เดิม =====
+// ===== [ANALOG STOPWATCH LOGIC] - โค้ดที่เพิ่มใหม่และแก้ไขแล้ว =====
 
 function openStopwatchWindow() {
+    // ใช้ showModal เพื่อให้ผู้ใช้กรอกชื่อ
     showModal("เริ่มจับเวลา", "กรุณากรอกชื่อสำหรับรอบการจับเวลานี้:", "input", (name) => {
         if (name && name.trim() !== "") {
             createStopwatchWindow(name.trim());
         } else {
+            // หากผู้ใช้ไม่ได้กรอกชื่อ ให้แจ้งเตือนและเรียก Modal ป้อนค่าขึ้นมาใหม่
             showModal("ข้อผิดพลาด", "กรุณากรอกชื่อก่อนเริ่มจับเวลา", "alert");
         }
     });
@@ -683,6 +413,7 @@ function openStopwatchWindow() {
 function createStopwatchWindow(name) {
     let newWindow = window.open("", "Stopwatch", "width=400,height=650");
     
+    // สร้างโค้ด JavaScript ที่สมบูรณ์แบบสำหรับ New Window
     const newWindowScript = `
         let startTime = 0;
         let elapsed = 0;
@@ -690,15 +421,19 @@ function createStopwatchWindow(name) {
 
         const updateClock = () => {
             elapsed = Date.now() - startTime;
+            
+            // --- การคำนวณและการแสดงผลวินาทีเท่านั้น ---
             const totalSeconds = elapsed / 1000;
-            const currentSecondOnClock = totalSeconds % 60;
+            const currentSecondOnClock = totalSeconds % 60; // เข็มยังคงวนที่ 60s
             const secondDegrees = currentSecondOnClock * 6; 
 
             document.getElementById('sec-hand').style.transform = \`rotate(\${secondDegrees}deg)\`;
             
+            // แสดงผลเฉพาะ SECONDS และ MILLISECONDS: SS.ms
             const ms = String(elapsed % 1000).padStart(3, '0');
             const secs = String(Math.floor(elapsed / 1000)).padStart(2, '0');
             
+            // แสดงผลเป็น SS.ms (ตัดนาทีออก)
             document.getElementById('digital-display').innerText = \`\${secs}.\${ms}\`;
         };
 
@@ -723,21 +458,25 @@ function createStopwatchWindow(name) {
             pauseTimer();
             elapsed = 0;
             document.getElementById('sec-hand').style.transform = \`rotate(0deg)\`;
+            // แก้ไขการแสดงผลเริ่มต้นเป็น 00.000
             document.getElementById('digital-display').innerText = \`00.000\`; 
             document.getElementById('start-btn').disabled = false;
             document.getElementById('reset-btn').disabled = true;
         };
 
+        // กำหนด Event Listeners
         document.getElementById('start-btn').onclick = startTimer;
         document.getElementById('pause-btn').onclick = pauseTimer;
         document.getElementById('reset-btn').onclick = resetTimer;
 
+        // จัดการเมื่อปิดหน้าต่าง
         window.onbeforeunload = function() {
             if (timerInterval) {
                 clearInterval(timerInterval);
             }
         };
 
+        // Keyboard shortcuts (Space to Start/Pause, R to Reset)
         document.addEventListener('keydown', (e) => {
             if (e.key === ' ') { 
                 e.preventDefault(); 
@@ -753,6 +492,7 @@ function createStopwatchWindow(name) {
         });
     `;
 
+    // สร้างเนื้อหา HTML สำหรับหน้าต่างนาฬิกาจับเวลา
     let content = `
         <html>
         <head>
@@ -774,6 +514,7 @@ function createStopwatchWindow(name) {
                     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
                 }
                 
+                /* Analog Clock Styling */
                 .clock {
                     width: 250px; height: 250px; border: 15px solid #fff; border-radius: 50%;
                     position: relative; margin-bottom: 40px; background: #333;
@@ -795,6 +536,7 @@ function createStopwatchWindow(name) {
                     margin-left: -2px; 
                 }
                 
+                /* Clock Marks */
                 .mark { position: absolute; width: 100%; height: 100%; }
                 .mark:before {
                     content: ''; position: absolute; top: 0; left: 50%;
