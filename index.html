@@ -1,193 +1,97 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg">
-    <title>ระบบหลังบ้าน ADMIN (Pro Version)</title>
+let historyData = [];
+let totalDeletedProfit = 0;
+let currentModalKeyHandler = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadData();
+    const savedHistory = localStorage.getItem("historyData");
+    if (savedHistory) {
+        historyData = JSON.parse(savedHistory);
+        totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
+    }
+});
+
+
+// ในไฟล์ script (12).js, เพิ่มโค้ดส่วนนี้
+
+// ===== [REAL-TIME LOCAL STORAGE SYNC] =====
+window.addEventListener('storage', (event) => {
+    // ตรวจสอบว่าคีย์ที่เปลี่ยนคือ 'savedTables' (ข้อมูลตาราง) หรือไม่
+    if (event.key === 'savedTables') {
+        // โหลดข้อมูลใหม่ทันที
+        loadData(); 
+        
+        // (ทางเลือก) หากต้องการแจ้งเตือนผู้ใช้
+        const badge = document.getElementById("auto-save-alert");
+        if(badge) {
+            badge.innerText = "🔄 ข้อมูลอัปเดตจากหน้าต่างอื่นแล้ว";
+            badge.style.opacity = "1"; 
+            setTimeout(() => {
+                badge.style.opacity = "0";
+                badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว"; // คืนค่าข้อความเดิม
+            }, 3000); 
+        }
+        console.log("Data loaded from other window's storage event.");
+    }
+});
+
+// ===== [LINE CONFIG] =====
+const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVXJ1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
+const LINE_UID_MAP = {
+    "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
+    "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
+    "บริการบอทไลน์ V7": "U0e1f53b2f1cc24a7316473480bd2861a",
+    "อิสลาม แห่งอิหร่าน": "U2f156aa5effee7c1ee349b9320a35381",
+    "Atcharapun Aom": "U3e3ac0e16feb88534470f897ebfa38ec",
+    "BenZ": "U3e03ef4725e04db4a9729db77bb16b6c",
+    "เซียนแปะโรงสี💵💰💲🪙": "U58a1222aeb7b82dea040fa50e1791a7f",
+    "ต้า💯💯": "U5e2ca7eb5183684b91ba83c801ef713b",
+    "M8N": "U6a862e37864d5f522e8af490dd120440",
+    "Few": "U818fd2665026afe242a2c27f441642de",
+    "ยี่สิบโท หมิง": "Ua914df11d1747d2eea4fbdd06a9c1052",
+    "Nuiy Weerapon": "Ubdbaa2989f39daff930a4ca8d253344c",
+    "Jaran Kk.": "Uc08e788e6816a25d517ef9a32c1e381e",
+    "สารวัตรกึ่ม👮‍♂️🚔": "Uc2013ea8397da6d19cbe0f931a04c949",
+    "Aek💰": "Uc3594ebfcb19bdc4e05b62b8525e9eed",
+    "ฟลุ๊กฟิก😊😉": "Uc90d6d7a78e56640cdf3f93e4472127b",
+    "กล้อง🔭อินเฟอร์เรส": "Ucd41b3d1c42f80e42ed691a7d9309c79",
+    "Satthapan": "Ud27019d7ae7d4e6be81e1a2e3f6ee6ea",
+    "Thanaphut Sks": "Ue93a927aa8b7aafb4b8dc7b11e58c1f3",
+    "🌠ผมชื่อบอยนะคร้าา🌠💯": "Uebd6b15d2ff306abddcfb47fe56a17f0",
+    "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8"
+};
+
+// **[แก้ไข]** ทำให้การค้นหาชื่อ Line ID เป็นแบบ Case-Insensitive และตัดช่องว่าง/เครื่องหมาย @
+function getLineIdFromName(nameRaw) {
+    if (!nameRaw) return "";
+    const normalizedName = nameRaw.replace("@", "").trim().toLowerCase(); 
     
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script defer data-domain="bungnot.pages.dev" src="https://plausible.io/js/script.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    // ค้นหาใน MAP โดยแปลง Key ทุกตัวให้เป็นตัวพิมพ์เล็กก่อนเปรียบเทียบ
+    for (const key in LINE_UID_MAP) {
+        if (key.toLowerCase() === normalizedName) {
+            return LINE_UID_MAP[key];
+        }
+    }
+    return "";
+}
 
-    <style>
-        :root {
-            --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            --text-color: #333;
+// **[แก้ไข]** เพิ่มการตรวจสอบ Response และการจัดการ Error จาก Server
+async function pushText(to, text) {
+    try {
+        const response = await fetch("http://102.129.229.219:5000/send_line", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ to, text }),
+        });
+        
+        if (response.ok) {
+            showModal("สำเร็จ", "ส่งข้อความถึง Line OA เรียบร้อยแล้ว", "alert");
+        } else {
+            // หาก Server ตอบกลับมาด้วย Error Code (เช่น 4xx, 5xx)
+            showModal("ข้อผิดพลาดการส่ง", `ส่งไม่สำเร็จ (โค้ด: ${response.status})\nโปรดตรวจสอบ Server 102.129.229.219:5000`, "alert");
         }
 
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background: var(--primary-bg);
-            background-attachment: fixed;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            color: var(--text-color);
-        }
-
-        /* --- Header & Buttons --- */
-        .header-container { text-align: center; margin-bottom: 30px; color: white; }
-        .profile-group img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.5); margin: 0 5px; transition: transform 0.3s; }
-        .profile-group img:hover { transform: scale(1.1) rotate(5deg); }
-        h2 { font-weight: 700; font-size: 2.5rem; margin: 10px 0; background: -webkit-linear-gradient(top, #fff, #e0e0e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .action-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
-        
-        /* สไตล์ปุ่มหลัก */
-        .btn-main { 
-            background: white; color: #1e3c72; border: none; padding: 12px 25px; 
-            font-size: 1.1rem; border-radius: 50px; cursor: pointer; font-weight: 600; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease; 
-            display: flex; align-items: center; gap: 8px; 
-        }
-        .btn-main:hover { transform: translateY(-3px); background: #f0f8ff; }
-        
-        .btn-history { background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); }
-        
-        /* ปุ่มล้างประวัติ (สีแดง) */
-        .btn-clear { color: #d32f2f; background: #fff0f0; }
-        .btn-clear:hover { background: #ffebee; box-shadow: 0 4px 20px rgba(211, 47, 47, 0.3); }
-
-        /* --- Dashboard Grid --- */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1250px; margin: 0 auto 30px; }
-        .info-card { background: var(--glass-bg); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); }
-        .info-card h3 { margin-top: 0; color: #1e3c72; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .info-content { font-size: 0.95rem; line-height: 1.6; color: #555; }
-
-        input[type="text"], textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px; font-family: 'Sarabun'; margin-bottom: 10px; box-sizing: border-box; transition: 0.3s; background: #f9f9f9; }
-        input[type="text"]:focus, textarea:focus { border-color: #2a5298; outline: none; background: white; }
-
-        /* --- Table Styling --- */
-        #tables-container { max-width: 1300px; width: 95%; margin: 0 auto; }
-        .table-card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: relative; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card-header { display: flex; justify-content: center; margin-bottom: 15px; }
-        .table-title-input { font-size: 1.5rem !important; font-weight: bold; color: #1e3c72; text-align: center; border: none !important; background: #f0f4f8 !important; max-width: 80%; padding: 15px !important; }
-        
-        .btn-close-table { position: absolute; top: 15px; right: 15px; background: #ffebee; color: #d32f2f; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-close-table:hover { background: #ffcdd2; transform: rotate(90deg); }
-
-        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 15px; }
-        .custom-table th { padding: 15px; color: white; font-weight: 600; font-size: 1rem; text-transform: uppercase; }
-        .th-green { background: linear-gradient(45deg, #11998e, #38ef7d); border-radius: 10px 0 0 0; }
-        .th-orange { background: linear-gradient(45deg, #f2994a, #f2c94c); }
-        .th-red { background: linear-gradient(45deg, #eb3349, #f45c43); }
-        .th-purple { background: linear-gradient(45deg, #8e2de2, #4a00e0); border-radius: 0 10px 0 0; }
-        .custom-table td { padding: 10px; border-bottom: 1px solid #eee; }
-        .custom-table input { border: 1px solid #ddd; border-radius: 8px; text-align: center; margin-bottom: 0; background: white; font-size: 1rem; }
-        .custom-table input:focus { border-color: #38ef7d; box-shadow: 0 0 0 3px rgba(56, 239, 125, 0.2); }
-
-        .btn-remove-row { background: #ffeba7; color: #d35400; border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
-        .btn-add-row { width: 100%; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 1rem; }
-        .btn-add-row:hover { background: #c8e6c9; }
-
-        /* --- Popup Modal --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); transform: scale(0.8); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .modal-overlay.active .modal-box { transform: scale(1); }
-        .modal-icon { font-size: 3rem; margin-bottom: 15px; display: block; }
-        .icon-warn { color: #f2994a; }
-        .modal-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; color: #333; }
-        .modal-text { font-size: 1rem; color: #666; margin-bottom: 25px; white-space: pre-line; }
-        .modal-actions { display: flex; justify-content: center; gap: 10px; }
-        .btn-modal { padding: 10px 25px; border-radius: 50px; border: none; font-size: 1rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-confirm { background: #e74c3c; color: white; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4); }
-        .btn-confirm:hover { background: #c0392b; transform: translateY(-2px); }
-        .btn-cancel { background: #ecf0f1; color: #7f8c8d; }
-        .btn-cancel:hover { background: #bdc3c7; }
-        .modal-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-top: 15px; font-family: 'Sarabun'; box-sizing: border-box; }
-
-
-        /* Auto Save Badge */
-        #auto-save-alert { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 25px; border-radius: 30px; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; z-index: 9999; }
-        .credit { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(255,255,255,0.4); }
-
-        @media screen and (max-width: 768px) { h2 { font-size: 1.8rem; } .dashboard-grid { grid-template-columns: 1fr; } .action-bar { flex-direction: column; } .btn-main { width: 100%; justify-content: center; } }
-    </style>
-</head>
-<body>
-
-    <div class="credit">Web dev by Bungnot v3.1.0 (Quick Clear)</div>
-    <div id="auto-save-alert"><i class="fas fa-check-circle"></i> บันทึกข้อมูลอัตโนมัติแล้ว</div>
-
-    <div class="header-container">
-        <div class="profile-group">
-            <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Profile">
-            <img src="https://img5.pic.in.th/file/secure-sv1/unnamed-7263f4c44a1f2a1a7.jpg" alt="Profile">
-        </div>
-        <h2>ระบบหลังบ้าน ADMIN (Pro Version)</h2>
-    </div>
-
-    <div class="action-bar">
-        <button class="btn-main" onclick="addTable()">
-            <i class="fas fa-rocket"></i> เพิ่มบั้งใหม่
-        </button>
-        <button class="btn-main btn-history" onclick="showHistory()">
-            <i class="fas fa-history"></i> ประวัติการคิดยอด
-        </button>
-        <button class="btn-main" onclick="openStopwatchWindow()"> 
-            <i class="fas fa-stopwatch"></i> จับเวลาบั้งไฟ (วินาที)
-        </button>
-        <button class="btn-main btn-clear" onclick="clearAllHistory()">
-            <i class="fas fa-trash-alt"></i> ล้างประวัติ
-        </button>
-    </div>
-
-    <div class="dashboard-grid">
-        <div class="info-card">
-            <h3><i class="fas fa-info-circle"></i> วิธีคิดยอด</h3>
-            <div class="info-content">
-                <ul>
-                    <li>เอาชื่อคนไล่ไว้ข้างหน้า</li>
-                    <li>ราคาเล่น 280/300 ใส่เป็น 80/00</li>
-                    <li>ถ้า 400+ ให้ใช้ตัวอักษรแทน (เช่น 4OO)</li>
-                    <li>เว็บคำนวณกำไรอัตโนมัติเมื่อกดลบ (X)</li>
-                </ul>
-            </div>
-            <div style="text-align: center; margin-top: 15px;">
-                <img src="https://img5.pic.in.th/file/secure-sv1/-esan-rocket.gif" style="height: 50px;">
-            </div>
-        </div>
-
-        <div class="info-card">
-            <h3><i class="fab fa-line"></i> ส่งข้อความ Line OA</h3>
-            <input type="text" id="lineName" placeholder="กรอกชื่อในไลน์ OA">
-            <textarea id="messageToSend" placeholder="ข้อความที่ต้องการส่ง" rows="3"></textarea>
-            <button onclick="sendMessageToLine()" class="btn-main" style="width:100%; justify-content:center; background: #06c755; color: white;">
-                ส่งข้อความ
-            </button>
-        </div>
-
-        <div class="info-card">
-            <h3><i class="fas fa-exclamation-triangle"></i> ข้อห้าม & คำแนะนำ</h3>
-            <div class="info-content">
-                <ul>
-                    <li>ห้ามใส่เลข 3 หลักในช่องอื่นนอกจากช่องราคา</li>
-                    <li>หากยกเลิกแผล กดลบแถวได้เลย</li>
-                    <li>**ต้องกรอกข้อมูลก่อนลบแถวเสมอ**</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <div id="tables-container"></div>
-
-    <div id="custom-modal" class="modal-overlay">
-        <div class="modal-box">
-            <i id="modal-icon" class="fas fa-exclamation-circle modal-icon icon-warn"></i>
-            <div id="modal-title" class="modal-title">แจ้งเตือน</div>
-            <div id="modal-msg" class="modal-text">ข้อความแจ้งเตือน...</div>
-            <div class="modal-actions" id="modal-actions"></div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
-
+    } catch (err) { 
+        // หากเกิด Error ระดับ Network (เช่น CORS, Connection Refused)
+        console.error("Error:", err); 
+        showModal("ข้อผิดพลาดเครือข่าย
