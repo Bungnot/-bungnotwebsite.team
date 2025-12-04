@@ -61,20 +61,41 @@ const LINE_UID_MAP = {
     "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8"
 };
 
+// **[แก้ไข]** ทำให้การค้นหาชื่อ Line ID เป็นแบบ Case-Insensitive และตัดช่องว่าง/เครื่องหมาย @
 function getLineIdFromName(nameRaw) {
     if (!nameRaw) return "";
-    const name = nameRaw.replace("@", "").trim();
-    return LINE_UID_MAP[name] || "";
+    const normalizedName = nameRaw.replace("@", "").trim().toLowerCase(); 
+    
+    // ค้นหาใน MAP โดยแปลง Key ทุกตัวให้เป็นตัวพิมพ์เล็กก่อนเปรียบเทียบ
+    for (const key in LINE_UID_MAP) {
+        if (key.toLowerCase() === normalizedName) {
+            return LINE_UID_MAP[key];
+        }
+    }
+    return "";
 }
 
+// **[แก้ไข]** เพิ่มการตรวจสอบ Response และการจัดการ Error จาก Server
 async function pushText(to, text) {
     try {
-        await fetch("http://102.129.229.219:5000/send_line", {
+        const response = await fetch("http://102.129.229.219:5000/send_line", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ to, text }),
         });
-    } catch (err) { console.error("Error:", err); }
+        
+        if (response.ok) {
+            showModal("สำเร็จ", "ส่งข้อความถึง Line OA เรียบร้อยแล้ว", "alert");
+        } else {
+            // หาก Server ตอบกลับมาด้วย Error Code (เช่น 4xx, 5xx)
+            showModal("ข้อผิดพลาดการส่ง", `ส่งไม่สำเร็จ (โค้ด: ${response.status})\nโปรดตรวจสอบ Server 102.129.229.219:5000`, "alert");
+        }
+
+    } catch (err) { 
+        // หากเกิด Error ระดับ Network (เช่น CORS, Connection Refused)
+        console.error("Error:", err); 
+        showModal("ข้อผิดพลาดเครือข่าย", "ไม่สามารถเชื่อมต่อกับ Server ภายนอกได้\nกรุณาตรวจสอบการเชื่อมต่อหรือ Server IP", "alert");
+    }
 }
 
 // ===== CUSTOM MODAL LOGIC (Keyboard Support) - UPDATED TO SUPPORT INPUT FIELD =====
@@ -157,10 +178,12 @@ function showModal(title, message, type = "alert", callback = null) {
 
         currentModalKeyHandler = (e) => {
             if (e.key === "Escape") closeModal();
-            else if (e.key === "Enter" || e.key === " ") {
+            else if ((e.key === "Enter" || e.key === " ") && document.activeElement === btnYes) { // **[ปรับปรุง]** ให้ Enter ทำงานเฉพาะบนปุ่มที่ถูกโฟกัส
                 e.preventDefault();
-                closeModal(); 
-                if (callback) callback();
+                btnYes.click();
+            } else if ((e.key === "Enter" || e.key === " ") && document.activeElement === btnNo) {
+                e.preventDefault();
+                btnNo.click();
             }
         };
 
@@ -392,7 +415,7 @@ function sendMessageToLine() {
     const msg = document.getElementById('messageToSend').value;
     if(!name || !msg) return showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบ", "alert");
     const uid = getLineIdFromName(name);
-    uid ? pushText(uid, msg) : showModal("ไม่พบผู้ใช้", "ไม่พบรายชื่อในระบบ", "alert");
+    uid ? pushText(uid, msg) : showModal("ไม่พบผู้ใช้", "ไม่พบรายชื่อในระบบ\nโปรดตรวจสอบการสะกดชื่อให้ถูกต้อง", "alert"); // **[ปรับปรุง]** เพิ่มข้อความแนะนำ
 }
 
 
