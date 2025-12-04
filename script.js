@@ -31,9 +31,11 @@ window.addEventListener('storage', (event) => {
 });
 
 // ===== [LINE CONFIG - ต้องแก้ไขค่า] =====
+// ** สำคัญ: กรุณาเปลี่ยนเป็น CHANNEL_ACCESS_TOKEN จริงของคุณ **
 const CHANNEL_ACCESS_TOKEN = "vVfgfuTuxGYIrGci7BVX1LufaMVWvkbvByxhEnfmIxd5zAx8Uc/1SsIRAjkeLvSt9e2UqmYskLOixbfaTgiAa+JC35fvI77zBxA+M7ZbyPbxft0oTc4g5A6dbbwWmid2rgdB04t89/1O/w1cDnyilFU=";
 
 const LINE_UID_MAP = {
+    // *** กรุณาแก้ไข UID ให้ถูกต้องตามชื่อในไลน์ของสมาชิกเหล่านี้ ***
     "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
     "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
     "บริการบอทไลน์ V7": "U0e1f53b2f1cc24a7316473480bd2861a",
@@ -65,7 +67,7 @@ function getLineIdFromName(nameRaw) {
     return LINE_UID_MAP[name] || "";
 }
 
-// ฟังก์ชันส่ง LINE พร้อม Debugging และแจ้งเตือน
+// ฟังก์ชันส่ง LINE พร้อม Debugging
 async function pushText(to, text) {
     const endpoint = "https://api.line.me/v2/bot/message/push";
     const headers = {
@@ -110,7 +112,7 @@ async function pushText(to, text) {
     }
 }
 
-// ===== CUSTOM MODAL LOGIC (Keyboard Support) - FIXED AND RESTORED =====
+// ===== CUSTOM MODAL LOGIC (Keyboard Support) =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -123,7 +125,7 @@ function showModal(title, message, type = "alert", callback = null) {
     }
     
     titleEl.innerText = title;
-    msgEl.innerHTML = ""; // เคลียร์ข้อความเดิม
+    msgEl.innerHTML = "";
     actionsEl.innerHTML = ""; 
 
     if (type === "input") {
@@ -168,7 +170,7 @@ function showModal(title, message, type = "alert", callback = null) {
 
     } else if (type === "confirm") {
         iconEl.className = "fas fa-question-circle modal-icon icon-warn";
-        msgEl.innerText = message; // ใช้ innerText สำหรับ confirm message
+        msgEl.innerText = message;
 
         const btnYes = document.createElement("button");
         btnYes.className = "btn-modal btn-confirm";
@@ -195,7 +197,7 @@ function showModal(title, message, type = "alert", callback = null) {
 
     } else if (type === "success") { 
         iconEl.className = "fas fa-check-circle modal-icon icon-success";
-        msgEl.innerText = message; // ใช้ innerText สำหรับ success
+        msgEl.innerText = message;
 
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-confirm";
@@ -212,7 +214,7 @@ function showModal(title, message, type = "alert", callback = null) {
 
     } else { // type === "alert"
         iconEl.className = "fas fa-info-circle modal-icon icon-warn";
-        msgEl.innerText = message; // ใช้ innerText สำหรับ alert
+        msgEl.innerText = message;
 
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-cancel";
@@ -343,17 +345,16 @@ function showCalculateModal(tableContainer) {
     modal.classList.add('active');
 }
 
-// ฟังก์ชันคำนวณยอดและส่ง LINE (ใช้ตรรกะราคาต่ำ/สูง)
 async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPrice) { 
     const rows = tableContainer.querySelectorAll("tbody tr");
-    const results = {}; // { "ชื่อผู้เล่น": ยอดสุทธิ }
+    const results = {};
     
     // 1. วนลูปคำนวณกำไร/ขาดทุน
     rows.forEach(tr => {
         const cells = tr.querySelectorAll("input");
-        const nameA = cells[0]?.value.trim(); // ชื่อคนไล่
+        const nameA = cells[0]?.value.trim();
         const priceRaw = cells[1]?.value.trim(); 
-        const nameB = cells[2]?.value.trim(); // ชื่อคนยั้ง
+        const nameB = cells[2]?.value.trim();
 
         if (!nameA || !priceRaw || !nameB) return; 
 
@@ -368,7 +369,7 @@ async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPr
             price = parseFloat(priceMatch[0]);
         }
         
-        if (price === 0) return; // ข้ามถ้าแปลงราคาไม่ได้
+        if (price === 0) return;
 
         let winnerName;
         let loserName;
@@ -376,23 +377,18 @@ async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPr
 
         // ตรรกะการตัดสินตาม 3 ช่วงราคา:
         if (fallTime < lowPrice) {
-            // กรณี 1: ตกต่ำกว่าราคาต่ำสุด (คนยั้งชนะ)
             winnerName = cleanedNameB; 
             loserName = cleanedNameA;
         } else if (fallTime > highPrice) {
-            // กรณี 2: ตกสูงกว่าราคาสูงสุด (คนไล่ชนะ)
             winnerName = cleanedNameA;
             loserName = cleanedNameB;
         } else {
-            // กรณี 3: ตกอยู่ในช่วง (lowPrice <= fallTime <= highPrice) -> เสมอ
             isDraw = true; 
         }
 
         // คำนวณยอด
         if (!isDraw) {
-            // ผู้ชนะ: ได้เงิน (ราคาเล่น - หัก 10%)
             const winAmount = price * 0.90; 
-            // ผู้แพ้: เสียเงินเต็มจำนวน
             const lossAmount = price * -1; 
 
             results[winnerName] = (results[winnerName] || 0) + winAmount;
@@ -438,7 +434,42 @@ async function sendLineResults(tableContainer, title, fallTime, lowPrice, highPr
     }
 }
 
-// ===== Function หลัก - RESTORED ORIGINAL FUNCTIONALITY =====
+// ===== Function หลัก - RESTORED ORIGINAL FUNCTIONALITY (พร้อมเพิ่ม saveData() เพื่อให้ปุ่มทำงาน) =====
+function saveData() {
+    const data = [];
+    document.querySelectorAll(".table-container").forEach(table => {
+        const title = table.querySelector(".table-title-input").value;
+        const rows = [];
+        table.querySelectorAll("tbody tr").forEach(r => {
+            const cells = r.querySelectorAll("input");
+            rows.push([cells[0]?.value||"", cells[1]?.value||"", cells[2]?.value||""]);
+        });
+        data.push({ title, rows });
+    });
+    localStorage.setItem("savedTables", JSON.stringify(data));
+    const badge = document.getElementById("auto-save-alert");
+    if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
+}
+
+function loadData() {
+    const data = JSON.parse(localStorage.getItem("savedTables"));
+    if (!data) return;
+    const container = document.getElementById("tables-container");
+    container.innerHTML = "";
+    data.forEach(table => {
+        const newTable = document.createElement("div");
+        newTable.classList.add("table-container", "table-card");
+        let rowsHtml = "";
+        table.rows.forEach(r => {
+            // ** FIXED: เพิ่ม oninput="saveData()" กลับเข้าไปเพื่อให้บันทึกอัตโนมัติเมื่อพิมพ์
+            rowsHtml += `<tr><td><input type="text" value="${r[0]}" placeholder="ชื่อคนไล่" oninput="saveData()"></td><td><input type="text" value="${r[1]}" placeholder="ราคา" oninput="saveData()"></td><td><input type="text" value="${r[2]}" placeholder="ชื่อคนยั้ง" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td></tr>`;
+        });
+        // ** FIXED: เพิ่มปุ่มคิดยอดกลับเข้าไปใน loadData ด้วย
+        newTable.innerHTML = `<button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button><div class="card-header"><input type="text" class="table-title-input" value="${table.title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()"></div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rowsHtml}</tbody></table><button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button><button class="btn-calculate-line" onclick="showCalculateModal(this.parentElement)"><i class="fas fa-calculator"></i> คิดยอดตอนนี้</button>`;
+        container.appendChild(newTable);
+    });
+}
+
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const newRow = document.createElement("tr");
@@ -493,7 +524,6 @@ function addTable() {
 function removeTable(button) {
     const tableContainer = button.parentElement;
     const inputs = tableContainer.querySelectorAll('input');
-    // ใช้โค้ดเดิมที่ป้องกันการลบหากยังไม่มีข้อมูล
     if (!Array.from(inputs).some(i => i.value.trim() !== "")) {
         showModal("แจ้งเตือน", "ต้องกรอกข้อมูลก่อนจึงลบได้", "alert");
         return;
@@ -506,7 +536,6 @@ function removeTable(button) {
         if (match) totalProfit += (parseFloat(match[0]) * 0.10);
     });
 
-    // ใช้ showModal confirm เหมือนเดิม
     showModal("ยืนยันการลบ", `ต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, "confirm", () => {
         const title = tableContainer.querySelector('.table-title-input').value;
         const rowsData = [];
@@ -617,26 +646,6 @@ function saveData() {
     const badge = document.getElementById("auto-save-alert");
     if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
 }
-
-function loadData() {
-    const data = JSON.parse(localStorage.getItem("savedTables"));
-    if (!data) return;
-    const container = document.getElementById("tables-container");
-    container.innerHTML = "";
-    data.forEach(table => {
-        const newTable = document.createElement("div");
-        newTable.classList.add("table-container", "table-card");
-        let rowsHtml = "";
-        table.rows.forEach(r => {
-            rowsHtml += `<tr><td><input type="text" value="${r[0]}" placeholder="ชื่อคนไล่" oninput="saveData()"></td><td><input type="text" value="${r[1]}" placeholder="ราคา" oninput="saveData()"></td><td><input type="text" value="${r[2]}" placeholder="ชื่อคนยั้ง" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td></tr>`;
-        });
-        newTable.innerHTML = `<button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button><div class="card-header"><input type="text" class="table-title-input" value="${table.title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()"></div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rowsHtml}</tbody></table><button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button><button class="btn-calculate-line" onclick="showCalculateModal(this.parentElement)"><i class="fas fa-calculator"></i> คิดยอดตอนนี้</button>`;
-        container.appendChild(newTable);
-    });
-}
-
-document.addEventListener("keydown", e => { if (e.ctrlKey && e.key.toLowerCase() === "u") { e.preventDefault(); showModal("เตือน", "ไม่อนุญาตให้ดูซอร์สโค้ด", "alert"); }});
-setInterval(() => { saveData(); console.log("Auto saved"); }, 15000);
 
 function sendMessageToLine() {
     const name = document.getElementById('lineName').value.trim();
