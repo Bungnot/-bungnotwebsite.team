@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg">
-    <title>ระบบหลังบ้าน ADMIN (Pro Version)</title>
+    <title>ระบบหลังบ้าน ADMIN (Premium UI)</title>
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script defer data-domain="bungnot.pages.dev" src="https://plausible.io/js/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -31,73 +30,73 @@
             color: #333;
         }
 
-        /* --- Header --- */
+        /* --- Header & Stats --- */
         .header-container { text-align: center; margin-bottom: 25px; color: white; }
-        .profile-group img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin: 0 5px; transition: 0.3s; }
-        .profile-group img:hover { transform: scale(1.1); border-color: var(--accent-green); }
-        h2 { font-weight: 700; font-size: 2.2rem; margin: 10px 0; background: linear-gradient(to bottom, #fff, #bdc3c7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .profile-group img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin: 0 5px; }
+        h2 { font-weight: 700; font-size: 2.2rem; margin: 10px 0; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
 
-        /* --- New Stats Dashboard --- */
         .stats-overview { max-width: 1250px; margin: 0 auto 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
-        .stat-card { background: var(--glass-bg); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); transition: 0.3s; }
-        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card { background: var(--glass-bg); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); }
         .stat-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
         .stat-info .label { font-size: 0.85rem; color: #7f8c8d; }
         .stat-info .value { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
 
-        /* --- Action Bar --- */
+        /* --- Action Bar Buttons --- */
         .action-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
-        .btn-main { background: white; color: #1e3c72; border: none; padding: 12px 22px; border-radius: 50px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; display: flex; align-items: center; gap: 8px; font-size: 1rem; }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); background: #f8fafc; }
-        .btn-history { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px); }
-        .btn-clear { color: var(--accent-red); background: #fff5f5; }
+        .btn-main { background: white; color: #1e3c72; border: none; padding: 12px 22px; border-radius: 50px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
-        /* --- Dashboard Grid & Cards --- */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1250px; margin: 0 auto 30px; }
-        .info-card { background: var(--glass-bg); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-        .info-card h3 { margin: 0 0 15px 0; color: #1e3c72; display: flex; align-items: center; gap: 10px; font-size: 1.2rem; }
-        
-        /* --- Inputs --- */
-        input[type="text"], textarea { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-family: 'Sarabun'; margin-bottom: 10px; box-sizing: border-box; transition: 0.3s; background: #fcfcfc; }
-        input[type="text"]:focus { border-color: #3498db; outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); background: white; }
-
-        /* --- Table Styling --- */
+        /* --- Table Card & Premium UI Buttons --- */
         #tables-container { max-width: 1250px; margin: 0 auto; }
-        .table-card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-left: 6px solid #1e3c72; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .table-card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; border-left: 6px solid #1e3c72; }
 
-        .table-title-input { font-size: 1.3rem !important; font-weight: bold; color: #1e3c72; text-align: center; border: none !important; background: #f8fafc !important; padding: 12px !important; border-radius: 10px !important; }
-        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .custom-table th { padding: 12px; color: white; font-size: 0.9rem; text-transform: uppercase; }
-        .th-green { background: var(--accent-green); border-radius: 10px 0 0 10px; }
+        .btn-close-table {
+            position: absolute; top: -15px; left: -15px; background: #333; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); transition: 0.3s; z-index: 10;
+        }
+        .btn-close-table:hover { transform: scale(1.1) rotate(90deg); background: var(--accent-red); }
+
+        .table-title-input { font-size: 1.3rem; font-weight: bold; color: #1e3c72; text-align: center; border: none; background: #f8fafc; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 20px; }
+        
+        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+        .custom-table th { padding: 12px; color: white; border-radius: 12px; font-size: 0.9rem; text-transform: uppercase; }
+        .th-green { background: var(--accent-green); }
         .th-orange { background: var(--accent-orange); }
         .th-red { background: var(--accent-red); }
-        .th-purple { background: #9b59b6; border-radius: 0 10px 10px 0; }
-        .custom-table td { padding: 5px; text-align: center; }
+        .th-purple { background: #9b59b6; }
 
-        /* --- Modal --- */
+        .custom-table td { padding: 5px; }
+        .custom-table input { width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 10px; text-align: center; }
+
+        .btn-remove-row-premium {
+            background: #444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; margin: 0 auto;
+        }
+        .btn-remove-row-premium:hover { background: var(--accent-red); box-shadow: 0 0 15px rgba(231, 76, 60, 0.5); transform: scale(1.1); }
+
+        .btn-add-row {
+            margin-top: 15px; background: linear-gradient(45deg, #2ecc71, #1abc9c); color: white; border: none; padding: 10px 25px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); transition: 0.3s;
+        }
+        .btn-add-row:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(46, 204, 113, 0.4); }
+        .btn-add-row i { background: white; color: #2ecc71; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+
+        /* --- Modal & Overlay --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 25px; padding: 30px; text-align: center; transform: scale(0.8); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 25px; padding: 30px; text-align: center; }
+        .modal-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 15px; }
 
-        #auto-save-alert { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2c3e50; color: white; padding: 10px 25px; border-radius: 30px; font-size: 0.9rem; opacity: 0; transition: 0.5s; z-index: 9999; display: flex; align-items: center; gap: 8px; }
-        .credit { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(255,255,255,0.3); }
-
-        @media (max-width: 768px) { .action-bar { flex-direction: column; } .btn-main { width: 100%; justify-content: center; } }
+        #auto-save-alert { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2c3e50; color: white; padding: 10px 25px; border-radius: 30px; opacity: 0; transition: 0.5s; z-index: 9999; }
     </style>
 </head>
 <body>
 
-    <div class="credit">Web dev by Bungnot v3.2.0 (Premium UI)</div>
-    <div id="auto-save-alert"><i class="fas fa-sync fa-spin"></i> บันทึกข้อมูลแล้ว</div>
+    <div id="auto-save-alert">บันทึกข้อมูลแล้ว</div>
 
     <div class="header-container">
         <div class="profile-group">
             <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Profile">
             <img src="https://img5.pic.in.th/file/secure-sv1/unnamed-7263f4c44a1f2a1a7.jpg" alt="Profile">
         </div>
-        <h2>ADMIN ROCKET PRO</h2>
+        <h2>ADMIN ROCKET PREMIUM</h2>
     </div>
 
     <div class="stats-overview">
@@ -119,36 +118,19 @@
 
     <div class="action-bar">
         <button class="btn-main" onclick="addTable()"><i class="fas fa-plus-circle"></i> เพิ่มบั้งใหม่</button>
-        <button class="btn-main btn-history" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติ</button>
+        <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติ</button>
         <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลา</button>
-        <button class="btn-main btn-clear" onclick="clearAllHistory()"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
-    </div>
-
-    <div class="dashboard-grid">
-        <div class="info-card">
-            <h3><i class="fab fa-line" style="color: #06c755;"></i> ส่ง LINE OA</h3>
-            <input type="text" id="lineName" placeholder="ชื่อลูกค้า (เช่น Bungnot._)">
-            <textarea id="messageToSend" placeholder="พิมพ์ข้อความ..." rows="2"></textarea>
-            <button onclick="sendMessageToLine()" class="btn-main" style="width:100%; justify-content:center; background: #06c755; color: white; border-radius: 12px;">ส่งทันที</button>
-        </div>
-
-        <div class="info-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-             <div class="info-content" style="font-size: 0.85rem; color: #666;">
-                <p><b>สูตรคิดเงิน:</b> ราคา x 10% = กำไร</p>
-                <p>รองรับตัวอักษรแทนตัวเลข (เช่น 4OO = 400)</p>
-             </div>
-             <img src="https://img5.pic.in.th/file/secure-sv1/-esan-rocket.gif" style="height: 40px; margin-top: 10px;">
-        </div>
+        <button class="btn-main" onclick="clearAllHistory()" style="color:var(--accent-red)"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
     </div>
 
     <div id="tables-container"></div>
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
-            <i id="modal-icon" class="fas fa-exclamation-circle modal-icon" style="font-size: 3rem; margin-bottom: 15px;"></i>
-            <div id="modal-title" class="modal-title" style="font-size: 1.3rem; font-weight: bold; margin-bottom: 10px;"></div>
-            <div id="modal-msg" class="modal-text" style="color: #666; margin-bottom: 25px;"></div>
-            <div class="modal-actions" id="modal-actions" style="display: flex; justify-content: center; gap: 10px;"></div>
+            <i id="modal-icon" class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 15px; color: var(--accent-orange);"></i>
+            <div id="modal-title" style="font-size: 1.3rem; font-weight: bold; margin-bottom: 10px;"></div>
+            <div id="modal-msg" style="color: #666; margin-bottom: 25px;"></div>
+            <div id="modal-actions" style="display: flex; justify-content: center; gap: 10px;"></div>
         </div>
     </div>
 
