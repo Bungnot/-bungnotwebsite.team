@@ -148,74 +148,203 @@ function removeRow(btn) { btn.closest('tr').remove(); saveData(); }
 
 // [4] ระบบจับเวลาแบบตัวที่ 17
 function openStopwatchWindow() {
-    const width = 800, height = 750;
+    const width = 900, height = 800;
     const left = (window.screen.width / 2) - (width / 2);
     const top = (window.screen.height / 2) - (height / 2);
     const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
     
     sw.document.write(`
+        <!DOCTYPE html>
         <html>
         <head>
-            <title>ระบบจับเวลา PREMIUM</title>
-            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+            <title>ROCKET TIMER PREMIUM</title>
+            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                body { background: #1e3c72; color: white; font-family: 'Sarabun'; padding: 30px; }
-                input { width: 70%; padding: 15px; border-radius: 12px; border: none; font-size: 1.1rem; outline: none; }
-                .sw-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-                .sw-table td { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; }
-                .timer-text { font-family: monospace; font-size: 2.5rem; color: #2ecc71; font-weight: bold; }
-                .btn-sw { border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; }
-                .btn-start { background: #2ecc71; } .btn-stop { background: #e74c3c; }
+                :root {
+                    --bg-dark: #0f172a;
+                    --card-bg: rgba(30, 41, 59, 0.7);
+                    --accent: #2ecc71;
+                    --danger: #ef4444;
+                    --warning: #f59e0b;
+                    --text-main: #f8fafc;
+                }
+                body { 
+                    background: radial-gradient(circle at top left, #1e293b, #0f172a); 
+                    color: var(--text-main); 
+                    font-family: 'Sarabun', sans-serif; 
+                    padding: 40px; 
+                    margin: 0;
+                    min-height: 100vh;
+                }
+                .container { max-width: 800px; margin: 0 auto; }
+                
+                .header { text-align: left; margin-bottom: 30px; border-left: 5px solid var(--accent); padding-left: 20px; }
+                .header h2 { font-size: 2rem; margin: 0; letter-spacing: 1px; }
+                .header p { opacity: 0.6; margin: 5px 0 0; font-weight: 300; }
+
+                /* Input Zone */
+                .input-box { 
+                    background: var(--card-bg); 
+                    padding: 20px; 
+                    border-radius: 24px; 
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    display: flex; 
+                    gap: 15px;
+                    margin-bottom: 40px;
+                    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+                }
+                input { 
+                    flex: 1; 
+                    padding: 15px 25px; 
+                    border-radius: 15px; 
+                    border: 2px solid rgba(255,255,255,0.05); 
+                    font-size: 1.1rem; 
+                    outline: none; 
+                    background: rgba(0,0,0,0.2);
+                    color: white;
+                    transition: 0.3s;
+                }
+                input:focus { border-color: var(--accent); background: rgba(0,0,0,0.4); }
+                
+                .btn-add { 
+                    background: var(--accent); 
+                    color: #064e3b; 
+                    border: none; 
+                    padding: 0 35px; 
+                    border-radius: 15px; 
+                    cursor: pointer; 
+                    font-weight: 700;
+                    transition: 0.3s;
+                    font-size: 1rem;
+                }
+                .btn-add:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+                /* Timer Grid */
+                #timer-list { display: grid; gap: 15px; }
+                .timer-card { 
+                    background: var(--card-bg);
+                    padding: 25px; 
+                    border-radius: 24px; 
+                    display: flex; 
+                    align-items: center; 
+                    border: 1px solid rgba(255,255,255,0.05);
+                    transition: 0.3s;
+                }
+                .timer-card:hover { border-color: rgba(46, 204, 113, 0.3); background: rgba(30, 41, 59, 0.9); }
+                
+                .info { flex: 1; }
+                .info b { font-size: 1.3rem; display: block; color: var(--accent); }
+                
+                .time-display { 
+                    font-family: 'JetBrains Mono', monospace; 
+                    font-size: 3.2rem; 
+                    color: #fff; 
+                    margin: 0 40px;
+                    text-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+                }
+
+                .actions { display: flex; gap: 12px; }
+                .btn-round {
+                    width: 50px; height: 50px; border-radius: 15px; border: none;
+                    cursor: pointer; color: white; display: flex;
+                    align-items: center; justify-content: center; font-size: 1.2rem;
+                    transition: 0.2s;
+                }
+                .btn-play { background: #2ecc71; color: #064e3b; }
+                .btn-pause { background: #ef4444; }
+                .btn-refresh { background: rgba(255,255,255,0.1); }
+                .btn-refresh:hover { background: var(--warning); color: #000; }
+                .btn-trash { background: rgba(255,255,255,0.05); color: #64748b; }
+                .btn-trash:hover { background: #450a0a; color: #ef4444; }
+
             </style>
         </head>
         <body>
-            <h2><i class="fas fa-stopwatch"></i> ระบบจัดการเวลาหลายค่าย</h2>
-            <div style="margin-bottom:20px;">
-                <input type="text" id="campInput" placeholder="พิมพ์ชื่อค่ายแล้วกด Enter...">
-                <button onclick="addNewRow()" style="background:#2ecc71; color:white; border:none; padding:15px 25px; border-radius:12px; cursor:pointer;">เพิ่มค่าย</button>
+            <div class="container">
+                <div class="header">
+                    <h2>ROCKET STOPWATCH</h2>
+                    <p>ระบบควบคุมเวลาบั้งไฟระดับพรีเมี่ยม</p>
+                </div>
+
+                <div class="input-box">
+                    <input type="text" id="cInput" placeholder="พิมพ์ชื่อค่ายบั้งไฟ..." autocomplete="off">
+                    <button class="btn-add" onclick="add()"><i class="fas fa-plus"></i> เพิ่ม</button>
+                </div>
+
+                <div id="timer-list"></div>
             </div>
-            <table class="sw-table"><tbody id="sw-tbody"></tbody></table>
+
             <script>
-                document.getElementById('campInput').addEventListener('keydown', (e) => { if (e.key === "Enter") addNewRow(); });
-                function addNewRow() {
-                    const inp = document.getElementById('campInput');
-                    const name = inp.value.trim();
+                document.getElementById('cInput').addEventListener('keydown', (e) => { if (e.key === "Enter") add(); });
+
+                function add() {
+                    const input = document.getElementById('cInput');
+                    const name = input.value.trim();
                     if(!name) return;
-                    const tr = document.createElement('tr');
-                    tr.dataset.elapsed = 0; tr.dataset.running = "false";
-                    tr.innerHTML = '<td><b>'+name+'</b></td><td><span class="timer-text">0.000</span></td><td><button class="btn-sw btn-start" onclick="toggle(this)">เริ่ม</button><button class="btn-sw" onclick="reset(this)" style="background:#f39c12; margin-left:5px;">รีเซ็ต</button><button class="btn-sw" onclick="this.closest(\\'tr\\').remove()" style="background:rgba(255,0,0,0.3); margin-left:5px;">ลบ</button></td>';
-                    document.getElementById('sw-tbody').appendChild(tr);
-                    inp.value = "";
+
+                    const list = document.getElementById('timer-list');
+                    const item = document.createElement('div');
+                    item.className = 'timer-card';
+                    item.innerHTML = \`
+                        <div class="info">
+                            <b>\${name}</b>
+                            <span style="font-size:0.8rem; opacity:0.5;">READY TO LAUNCH</span>
+                        </div>
+                        <div class="time-display">0.000</div>
+                        <div class="actions">
+                            <button class="btn-round btn-play" onclick="toggle(this)">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="btn-round btn-refresh" onclick="reset(this)">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                            <button class="btn-round btn-trash" onclick="this.closest('.timer-card').remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    \`;
+                    list.prepend(item);
+                    input.value = "";
                 }
+
                 function toggle(btn) {
-                    const tr = btn.closest('tr');
-                    const disp = tr.querySelector('.timer-text');
-                    if (tr.dataset.running === "false") {
-                        tr.dataset.running = "true"; btn.innerText = "หยุด"; btn.className = "btn-sw btn-stop";
-                        const st = Date.now() - parseFloat(tr.dataset.elapsed);
-                        tr.iv = setInterval(() => {
-                            const now = Date.now() - st;
-                            tr.dataset.elapsed = now;
-                            disp.innerText = (now / 1000).toFixed(3);
+                    const card = btn.closest('.timer-card');
+                    const disp = card.querySelector('.time-display');
+                    const icon = btn.querySelector('i');
+                    
+                    if (!btn.dataset.running || btn.dataset.running === "false") {
+                        btn.dataset.running = "true";
+                        btn.className = "btn-round btn-pause";
+                        icon.className = "fas fa-pause";
+                        let start = Date.now() - (parseFloat(disp.innerText) * 1000);
+                        btn.timerIdx = setInterval(() => {
+                            disp.innerText = ((Date.now() - start) / 1000).toFixed(3);
                         }, 10);
                     } else {
-                        tr.dataset.running = "false"; btn.innerText = "เริ่ม"; btn.className = "btn-sw btn-start";
-                        clearInterval(tr.iv);
+                        btn.dataset.running = "false";
+                        btn.className = "btn-round btn-play";
+                        icon.className = "fas fa-play";
+                        clearInterval(btn.timerIdx);
                     }
                 }
+
                 function reset(btn) {
-                    const tr = btn.closest('tr'); clearInterval(tr.iv);
-                    tr.dataset.running = "false"; tr.dataset.elapsed = 0;
-                    tr.querySelector('.timer-text').innerText = "0.000";
-                    const sBtn = tr.querySelector('.btn-sw'); sBtn.innerText = "เริ่ม"; sBtn.className = "btn-sw btn-start";
+                    const card = btn.closest('.timer-card');
+                    const pBtn = card.querySelector('.btn-play, .btn-pause');
+                    const disp = card.querySelector('.time-display');
+                    clearInterval(pBtn.timerIdx);
+                    pBtn.dataset.running = "false";
+                    pBtn.className = "btn-round btn-play";
+                    pBtn.querySelector('i').className = "fas fa-play";
+                    disp.innerText = "0.000";
                 }
             <\/script>
         </body>
         </html>
     `);
 }
-
 // [5] ระบบ Modal รองรับ Enter / Esc
 function showModal(title, msg, type = "alert", cb = null) {
     const modal = document.getElementById('custom-modal');
