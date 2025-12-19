@@ -1,10 +1,16 @@
+/**
+ * System: ADMIN ROCKET PREMIUM
+ * Author: Bungnot Vscode
+ * Version: 2.0 (Stable - Auto Save Enabled)
+ */
+
 let historyData = [];
 let totalDeletedProfit = 0;
 let currentModalKeyHandler = null;
 
 // [1] โหลดข้อมูลทันทีเมื่อเปิดหน้าเว็บ (ป้องกันข้อมูลหาย)
 document.addEventListener("DOMContentLoaded", () => {
-    loadData(); // ดึงข้อมูลตารางที่กรอกค้างไว้กลับมาแสดง
+    loadData(); // ดึงข้อมูลตารางที่กรอกค้างไว้กลับมาแสดงจาก LocalStorage
     
     const savedHistory = localStorage.getItem("historyData");
     if (savedHistory) {
@@ -12,9 +18,10 @@ document.addEventListener("DOMContentLoaded", () => {
         totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
     }
     updateDashboardStats();
+    console.log("System Initialized by Bungnot Vscode");
 });
 
-// [2] ระบบ Auto-Save บันทึกทุกครั้งที่มีการพิมพ์หรือแก้ไข
+// [2] ระบบ Auto-Save บันทึกทุกครั้งที่มีการพิมพ์หรือแก้ไขข้อมูล
 function saveData() {
     const data = [];
     document.querySelectorAll(".table-container").forEach(table => {
@@ -33,10 +40,10 @@ function saveData() {
     
     localStorage.setItem("savedTables", JSON.stringify(data));
     
-    // แสดงสถานะการบันทึก
+    // แสดงสถานะการบันทึก (Badge)
     const badge = document.getElementById("auto-save-alert");
     if(badge) { 
-        badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว";
+        badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว (Bungnot Vscode)";
         badge.style.opacity = "1"; 
         setTimeout(() => badge.style.opacity = "0", 2000); 
     }
@@ -89,7 +96,7 @@ function loadData() {
     updateDashboardStats();
 }
 
-// [4] จัดการเพิ่ม/ลบ แถวและตาราง
+// [4] ฟังก์ชันจัดการตาราง (เพิ่ม/ลบ)
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -153,7 +160,7 @@ function removeTable(button) {
         if (match) profit += (parseFloat(match[0]) * 0.10);
     });
 
-    showModal("ยืนยันการลบ", `ต้องการลบตาราง <b>${title}</b>? (กำไร: ฿${profit.toFixed(2)})`, "confirm", () => {
+    showModal("ยืนยันการลบ", `ต้องการลบตาราง <b>\${title}</b>? (กำไร: ฿\${profit.toFixed(2)})`, "confirm", () => {
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
             const cells = tr.querySelectorAll("input");
@@ -228,12 +235,12 @@ function openStopwatchWindow() {
     const left = (window.screen.width / 2) - (width / 2);
     const top = (window.screen.height / 2) - (height / 2);
 
-    const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
+    const sw = window.open("", "_blank", `width=\${width},height=\${height},left=\${left},top=\${top}`);
     
     sw.document.write(`
         <html>
         <head>
-            <title>จัดการเวลาบั้งไฟ</title>
+            <title>จัดการเวลาบั้งไฟ - Bungnot Vscode</title>
             <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
@@ -248,7 +255,7 @@ function openStopwatchWindow() {
             </style>
         </head>
         <body>
-            <h2><i class="fas fa-stopwatch"></i> ระบบจัดการเวลาหลายค่าย</h2>
+            <h2><i class="fas fa-stopwatch"></i> ระบบจัดการเวลา (Bungnot Vscode)</h2>
             <div class="input-group">
                 <input type="text" id="campInput" placeholder="พิมพ์ชื่อค่ายแล้วกด Enter... (Esc เพื่อปิด)">
                 <button onclick="addNewRow()" style="background:#2ecc71; color:white; border:none; padding:0 25px; border-radius:12px; cursor:pointer; font-weight:bold;">เพิ่มค่าย</button>
@@ -299,19 +306,20 @@ function openStopwatchWindow() {
     `);
 }
 
+// [7] ฟังก์ชันช่วยเหลืออื่นๆ
 function updateDashboardStats() {
     const profitEl = document.getElementById("total-profit-display");
     const countEl = document.getElementById("active-tables-count");
-    if(profitEl) profitEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    if(profitEl) profitEl.innerText = `฿\${totalDeletedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     if(countEl) countEl.innerText = document.querySelectorAll(".table-container").length;
 }
 
 function clearAllHistory() {
-    showModal("ล้างประวัติ", "คุณต้องการลบข้อมูลทั้งหมดถาวรใช่หรือไม่?", "confirm", () => {
+    showModal("ล้างประวัติ", "คุณต้องการลบข้อมูลทั้งหมดถาวรใช่หรือไม่? (By Bungnot Vscode)", "confirm", () => {
         localStorage.clear();
         location.reload();
     });
 }
 
-// ระบบสำรองข้อมูลอัตโนมัติทุก 5 วินาที
+// ระบบสำรองข้อมูลอัตโนมัติซ้ำทุก 5 วินาที (ป้องกันการไม่ได้กดพิมพ์)
 setInterval(saveData, 5000);
