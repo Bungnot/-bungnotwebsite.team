@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบหลังบ้าน ADMIN VIP (Modern Edition)</title>
+    <link rel="icon" type="image/png" href="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg">
+    <title>ระบบหลังบ้าน ADMIN (Modern Royal Blue)</title>
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -11,188 +12,99 @@
 
     <style>
         :root {
-            --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            --card-bg: rgba(255, 255, 255, 0.98);
-            --accent-green: #2ecc71;
-            --accent-orange: #f39c12;
-            --accent-red: #e74c3c;
-            --text-dark: #2c3e50;
-            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+            /* ปรับโทนสีให้ดูแพงขึ้น */
+            --primary-bg: linear-gradient(135deg, #102a43 0%, #243b55 100%);
+            --glass-bg: rgba(255, 255, 255, 0.98);
+            --accent-blue: #334e68;
+            --text-main: #102a43;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --silver: #f0f4f8;
         }
 
         body {
             font-family: 'Sarabun', sans-serif;
             background: var(--primary-bg);
             background-attachment: fixed;
-            color: var(--text-dark);
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
+            color: var(--text-main);
         }
 
-        /* Header Section */
-        .header-container {
-            text-align: center;
-            padding: 30px 0;
-            color: white;
-        }
-        .header-container h2 {
-            font-size: 2.2rem;
-            margin-top: 15px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
+        /* Header */
+        .header-container { text-align: center; margin-bottom: 30px; color: white; }
+        .profile-group img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #bcccdc; margin: 0 5px; }
+        h2 { font-weight: 700; font-size: 2.2rem; color: #f0f4f8; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
-        /* Main Buttons Bar */
-        .action-bar {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
+        /* Buttons */
+        .action-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
+        .btn-main { 
+            background: white; color: #102a43; border: none; padding: 10px 22px; 
+            font-size: 1rem; border-radius: 12px; cursor: pointer; font-weight: 600; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.3s; 
+            display: flex; align-items: center; gap: 8px; 
         }
+        .btn-main:hover { transform: translateY(-2px); background: var(--silver); }
+        .btn-clear { color: var(--danger); }
 
-        .btn-main {
-            background: white;
-            color: #1e3c72;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .btn-main:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-            background: #f8f9fa;
-        }
+        /* Dashboard Grid */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto 30px; }
+        .info-card { background: var(--glass-bg); border-radius: 18px; padding: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-top: 4px solid var(--accent-blue); }
+        .info-card h3 { margin-top: 0; color: var(--accent-blue); font-size: 1.1rem; border-bottom: 1px solid #d9e2ec; padding-bottom: 8px; }
 
-        /* Dashboard Information */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto 40px;
-        }
-        .info-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow-lg);
-            border-top: 5px solid var(--accent-green);
-        }
+        /* Table Card */
+        .table-card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
+        .table-title-input { font-size: 1.3rem !important; font-weight: bold; color: var(--accent-blue); text-align: center; border: none !important; background: var(--silver) !important; border-radius: 10px !important; padding: 10px !important; }
 
-        /* Table Design */
-        .table-card {
-            background: white;
-            border-radius: 24px;
-            padding: 25px;
-            margin: 0 auto 30px;
-            max-width: 1100px;
-            box-shadow: var(--shadow-lg);
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom Table */
+        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-bottom: 15px; }
+        .custom-table th { padding: 12px; color: white; font-weight: 600; font-size: 0.9rem; }
+        .th-green { background: #2d5a27; border-radius: 8px 0 0 0; } /* ไล่ */
+        .th-orange { background: #8e5d10; } /* ราคา */
+        .th-red { background: #7b241c; } /* ยั้ง */
+        .th-purple { background: #454d55; border-radius: 0 8px 0 0; }
+        
+        .custom-table td { padding: 5px; background: #f9fafb; border-bottom: 1px solid #f0f4f8; }
+        .custom-table input { border: 1px solid #d9e2ec; border-radius: 6px; padding: 8px; font-size: 0.95rem; }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 15px;
-        }
-        .table-title-input {
-            font-size: 1.4rem !important;
-            font-weight: 700;
-            color: #1e3c72;
-            border: none !important;
-            background: transparent !important;
-            width: 70%;
-        }
-
-        .custom-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .custom-table th {
-            padding: 12px;
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            text-align: center;
-        }
-        .custom-table td { padding: 8px; }
-        .custom-table input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            text-align: center;
-            box-sizing: border-box;
-        }
-
-        /* Modal Settings */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 10000; }
         .modal-overlay.active { display: flex; }
-        .modal-box {
-            background: white;
-            border-radius: 25px;
-            padding: 30px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
+        .modal-box { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 25px; text-align: center; border-top: 6px solid var(--accent-blue); }
 
-        #auto-save-alert {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            opacity: 0;
-            transition: 0.5s;
-        }
+        #auto-save-alert { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(16, 42, 67, 0.9); color: white; padding: 8px 20px; border-radius: 20px; opacity: 0; transition: 0.4s; z-index: 9999; }
     </style>
 </head>
 <body>
 
+    <div id="auto-save-alert">บันทึกข้อมูลแล้ว</div>
+
     <div class="header-container">
-        <h2><i class="fas fa-rocket"></i> ระบบหลังบ้าน ADMIN VIP</h2>
+        <div class="profile-group">
+            <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="P1">
+            <img src="https://img5.pic.in.th/file/secure-sv1/unnamed-7263f4c44a1f2a1a7.jpg" alt="P2">
+        </div>
+        <h2>ADMIN DASHBOARD VIP</h2>
     </div>
 
     <div class="action-bar">
         <button class="btn-main" onclick="addTable()"><i class="fas fa-plus"></i> เพิ่มบั้งใหม่</button>
         <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติ</button>
         <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลา</button>
-        <button class="btn-main" onclick="clearAllHistory()" style="color: var(--accent-red);"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
+        <button class="btn-main btn-clear" onclick="clearAllHistory()"><i class="fas fa-trash"></i> ล้างประวัติ</button>
     </div>
 
     <div class="dashboard-grid">
         <div class="info-card">
-            <h3><i class="fab fa-line" style="color: #06c755;"></i> ส่งข้อความ LINE</h3>
-            <input type="text" id="lineName" placeholder="ชื่อในระบบ LINE" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd;">
-            <textarea id="messageToSend" placeholder="ข้อความ..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd;"></textarea>
-            <button onclick="sendMessageToLine()" class="btn-main" style="width: 100%; margin-top: 10px; background: #06c755; color: white; justify-content: center;">ส่งข้อความ</button>
+            <h3><i class="fab fa-line"></i> ส่งข้อความ LINE</h3>
+            <input type="text" id="lineName" placeholder="ชื่อ LINE">
+            <textarea id="messageToSend" placeholder="ข้อความ..." rows="2" style="width:100%; border-radius:10px; border:1px solid #d9e2ec; padding:8px; font-family:Sarabun;"></textarea>
+            <button onclick="sendMessageToLine()" class="btn-main" style="width:100%; justify-content:center; background:#243b55; color:white; margin-top:10px;">ส่งด่วน</button>
         </div>
-        <div class="info-card" style="border-top-color: var(--accent-orange);">
-            <h3><i class="fas fa-calculator"></i> ข้อมูลกำไร</h3>
-            <p>ระบบจะดึงกำไร 10% จากราคาที่กรอก (3 หลักขึ้นไป) โดยอัตโนมัติเมื่อกดลบตาราง</p>
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> ข้อมูลกำไร</h3>
+            <p style="font-size: 0.9rem; color: #486581;">ระบบหักกำไร 10% จากราคา 3 หลักอัตโนมัติเมื่อกดลบตาราง (X)</p>
         </div>
     </div>
 
@@ -200,13 +112,12 @@
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
-            <h3 id="modal-title"></h3>
-            <div id="modal-msg"></div>
-            <div id="modal-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;"></div>
+            <i id="modal-icon" class="fas fa-info-circle" style="font-size: 2.5rem; color: var(--accent-blue); margin-bottom: 15px;"></i>
+            <div id="modal-title" style="font-weight:bold; font-size:1.2rem; margin-bottom:10px;"></div>
+            <div id="modal-msg" style="margin-bottom:20px; white-space:pre-line;"></div>
+            <div class="modal-actions" id="modal-actions" style="display:flex; justify-content:center; gap:10px;"></div>
         </div>
     </div>
-
-    <div id="auto-save-alert"></div>
 
     <script src="script.js"></script>
 </body>
