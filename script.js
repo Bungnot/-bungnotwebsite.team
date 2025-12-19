@@ -200,121 +200,132 @@ function clearAllHistory() {
 
 // ฟังก์ชันสร้างการ์ดจับเวลาใหม่ (รองรับหลายค่ายพร้อมกัน)
 function openStopwatchWindow() {
-    showModal("จับเวลาบั้งไฟ", "ระบุชื่อค่ายบั้งไฟ:", "input", (name) => {
+    showModal("ระบบจับเวลาหลายค่าย", "ระบุชื่อค่ายบั้งไฟเริ่มต้น:", "input", (name) => {
         if (!name) return;
 
-        // กำหนดขนาดหน้าต่างใหม่
-        const width = 400;
-        const height = 450;
+        const width = 600;
+        const height = 700;
         const left = (window.screen.width / 2) - (width / 2);
         const top = (window.screen.height / 2) - (height / 2);
 
-        // เปิดหน้าต่างใหม่
         const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
         
         sw.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
-                <title>จับเวลา - ${name}</title>
+                <title>ระบบจับเวลาบั้งไฟ</title>
                 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
                 <style>
                     body { 
                         background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
-                        color: white; 
-                        text-align: center; 
-                        font-family: 'Sarabun', sans-serif; 
-                        margin: 0; 
-                        display: flex; 
-                        flex-direction: column; 
-                        justify-content: center; 
-                        height: 100vh;
+                        color: white; font-family: 'Sarabun', sans-serif; margin: 0; padding: 20px;
                     }
-                    .container { padding: 20px; }
-                    h2 { font-size: 1.8rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-                    .time-display { 
-                        font-size: 5rem; 
-                        font-weight: bold; 
-                        font-family: monospace; 
-                        margin: 20px 0; 
-                        background: rgba(255,255,255,0.1); 
-                        padding: 20px; 
-                        border-radius: 20px; 
-                        box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .add-zone { display: flex; gap: 10px; margin-bottom: 20px; }
+                    input[type="text"] { 
+                        flex: 1; padding: 10px; border-radius: 10px; border: none; font-family: 'Sarabun';
                     }
-                    .controls { display: flex; justify-content: center; gap: 15px; }
-                    .btn { 
-                        padding: 15px 35px; 
-                        font-size: 1.2rem; 
-                        border-radius: 50px; 
-                        border: none; 
-                        cursor: pointer; 
-                        font-weight: bold; 
-                        transition: 0.3s; 
-                        display: flex; 
-                        align-items: center; 
-                        gap: 10px; 
-                    }
-                    .btn-start { background: #2ecc71; color: white; box-shadow: 0 4px 15px rgba(46,204,113,0.4); }
-                    .btn-stop { background: #e74c3c; color: white; box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
-                    .btn-reset { background: #f39c12; color: white; box-shadow: 0 4px 15px rgba(243,156,18,0.4); }
-                    .btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
-                    .btn:active { transform: translateY(0); }
+                    .btn-add { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+                    
+                    .sw-table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; }
+                    .sw-table th { background: rgba(0,0,0,0.2); padding: 15px; text-align: left; }
+                    .sw-table td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); vertical-align: middle; }
+                    
+                    .timer-val { font-family: monospace; font-size: 1.8rem; font-weight: bold; min-width: 120px; display: inline-block; }
+                    .controls { display: flex; gap: 8px; }
+                    .btn-sw { border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+                    .btn-start { background: #2ecc71; }
+                    .btn-stop { background: #e74c3c; }
+                    .btn-reset { background: #f39c12; }
+                    .btn-del { background: rgba(255,255,255,0.2); }
+                    .btn-sw:hover { transform: scale(1.05); }
                 </style>
             </head>
             <body>
-                <div class="container">
-                    <h2><i class="fas fa-rocket"></i> ${name}</h2>
-                    <div class="time-display" id="display">0.000</div>
-                    <div class="controls">
-                        <button id="mainBtn" onclick="toggle()" class="btn btn-start">
-                            <i class="fas fa-play"></i> START
-                        </button>
-                        <button onclick="reset()" class="btn btn-reset">
-                            <i class="fas fa-redo"></i> RESET
-                        </button>
-                    </div>
+                <div class="header">
+                    <h2><i class="fas fa-stopwatch"></i> รายการจับเวลา</h2>
                 </div>
 
+                <div class="add-zone">
+                    <input type="text" id="newCampName" placeholder="ระบุชื่อค่ายเพิ่มเติม...">
+                    <button class="btn-add" onclick="addNewRow()"><i class="fas fa-plus"></i> เพิ่ม</button>
+                </div>
+
+                <table class="sw-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อค่าย</th>
+                            <th>เวลา (วินาที)</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sw-tbody"></tbody>
+                </table>
+
                 <script>
-                    let startTime = 0;
-                    let elapsed = 0;
-                    let timerInterval;
-                    let running = false;
+                    function addNewRow(initialName) {
+                        const nameInput = document.getElementById('newCampName');
+                        const name = initialName || nameInput.value;
+                        if (!name) return;
 
-                    function toggle() {
-                        const btn = document.getElementById('mainBtn');
-                        const display = document.getElementById('display');
+                        const tbody = document.getElementById('sw-tbody');
+                        const tr = document.createElement('tr');
+                        tr.dataset.elapsed = 0;
+                        tr.dataset.running = "false";
 
-                        if (!running) {
-                            // Start
-                            running = true;
-                            startTime = Date.now() - elapsed;
-                            timerInterval = setInterval(() => {
-                                elapsed = Date.now() - startTime;
-                                display.innerText = (elapsed / 1000).toFixed(3);
+                        tr.innerHTML = \`
+                            <td style="font-weight:bold;">\${name}</td>
+                            <td><span class="timer-val">0.000</span></td>
+                            <td class="controls">
+                                <button class="btn-sw btn-start" onclick="toggleRow(this)"><i class="fas fa-play"></i> เริ่ม</button>
+                                <button class="btn-sw btn-reset" onclick="resetRow(this)"><i class="fas fa-redo"></i> รีเซ็ต</button>
+                                <button class="btn-sw btn-del" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button>
+                            </td>
+                        \`;
+                        tbody.appendChild(tr);
+                        if (!initialName) nameInput.value = "";
+                    }
+
+                    function toggleRow(btn) {
+                        const tr = btn.closest('tr');
+                        const display = tr.querySelector('.timer-val');
+                        
+                        if (tr.dataset.running === "false") {
+                            // เริ่มจับเวลา
+                            tr.dataset.running = "true";
+                            btn.innerHTML = '<i class="fas fa-pause"></i> หยุด';
+                            btn.className = 'btn-sw btn-stop';
+                            
+                            const startTime = Date.now() - parseFloat(tr.dataset.elapsed);
+                            tr.interval = setInterval(() => {
+                                const currentElapsed = Date.now() - startTime;
+                                tr.dataset.elapsed = currentElapsed;
+                                display.innerText = (currentElapsed / 1000).toFixed(3);
                             }, 10);
-                            btn.innerHTML = '<i class="fas fa-pause"></i> STOP';
-                            btn.className = 'btn btn-stop';
                         } else {
-                            // Stop
-                            running = false;
-                            clearInterval(timerInterval);
-                            btn.innerHTML = '<i class="fas fa-play"></i> START';
-                            btn.className = 'btn btn-start';
+                            // หยุดเวลา
+                            tr.dataset.running = "false";
+                            btn.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
+                            btn.className = 'btn-sw btn-start';
+                            clearInterval(tr.interval);
                         }
                     }
 
-                    function reset() {
-                        running = false;
-                        clearInterval(timerInterval);
-                        elapsed = 0;
-                        document.getElementById('display').innerText = '0.000';
-                        const btn = document.getElementById('mainBtn');
-                        btn.innerHTML = '<i class="fas fa-play"></i> START';
-                        btn.className = 'btn btn-start';
+                    function resetRow(btn) {
+                        const tr = btn.closest('tr');
+                        clearInterval(tr.interval);
+                        tr.dataset.running = "false";
+                        tr.dataset.elapsed = 0;
+                        tr.querySelector('.timer-val').innerText = "0.000";
+                        const startBtn = tr.querySelector('.btn-sw');
+                        startBtn.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
+                        startBtn.className = 'btn-sw btn-start';
                     }
+
+                    // เพิ่มชื่อแรกที่กรอกมาจากหน้าหลัก
+                    addNewRow("\${name}");
                 </script>
             </body>
             </html>
