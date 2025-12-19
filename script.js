@@ -148,7 +148,7 @@ function removeRow(btn) { btn.closest('tr').remove(); saveData(); }
 
 // [4] ระบบจับเวลาแบบตัวที่ 17
 function openStopwatchWindow() {
-    const width = 800, height = 750;
+    const width = 900, height = 800;
     const left = (window.screen.width / 2) - (width / 2);
     const top = (window.screen.height / 2) - (height / 2);
     const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
@@ -156,43 +156,168 @@ function openStopwatchWindow() {
     sw.document.write(`
         <html>
         <head>
-            <title>ระบบจับเวลา PREMIUM</title>
-            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+            <title>PREMIUM STOPWATCH SYSTEM</title>
+            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                body { background: #1e3c72; color: white; font-family: 'Sarabun'; padding: 30px; }
-                input { width: 70%; padding: 15px; border-radius: 12px; border: none; font-size: 1.1rem; outline: none; }
-                .sw-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-                .sw-table td { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; }
-                .timer-text { font-family: monospace; font-size: 2.5rem; color: #2ecc71; font-weight: bold; }
-                .btn-sw { border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; }
-                .btn-start { background: #2ecc71; } .btn-stop { background: #e74c3c; }
+                :root {
+                    --primary: #4facfe;
+                    --secondary: #00f2fe;
+                    --bg: #0f172a;
+                    --card-bg: rgba(255, 255, 255, 0.05);
+                    --success: #2ecc71;
+                    --warning: #f39c12;
+                    --danger: #ef4444;
+                }
+                body { 
+                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+                    color: white; 
+                    font-family: 'Sarabun', sans-serif; 
+                    padding: 40px; 
+                    margin: 0;
+                    min-height: 100vh;
+                }
+                .header-section { text-align: center; margin-bottom: 40px; }
+                .header-section h2 { 
+                    font-size: 2.2rem; 
+                    margin-bottom: 10px; 
+                    background: linear-gradient(to right, #fff, var(--primary));
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .input-group {
+                    background: var(--card-bg);
+                    padding: 20px;
+                    border-radius: 20px;
+                    display: flex;
+                    gap: 15px;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    margin-bottom: 30px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                }
+                input { 
+                    flex: 1; 
+                    padding: 15px 20px; 
+                    border-radius: 12px; 
+                    border: 1px solid rgba(255,255,255,0.2); 
+                    background: rgba(0,0,0,0.2);
+                    color: white;
+                    font-size: 1.1rem; 
+                    outline: none; 
+                    transition: 0.3s;
+                }
+                input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(79, 172, 254, 0.4); }
+
+                .btn-add { 
+                    background: linear-gradient(45deg, #00b09b, #96c93d); 
+                    color: white; 
+                    border: none; 
+                    padding: 0 30px; 
+                    border-radius: 12px; 
+                    cursor: pointer; 
+                    font-weight: 600;
+                    transition: 0.3s;
+                }
+                .btn-add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); }
+
+                .sw-table { width: 100%; border-collapse: separate; border-spacing: 0 15px; }
+                .sw-table tr { transition: 0.3s; }
+                .sw-table td { 
+                    background: var(--card-bg); 
+                    padding: 25px; 
+                    border-radius: 20px; 
+                    border: 1px solid rgba(255,255,255,0.05);
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                }
+                .camp-name { font-size: 1.3rem; font-weight: 600; color: var(--primary); }
+                .timer-text { 
+                    font-family: 'JetBrains Mono', monospace; 
+                    font-size: 2.8rem; 
+                    color: var(--success); 
+                    font-weight: bold; 
+                    text-shadow: 0 0 20px rgba(46, 204, 113, 0.3);
+                }
+
+                .controls { display: flex; gap: 10px; justify-content: flex-end; }
+                .btn-sw { 
+                    border: none; 
+                    padding: 12px 25px; 
+                    border-radius: 10px; 
+                    cursor: pointer; 
+                    color: white; 
+                    font-weight: 600; 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 8px;
+                    transition: 0.2s;
+                }
+                .btn-start { background: #10b981; }
+                .btn-stop { background: #f59e0b; }
+                .btn-reset { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); }
+                .btn-reset:hover { background: rgba(255,255,255,0.2); }
+                .btn-delete { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+                .btn-delete:hover { background: #ef4444; color: white; }
+                
+                .btn-sw:active { transform: scale(0.95); }
             </style>
         </head>
         <body>
-            <h2><i class="fas fa-stopwatch"></i> ระบบจัดการเวลาหลายค่าย</h2>
-            <div style="margin-bottom:20px;">
-                <input type="text" id="campInput" placeholder="พิมพ์ชื่อค่ายแล้วกด Enter...">
-                <button onclick="addNewRow()" style="background:#2ecc71; color:white; border:none; padding:15px 25px; border-radius:12px; cursor:pointer;">เพิ่มค่าย</button>
+            <div class="header-section">
+                <h2><i class="fas fa-rocket"></i> ระบบจับเวลาบั้งไฟ PREMIUM</h2>
+                <p style="opacity: 0.6;">จัดการเวลาและสถิติแต่ละค่ายอย่างแม่นยำ</p>
             </div>
+
+            <div class="input-group">
+                <input type="text" id="campInput" placeholder="ระบุชื่อค่ายบั้งไฟที่นี่...">
+                <button class="btn-add" onclick="addNewRow()"><i class="fas fa-plus"></i> เพิ่มค่าย</button>
+            </div>
+
             <table class="sw-table"><tbody id="sw-tbody"></tbody></table>
+
             <script>
                 document.getElementById('campInput').addEventListener('keydown', (e) => { if (e.key === "Enter") addNewRow(); });
+
                 function addNewRow() {
                     const inp = document.getElementById('campInput');
                     const name = inp.value.trim();
                     if(!name) return;
                     const tr = document.createElement('tr');
-                    tr.dataset.elapsed = 0; tr.dataset.running = "false";
-                    tr.innerHTML = '<td><b>'+name+'</b></td><td><span class="timer-text">0.000</span></td><td><button class="btn-sw btn-start" onclick="toggle(this)">เริ่ม</button><button class="btn-sw" onclick="reset(this)" style="background:#f39c12; margin-left:5px;">รีเซ็ต</button><button class="btn-sw" onclick="this.closest(\\'tr\\').remove()" style="background:rgba(255,0,0,0.3); margin-left:5px;">ลบ</button></td>';
-                    document.getElementById('sw-tbody').appendChild(tr);
+                    tr.dataset.elapsed = 0; 
+                    tr.dataset.running = "false";
+                    tr.innerHTML = \`
+                        <td>
+                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                <div>
+                                    <div class="camp-name">\${name}</div>
+                                    <div style="font-size:0.8rem; opacity:0.5; margin-top:5px;">ID: #\${Math.floor(Math.random()*1000)}</div>
+                                </div>
+                                <div class="timer-text">0.000</div>
+                                <div class="controls">
+                                    <button class="btn-sw btn-start" onclick="toggle(this)">
+                                        <i class="fas fa-play"></i> เริ่ม
+                                    </button>
+                                    <button class="btn-sw btn-reset" onclick="reset(this)">
+                                        <i class="fas fa-redo"></i> รีเซ็ต
+                                    </button>
+                                    <button class="btn-sw btn-delete" onclick="this.closest('tr').remove()">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>\`;
+                    document.getElementById('sw-tbody').prepend(tr);
                     inp.value = "";
                 }
+
                 function toggle(btn) {
                     const tr = btn.closest('tr');
                     const disp = tr.querySelector('.timer-text');
                     if (tr.dataset.running === "false") {
-                        tr.dataset.running = "true"; btn.innerText = "หยุด"; btn.className = "btn-sw btn-stop";
+                        tr.dataset.running = "true"; 
+                        btn.innerHTML = '<i class="fas fa-pause"></i> หยุด'; 
+                        btn.className = "btn-sw btn-stop";
                         const st = Date.now() - parseFloat(tr.dataset.elapsed);
                         tr.iv = setInterval(() => {
                             const now = Date.now() - st;
@@ -200,22 +325,28 @@ function openStopwatchWindow() {
                             disp.innerText = (now / 1000).toFixed(3);
                         }, 10);
                     } else {
-                        tr.dataset.running = "false"; btn.innerText = "เริ่ม"; btn.className = "btn-sw btn-start";
+                        tr.dataset.running = "false"; 
+                        btn.innerHTML = '<i class="fas fa-play"></i> เริ่มต่อ'; 
+                        btn.className = "btn-sw btn-start";
                         clearInterval(tr.iv);
                     }
                 }
+
                 function reset(btn) {
-                    const tr = btn.closest('tr'); clearInterval(tr.iv);
-                    tr.dataset.running = "false"; tr.dataset.elapsed = 0;
+                    const tr = btn.closest('tr'); 
+                    clearInterval(tr.iv);
+                    tr.dataset.running = "false"; 
+                    tr.dataset.elapsed = 0;
                     tr.querySelector('.timer-text').innerText = "0.000";
-                    const sBtn = tr.querySelector('.btn-sw'); sBtn.innerText = "เริ่ม"; sBtn.className = "btn-sw btn-start";
+                    const sBtn = tr.querySelector('.btn-sw');
+                    sBtn.innerHTML = '<i class="fas fa-play"></i> เริ่ม'; 
+                    sBtn.className = "btn-sw btn-start";
                 }
             <\/script>
         </body>
         </html>
     `);
 }
-
 // [5] ระบบ Modal รองรับ Enter / Esc
 function showModal(title, msg, type = "alert", cb = null) {
     const modal = document.getElementById('custom-modal');
