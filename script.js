@@ -148,67 +148,200 @@ function removeRow(btn) { btn.closest('tr').remove(); saveData(); }
 
 // [4] ระบบจับเวลาแบบตัวที่ 17
 function openStopwatchWindow() {
-    const width = 800, height = 750;
+    const width = 900, height = 800;
     const left = (window.screen.width / 2) - (width / 2);
     const top = (window.screen.height / 2) - (height / 2);
     const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
     
     sw.document.write(`
+        <!DOCTYPE html>
         <html>
         <head>
-            <title>ระบบจับเวลา PREMIUM</title>
-            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+            <title>ROCKET TIMER PREMIUM</title>
+            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                body { background: #1e3c72; color: white; font-family: 'Sarabun'; padding: 30px; }
-                input { width: 70%; padding: 15px; border-radius: 12px; border: none; font-size: 1.1rem; outline: none; }
-                .sw-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-                .sw-table td { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; }
-                .timer-text { font-family: monospace; font-size: 2.5rem; color: #2ecc71; font-weight: bold; }
-                .btn-sw { border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; }
-                .btn-start { background: #2ecc71; } .btn-stop { background: #e74c3c; }
+                :root {
+                    --primary: #1e3c72;
+                    --accent: #2ecc71;
+                    --warning: #f39c12;
+                    --danger: #e74c3c;
+                }
+                body { 
+                    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+                    color: white; 
+                    font-family: 'Sarabun', sans-serif; 
+                    padding: 40px; 
+                    margin: 0;
+                    min-height: 100vh;
+                }
+                .container { max-width: 800px; margin: 0 auto; }
+                .header { text-align: center; margin-bottom: 40px; }
+                .header h2 { font-size: 2.2rem; text-shadow: 0 4px 10px rgba(0,0,0,0.3); margin: 0; }
+                
+                /* Input Section */
+                .input-group { 
+                    background: rgba(255, 255, 255, 0.1); 
+                    padding: 25px; 
+                    border-radius: 20px; 
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255,255,255,0.2);
+                    display: flex; 
+                    gap: 15px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                }
+                input { 
+                    flex: 1; 
+                    padding: 15px 20px; 
+                    border-radius: 12px; 
+                    border: none; 
+                    font-size: 1.1rem; 
+                    outline: none; 
+                    background: white;
+                    color: #333;
+                }
+                .btn-add { 
+                    background: var(--accent); 
+                    color: white; 
+                    border: none; 
+                    padding: 0 30px; 
+                    border-radius: 12px; 
+                    cursor: pointer; 
+                    font-weight: bold;
+                    transition: 0.3s;
+                }
+                .btn-add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); }
+
+                /* Timer List */
+                #timer-list { display: grid; gap: 20px; }
+                .timer-card { 
+                    background: white; 
+                    color: #333;
+                    padding: 25px; 
+                    border-radius: 20px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: space-between;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+                    animation: slideIn 0.4s ease-out;
+                }
+                @keyframes slideIn {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .info-part { flex: 1; }
+                .info-part b { font-size: 1.4rem; color: var(--primary); display: block; margin-bottom: 5px; }
+                
+                .timer-text { 
+                    font-family: 'JetBrains+Mono', monospace; 
+                    font-size: 2.8rem; 
+                    color: #27ae60; 
+                    font-weight: 500;
+                    min-width: 200px;
+                    text-align: center;
+                }
+
+                .controls { display: flex; gap: 10px; }
+                .btn-ctrl {
+                    border: none; width: 45px; height: 45px; border-radius: 12px;
+                    cursor: pointer; color: white; transition: 0.2s; display: flex;
+                    align-items: center; justify-content: center; font-size: 1.1rem;
+                }
+                .btn-start { background: var(--accent); }
+                .btn-stop { background: var(--danger); }
+                .btn-reset { background: var(--warning); }
+                .btn-delete { background: #eee; color: #888; }
+                .btn-delete:hover { background: #fee2e2; color: var(--danger); }
+
+                .empty-state { text-align: center; color: rgba(255,255,255,0.5); margin-top: 50px; }
             </style>
         </head>
         <body>
-            <h2><i class="fas fa-stopwatch"></i> ระบบจัดการเวลาหลายค่าย</h2>
-            <div style="margin-bottom:20px;">
-                <input type="text" id="campInput" placeholder="พิมพ์ชื่อค่ายแล้วกด Enter...">
-                <button onclick="addNewRow()" style="background:#2ecc71; color:white; border:none; padding:15px 25px; border-radius:12px; cursor:pointer;">เพิ่มค่าย</button>
+            <div class="container">
+                <div class="header">
+                    <h2><i class="fas fa-stopwatch"></i> ROCKET TIMER PREMIUM</h2>
+                    <p>ระบบจัดการเวลาเดินบั้งไฟรายค่าย</p>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="campInput" placeholder="ระบุชื่อค่ายบั้งไฟ..." autocomplete="off">
+                    <button class="btn-add" onclick="addNewTimer()"><i class="fas fa-plus"></i> เพิ่มค่าย</button>
+                </div>
+
+                <div id="timer-list">
+                    </div>
             </div>
-            <table class="sw-table"><tbody id="sw-tbody"></tbody></table>
+
             <script>
-                document.getElementById('campInput').addEventListener('keydown', (e) => { if (e.key === "Enter") addNewRow(); });
-                function addNewRow() {
-                    const inp = document.getElementById('campInput');
-                    const name = inp.value.trim();
+                const campInput = document.getElementById('campInput');
+                campInput.addEventListener('keydown', (e) => { if (e.key === "Enter") addNewTimer(); });
+
+                function addNewTimer() {
+                    const name = campInput.value.trim();
                     if(!name) return;
-                    const tr = document.createElement('tr');
-                    tr.dataset.elapsed = 0; tr.dataset.running = "false";
-                    tr.innerHTML = '<td><b>'+name+'</b></td><td><span class="timer-text">0.000</span></td><td><button class="btn-sw btn-start" onclick="toggle(this)">เริ่ม</button><button class="btn-sw" onclick="reset(this)" style="background:#f39c12; margin-left:5px;">รีเซ็ต</button><button class="btn-sw" onclick="this.closest(\\'tr\\').remove()" style="background:rgba(255,0,0,0.3); margin-left:5px;">ลบ</button></td>';
-                    document.getElementById('sw-tbody').appendChild(tr);
-                    inp.value = "";
+
+                    const container = document.getElementById('timer-list');
+                    const card = document.createElement('div');
+                    card.className = 'timer-card';
+                    card.innerHTML = \`
+                        <div class="info-part">
+                            <b>\${name}</b>
+                            <span style="font-size:0.8rem; color:#888;"><i class="far fa-clock"></i> พร้อมจับเวลา</span>
+                        </div>
+                        <div class="timer-text">0.000</div>
+                        <div class="controls">
+                            <button class="btn-ctrl btn-start" onclick="toggleTimer(this)" title="เริ่ม/หยุด">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="btn-ctrl btn-reset" onclick="resetTimer(this)" title="รีเซ็ต">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                            <button class="btn-ctrl btn-delete" onclick="this.closest('.timer-card').remove()" title="ลบ">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    \`;
+                    container.prepend(card);
+                    campInput.value = "";
+                    campInput.focus();
                 }
-                function toggle(btn) {
-                    const tr = btn.closest('tr');
-                    const disp = tr.querySelector('.timer-text');
-                    if (tr.dataset.running === "false") {
-                        tr.dataset.running = "true"; btn.innerText = "หยุด"; btn.className = "btn-sw btn-stop";
-                        const st = Date.now() - parseFloat(tr.dataset.elapsed);
-                        tr.iv = setInterval(() => {
-                            const now = Date.now() - st;
-                            tr.dataset.elapsed = now;
-                            disp.innerText = (now / 1000).toFixed(3);
+
+                function toggleTimer(btn) {
+                    const card = btn.closest('.timer-card');
+                    const display = card.querySelector('.timer-text');
+                    const icon = btn.querySelector('i');
+                    
+                    if (!btn.dataset.running || btn.dataset.running === "false") {
+                        // เริ่มต้น
+                        btn.dataset.running = "true";
+                        btn.className = "btn-ctrl btn-stop";
+                        icon.className = "fas fa-pause";
+                        
+                        let startTime = Date.now() - (parseFloat(display.innerText) * 1000);
+                        btn.intervalIdx = setInterval(() => {
+                            const elapsed = (Date.now() - startTime) / 1000;
+                            display.innerText = elapsed.toFixed(3);
                         }, 10);
                     } else {
-                        tr.dataset.running = "false"; btn.innerText = "เริ่ม"; btn.className = "btn-sw btn-start";
-                        clearInterval(tr.iv);
+                        // หยุด
+                        btn.dataset.running = "false";
+                        btn.className = "btn-ctrl btn-start";
+                        icon.className = "fas fa-play";
+                        clearInterval(btn.intervalIdx);
                     }
                 }
-                function reset(btn) {
-                    const tr = btn.closest('tr'); clearInterval(tr.iv);
-                    tr.dataset.running = "false"; tr.dataset.elapsed = 0;
-                    tr.querySelector('.timer-text').innerText = "0.000";
-                    const sBtn = tr.querySelector('.btn-sw'); sBtn.innerText = "เริ่ม"; sBtn.className = "btn-sw btn-start";
+
+                function resetTimer(btn) {
+                    const card = btn.closest('.timer-card');
+                    const startBtn = card.querySelector('.btn-start, .btn-stop');
+                    const display = card.querySelector('.timer-text');
+                    
+                    clearInterval(startBtn.intervalIdx);
+                    startBtn.dataset.running = "false";
+                    startBtn.className = "btn-ctrl btn-start";
+                    startBtn.querySelector('i').className = "fas fa-play";
+                    display.innerText = "0.000";
                 }
             <\/script>
         </body>
