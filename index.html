@@ -212,12 +212,12 @@
         </div>
     </div>
 
-    <div class="action-bar">
-        <button class="btn-main" onclick="addTable()"><i class="fas fa-plus-circle"></i> เพิ่มบั้งใหม่</button>
-        <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติ</button>
-        <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลา</button>
-        <button class="btn-main" onclick="clearAllHistory()" style="color:var(--accent-red)"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
-    </div>
+   <div class="action-bar">
+    <button class="btn-main" onclick="addTable()"><i class="fas fa-rocket"></i> เพิ่มบั้งใหม่</button>
+    <button class="btn-main" onclick="restoreLastDeleted()"><i class="fas fa-undo"></i> กู้คืนประวัติ</button> <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติการคิดยอด</button>
+    <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลาบั้งไฟ</button>
+    <button class="btn-main btn-clear" onclick="clearAllHistory()"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
+</div>
 
     <div id="tables-container"></div>
 
@@ -233,3 +233,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
