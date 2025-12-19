@@ -1,5 +1,6 @@
 let historyData = [];
 let totalDeletedProfit = 0;
+let currentModalKeyHandler = null;
 
 // โหลดข้อมูลเมื่อเริ่มต้น
 document.addEventListener("DOMContentLoaded", () => {
@@ -12,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateDashboardStats();
 });
 
+// อัปเดตตัวเลข Dashboard
 function updateDashboardStats() {
     document.getElementById("total-profit-display").innerText = `฿${totalDeletedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     document.getElementById("active-tables-count").innerText = document.querySelectorAll(".table-container").length;
@@ -24,6 +26,7 @@ function showToast(text) {
     setTimeout(() => badge.style.opacity = "0", 3000);
 }
 
+// ฟังก์ชันจัดการตาราง
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -51,7 +54,7 @@ function addTable() {
             </tbody>
         </table>
         <button class="btn-add-row" onclick="addRow(this.previousElementSibling)">
-            <i class="fas fa-plus"></i> เพิ่มแผลเล่น
+            <i><i class="fas fa-plus"></i></i> เพิ่มแผลเล่น
         </button>
     `;
     container.appendChild(newTable);
@@ -74,13 +77,8 @@ function addRow(table) {
 }
 
 function removeRow(btn) {
-    const tbody = btn.closest("tbody");
-    if (tbody.querySelectorAll("tr").length > 1) {
-        btn.closest("tr").remove();
-        saveData();
-    } else {
-        showModal("แจ้งเตือน", "ต้องมีอย่างน้อย 1 แถว", "alert");
-    }
+    btn.closest("tr").remove();
+    saveData();
 }
 
 function removeTable(btn) {
@@ -90,11 +88,11 @@ function removeTable(btn) {
     let profit = 0;
     card.querySelectorAll("tbody tr").forEach(tr => {
         const val = tr.querySelectorAll("input")[1].value.replace(/[Oo]/g, '0');
-        const match = val.match(/\d+/);
+        const match = val.match(/\d{3,}/);
         if(match) profit += (parseFloat(match[0]) * 0.10);
     });
 
-    showModal("ยืนยันการลบ", `คุณต้องการลบตาราง <b>${title}</b>?<br>กำไรที่จะบันทึก: <span style="color:green">฿${profit.toFixed(2)}</span>`, "confirm", () => {
+    showModal("ยืนยันการลบ", `ต้องการลบตารางบั้งไฟ? (กำไร: ฿${profit.toFixed(2)})`, "confirm", () => {
         const rows = [];
         card.querySelectorAll("tbody tr").forEach(tr => {
             const ins = tr.querySelectorAll("input");
@@ -108,10 +106,11 @@ function removeTable(btn) {
         card.remove();
         saveData();
         updateDashboardStats();
-        showToast("บันทึกข้อมูลเรียบร้อยแล้ว");
+        showToast("ลบและบันทึกยอดแล้ว");
     });
 }
 
+// ระบบบันทึกข้อมูล
 function saveData() {
     const data = [];
     document.querySelectorAll(".table-card").forEach(card => {
@@ -138,17 +137,13 @@ function loadData() {
         tbody.innerHTML = "";
         item.rows.forEach(r => {
             const row = document.createElement("tr");
-            row.innerHTML = `
-                <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
-                <td><input type="text" value="${r[1]}" oninput="saveData()"></td>
-                <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
-                <td><button class="btn-remove-row-premium" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
-            `;
+            row.innerHTML = `<td><input type="text" value="${r[0]}" oninput="saveData()"></td><td><input type="text" value="${r[1]}" oninput="saveData()"></td><td><input type="text" value="${r[2]}" oninput="saveData()"></td><td><button class="btn-remove-row-premium" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
             tbody.appendChild(row);
         });
     });
 }
 
+// ระบบ Modal พร้อมปุ่มลัด Enter/Esc
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = title;
@@ -157,31 +152,51 @@ function showModal(title, message, type = "alert", callback = null) {
     const actions = document.getElementById('modal-actions');
     actions.innerHTML = "";
 
+    if (currentModalKeyHandler) {
+        window.removeEventListener('keydown', currentModalKeyHandler);
+    }
+
+    currentModalKeyHandler = (e) => {
+        if (e.key === "Enter") {
+            if (type === "input") {
+                const inp = msgEl.querySelector('input');
+                if (inp && inp.value) { closeModal(); if(callback) callback(inp.value); }
+            } else {
+                closeModal(); if(callback) callback();
+            }
+        } else if (e.key === "Escape") {
+            closeModal();
+        }
+    };
+    window.addEventListener('keydown', currentModalKeyHandler);
+
     if (type === "input") {
         const inp = document.createElement("input");
         inp.className = "modal-input";
         inp.placeholder = "พิมพ์ชื่อที่นี่...";
         msgEl.appendChild(inp);
+        setTimeout(() => inp.focus(), 100);
+
         const b = document.createElement("button");
-        b.innerText = "ตกลง";
+        b.innerText = "ตกลง (Enter)";
         b.className = "btn-confirm";
         b.onclick = () => { if(inp.value) { closeModal(); if(callback) callback(inp.value); } };
         actions.appendChild(b);
     } else if (type === "confirm") {
         const b1 = document.createElement("button");
-        b1.innerText = "ยืนยันการลบ";
+        b1.innerText = "ยืนยัน (Enter)";
         b1.className = "btn-confirm";
         b1.style.background = "#e74c3c";
         b1.onclick = () => { closeModal(); if(callback) callback(); };
         const b2 = document.createElement("button");
-        b2.innerText = "ยกเลิก";
+        b2.innerText = "ยกเลิก (Esc)";
         b2.className = "btn-cancel";
         b2.onclick = closeModal;
         actions.appendChild(b1);
         actions.appendChild(b2);
     } else {
         const b = document.createElement("button");
-        b.innerText = "รับทราบ";
+        b.innerText = "ตกลง (Enter)";
         b.className = "btn-confirm";
         b.onclick = closeModal;
         actions.appendChild(b);
@@ -189,144 +204,103 @@ function showModal(title, message, type = "alert", callback = null) {
     modal.classList.add('active');
 }
 
-function closeModal() { document.getElementById('custom-modal').classList.remove('active'); }
+function closeModal() {
+    document.getElementById('custom-modal').classList.remove('active');
+    if (currentModalKeyHandler) {
+        window.removeEventListener('keydown', currentModalKeyHandler);
+        currentModalKeyHandler = null;
+    }
+}
 
 function clearAllHistory() {
-    showModal("ล้างข้อมูลทั้งหมด", "คำเตือน: ข้อมูลและประวัติทั้งหมดจะถูกลบถาวร ไม่สามารถกู้คืนได้!", "confirm", () => {
+    showModal("ล้างประวัติ", "คุณต้องการลบข้อมูลทั้งหมดถาวรใช่หรือไม่?", "confirm", () => {
         localStorage.clear();
         location.reload();
     });
 }
 
-// ฟังก์ชันสร้างการ์ดจับเวลาใหม่ (รองรับหลายค่ายพร้อมกัน)
+// ระบบหน้าต่างจับเวลาแบบหลายค่าย (New Window)
 function openStopwatchWindow() {
-    // กำหนดขนาดและตำแหน่งหน้าต่าง
-    const width = 600;
-    const height = 700;
+    const width = 600, height = 700;
     const left = (window.screen.width / 2) - (width / 2);
     const top = (window.screen.height / 2) - (height / 2);
 
-    // เปิดหน้าต่างใหม่ทันทีโดยไม่ต้องรอ Modal กรอกชื่อ
     const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
     
     sw.document.write(`
-        <!DOCTYPE html>
         <html>
         <head>
             <title>ระบบจับเวลาบั้งไฟ (หลายค่าย)</title>
             <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                body { 
-                    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
-                    color: white; font-family: 'Sarabun', sans-serif; margin: 0; padding: 25px;
-                }
-                .header-sw { text-align: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; }
-                
-                .input-group { 
-                    display: flex; gap: 10px; margin-bottom: 25px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px;
-                }
-                input[type="text"] { 
-                    flex: 1; padding: 12px; border-radius: 10px; border: none; font-family: 'Sarabun'; font-size: 1rem; outline: none;
-                }
-                .btn-add-sw { background: #2ecc71; color: white; border: none; padding: 0 25px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-                .btn-add-sw:hover { background: #27ae60; transform: scale(1.02); }
-                
+                body { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; font-family: 'Sarabun', sans-serif; padding: 25px; }
+                .input-group { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; }
+                input { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 1rem; outline: none; font-family: 'Sarabun'; }
                 .sw-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-                .sw-table th { padding: 15px; text-align: left; color: rgba(255,255,255,0.7); font-size: 0.9rem; text-transform: uppercase; }
-                .sw-table td { background: rgba(255,255,255,0.15); padding: 15px; vertical-align: middle; }
-                .sw-table td:first-child { border-radius: 15px 0 0 15px; }
-                .sw-table td:last-child { border-radius: 0 15px 15px 0; }
-                
-                .timer-text { font-family: monospace; font-size: 2.2rem; font-weight: bold; color: #fff; min-width: 130px; display: inline-block; }
-                .row-actions { display: flex; gap: 10px; }
-                .action-btn { border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
-                
-                .btn-sw-start { background: #2ecc71; }
-                .btn-sw-stop { background: #e74c3c; }
-                .btn-sw-reset { background: #f39c12; }
-                .btn-sw-del { background: rgba(0,0,0,0.3); color: #ff7675; }
-                .action-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+                .sw-table td { background: rgba(255,255,255,0.15); padding: 15px; border-radius: 10px; }
+                .timer-text { font-family: monospace; font-size: 2.2rem; font-weight: bold; }
+                .action-btn { border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; }
+                .btn-start { background: #2ecc71; } .btn-stop { background: #e74c3c; } .btn-reset { background: #f39c12; }
             </style>
         </head>
         <body>
-            <div class="header-sw">
-                <h2><i class="fas fa-rocket"></i> ระบบจัดการเวลาบั้งไฟ</h2>
-            </div>
-
+            <h2><i class="fas fa-stopwatch"></i> ระบบจัดการเวลา</h2>
             <div class="input-group">
-                <input type="text" id="campInput" placeholder="กรอกชื่อค่ายบั้งไฟที่นี่..." onkeypress="if(event.key==='Enter') addNewRow()">
-                <button class="btn-add-sw" onclick="addNewRow()">เพิ่มค่าย</button>
+                <input type="text" id="campInput" placeholder="กรอกชื่อค่าย... (Enter เพื่อเพิ่ม / Esc เพื่อปิดหน้าต่าง)">
+                <button onclick="addNewRow()" style="background:#2ecc71; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">เพิ่มค่าย</button>
             </div>
-
-            <table class="sw-table">
-                <thead>
-                    <tr>
-                        <th width="35%">ชื่อค่าย</th>
-                        <th width="30%">เวลา (วินาที)</th>
-                        <th width="35%">จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody id="sw-tbody"></tbody>
-            </table>
+            <table class="sw-table"><tbody id="sw-tbody"></tbody></table>
 
             <script>
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === "Enter") addNewRow();
+                    else if (e.key === "Escape") window.close();
+                });
+
                 function addNewRow() {
                     const input = document.getElementById('campInput');
                     const name = input.value.trim();
                     if (!name) return;
-
-                    const tbody = document.getElementById('sw-tbody');
                     const tr = document.createElement('tr');
-                    tr.dataset.elapsed = 0;
-                    tr.dataset.running = "false";
-
+                    tr.dataset.elapsed = 0; tr.dataset.running = "false";
                     tr.innerHTML = \`
-                        <td style="font-size: 1.2rem; font-weight: 600;">\${name}</td>
-                        <td><span class="timer-text">0.000</span></td>
-                        <td class="row-actions">
-                            <button class="action-btn btn-sw-start" onclick="toggleTimer(this)"><i class="fas fa-play"></i> เริ่ม</button>
-                            <button class="action-btn btn-sw-reset" onclick="resetTimer(this)"><i class="fas fa-redo"></i></button>
-                            <button class="action-btn btn-sw-del" onclick="this.closest('tr').remove()"><i class="fas fa-trash-alt"></i></button>
+                        <td width="40%"><b>\${name}</b></td>
+                        <td width="30%"><span class="timer-text">0.000</span></td>
+                        <td width="30%">
+                            <button class="action-btn btn-start" onclick="toggleTimer(this)">เริ่ม</button>
+                            <button class="action-btn btn-reset" onclick="resetTimer(this)" style="margin-left:5px;"><i class="fas fa-redo"></i></button>
+                            <button class="action-btn" onclick="this.closest('tr').remove()" style="background:rgba(255,255,255,0.2); margin-left:5px;"><i class="fas fa-trash"></i></button>
                         </td>
                     \`;
-                    tbody.appendChild(tr);
+                    document.getElementById('sw-tbody').appendChild(tr);
                     input.value = "";
-                    input.focus();
                 }
 
                 function toggleTimer(btn) {
                     const tr = btn.closest('tr');
                     const display = tr.querySelector('.timer-text');
-                    
                     if (tr.dataset.running === "false") {
-                        tr.dataset.running = "true";
-                        btn.innerHTML = '<i class="fas fa-pause"></i> หยุด';
-                        btn.className = 'action-btn btn-sw-stop';
-                        
-                        const startTime = Date.now() - parseFloat(tr.dataset.elapsed);
-                        tr.timerInterval = setInterval(() => {
-                            const now = Date.now() - startTime;
+                        tr.dataset.running = "true"; btn.innerText = "หยุด"; btn.className = "action-btn btn-stop";
+                        const st = Date.now() - parseFloat(tr.dataset.elapsed);
+                        tr.iv = setInterval(() => {
+                            const now = Date.now() - st;
                             tr.dataset.elapsed = now;
                             display.innerText = (now / 1000).toFixed(3);
                         }, 10);
                     } else {
-                        tr.dataset.running = "false";
-                        btn.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
-                        btn.className = 'action-btn btn-sw-start';
-                        clearInterval(tr.timerInterval);
+                        tr.dataset.running = "false"; btn.innerText = "เริ่ม"; btn.className = "action-btn btn-start";
+                        clearInterval(tr.iv);
                     }
                 }
 
                 function resetTimer(btn) {
                     const tr = btn.closest('tr');
-                    clearInterval(tr.timerInterval);
-                    tr.dataset.running = "false";
-                    tr.dataset.elapsed = 0;
+                    clearInterval(tr.iv);
+                    tr.dataset.running = "false"; tr.dataset.elapsed = 0;
                     tr.querySelector('.timer-text').innerText = "0.000";
-                    const startBtn = tr.querySelector('.btn-sw-start') || tr.querySelector('.btn-sw-stop');
-                    startBtn.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
-                    startBtn.className = 'action-btn btn-sw-start';
+                    const sBtn = tr.querySelector('.action-btn');
+                    sBtn.innerText = "เริ่ม"; sBtn.className = "action-btn btn-start";
                 }
             </script>
         </body>
