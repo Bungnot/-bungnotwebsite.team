@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg">
-    <title>ระบบหลังบ้าน ADMIN (Premium UI)</title>
+    <title>ADMIN ROCKET PREMIUM (Pro Version)</title>
     
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -14,12 +13,11 @@
         :root {
             --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             --glass-bg: rgba(255, 255, 255, 0.95);
-            --shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            --shadow-premium: 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
             --accent-green: #2ecc71;
             --accent-orange: #f39c12;
             --accent-red: #e74c3c;
             --accent-purple: #9b59b6;
-            --dark-blue: #1e3c72;
         }
 
         body {
@@ -28,209 +26,322 @@
             background-attachment: fixed;
             min-height: 100vh;
             margin: 0;
-            padding: 30px;
+            padding: 20px;
             color: #333;
         }
 
         /* --- Header Section --- */
-        .header-container { text-align: center; margin-bottom: 40px; color: white; }
-        .profile-group img { 
-            width: 85px; height: 85px; 
-            border-radius: 50%; 
-            border: 4px solid rgba(255,255,255,0.3); 
-            margin: 0 8px; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        }
-        h2 { font-weight: 700; font-size: 2.5rem; margin: 15px 0; text-shadow: 0 3px 15px rgba(0,0,0,0.4); }
+        .header-container { text-align: center; margin-bottom: 30px; color: white; }
+        .profile-group img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin: 0 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        h2 { font-weight: 700; font-size: 2.5rem; margin: 15px 0; text-shadow: 0 3px 10px rgba(0,0,0,0.3); }
 
-        /* --- Stats Dash (Large & Balanced) --- */
-        .stats-overview { 
-            max-width: 1350px; 
-            margin: 0 auto 40px; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-            gap: 30px; 
-        }
-        .stat-card { 
-            background: var(--glass-bg); 
-            border-radius: 24px; 
-            padding: 25px 35px; 
-            display: flex; 
-            align-items: center; 
-            gap: 20px; 
-            box-shadow: var(--shadow); 
-        }
-        .stat-icon { 
-            width: 65px; height: 65px; 
-            border-radius: 18px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 1.8rem; 
-            color: white; 
-        }
-        .stat-info .label { font-size: 1rem; color: #7f8c8d; font-weight: 600; }
-        .stat-info .value { font-size: 1.8rem; font-weight: bold; color: #2c3e50; }
+        /* --- Dashboard Grid --- */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1300px; margin: 0 auto 30px; }
+        .info-card { background: var(--glass-bg); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-premium); border: 1px solid rgba(255,255,255,0.5); }
+        .info-card h3 { margin-top: 0; color: #1e3c72; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
 
-        /* --- Action Buttons Bar --- */
-        .action-bar { display: flex; justify-content: center; gap: 20px; margin-bottom: 50px; flex-wrap: wrap; }
+        /* --- Action Buttons --- */
+        .action-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; }
         .btn-main { 
-            background: white; color: var(--dark-blue); border: none; 
-            padding: 14px 30px; border-radius: 50px; cursor: pointer; 
-            font-weight: 700; font-size: 1rem;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15); transition: 0.3s; 
-            display: flex; align-items: center; gap: 10px; 
+            background: white; color: #1e3c72; border: none; padding: 12px 25px; 
+            border-radius: 50px; cursor: pointer; font-weight: 700; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: 0.3s; 
+            display: flex; align-items: center; gap: 8px; font-size: 0.95rem;
         }
-        .btn-main:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+        .btn-clear { color: #e74c3c; }
 
-        /* --- Main Table Card (Extra Large) --- */
-        #tables-container { max-width: 1350px; margin: 0 auto; }
+        /* --- Table Styling (Premium) --- */
+        #tables-container { max-width: 1300px; margin: 0 auto; }
         .table-card { 
-            background: white; border-radius: 28px; 
-            padding: 40px; margin-bottom: 50px; 
-            box-shadow: var(--shadow); position: relative; 
-            border-top: 10px solid var(--dark-blue);
+            background: white; border-radius: 24px; padding: 35px; margin-bottom: 40px; 
+            box-shadow: var(--shadow-premium); position: relative; border-top: 8px solid #1e3c72;
         }
-
-        .btn-close-table {
-            position: absolute; top: 20px; right: 20px; 
-            background: #f1f1f1; color: #999; border: none; 
-            width: 38px; height: 38px; border-radius: 50%; 
-            cursor: pointer; display: flex; align-items: center; justify-content: center; 
-            transition: 0.3s;
-        }
-        .btn-close-table:hover { background: var(--accent-red); color: white; transform: rotate(90deg); }
 
         .table-title-input { 
-            font-size: 1.6rem; font-weight: bold; color: var(--dark-blue); 
-            text-align: center; border: 2px solid #f0f0f0; background: #fff; 
-            padding: 15px; border-radius: 18px; width: 50%; 
-            display: block; margin: 0 auto 35px; outline: none; transition: 0.3s;
+            font-size: 1.5rem; font-weight: bold; color: #1e3c72; 
+            text-align: center; border: 2px solid #f1f5f9; background: #f8fafc; 
+            padding: 12px; border-radius: 16px; width: 60%; 
+            display: block; margin: 0 auto 30px; outline: none; transition: 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
-        .table-title-input:focus { border-color: var(--dark-blue); box-shadow: 0 0 15px rgba(30, 60, 114, 0.1); }
-        
-        /* Premium Table Grid */
-        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
-        .custom-table th { 
-            padding: 20px 15px; color: white; font-size: 1.1rem; 
-            font-weight: 700; text-transform: uppercase; 
-        }
-        .custom-table th:first-child { border-radius: 15px 0 0 15px; }
-        .custom-table th:last-child { border-radius: 0 15px 15px 0; }
 
-        .th-green { background: var(--accent-green); }
-        .th-orange { background: var(--accent-orange); }
-        .th-red { background: var(--accent-red); }
-        .th-purple { background: var(--accent-purple); }
+        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .custom-table th { padding: 18px 10px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px 0 0 15px; }
+        .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); }
+        .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
+        .th-purple { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); border-radius: 0 15px 15px 0; }
 
-        .custom-table td { padding: 6px; vertical-align: middle; }
         .custom-table input { 
-            width: 100%; padding: 16px; border: 1px solid #e8e8e8; 
-            border-radius: 14px; text-align: center; font-family: 'Sarabun'; 
-            font-size: 1.1rem; box-sizing: border-box; transition: 0.2s;
+            width: 100%; padding: 14px; border: 2px solid #edf2f7; 
+            border-radius: 14px; background: #f8fafc; text-align: center;
+            box-sizing: border-box; transition: 0.3s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
-        .custom-table input:focus { border-color: var(--accent-orange); outline: none; background: #fffdf9; border-width: 2px; }
 
-        .btn-remove-row-premium {
-            background: #f5f5f5; color: #888; border: none; 
-            width: 48px; height: 48px; border-radius: 14px; 
-            cursor: pointer; transition: 0.3s; display: flex; 
-            align-items: center; justify-content: center; margin: 0 auto;
+        .btn-remove-row {
+            background: #fff; color: #e74c3c; border: 2px solid #fff5f5; 
+            width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; margin: 0 auto; display: block;
         }
-        .btn-remove-row-premium:hover { background: var(--accent-red); color: white; transform: scale(1.1); }
+        .btn-remove-row:hover { background: #e74c3c; color: white; transform: scale(1.1); }
 
-        .btn-add-row {
-            margin: 25px auto 0; background: var(--accent-green); color: white; 
-            border: none; padding: 14px 40px; border-radius: 18px; 
-            font-weight: bold; font-size: 1.1rem; cursor: pointer; 
-            display: flex; align-items: center; gap: 12px; transition: 0.3s;
+        .btn-close-table {
+            position: absolute; top: 15px; right: 15px; background: #f8fafc; color: #cbd5e1;
+            border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer;
+            transition: 0.3s;
         }
-        .btn-add-row:hover { background: #27ae60; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); }
+        .btn-close-table:hover { background: #fee2e2; color: #ef4444; transform: rotate(90deg); }
 
-        /* --- Modal (Enhanced) --- */
+        /* --- Modal Styling --- */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); 
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); 
             display: flex; justify-content: center; align-items: center; 
-            z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; 
+            z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; 
         }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-box { 
             background: white; width: 90%; max-width: 450px; 
             border-radius: 30px; padding: 40px; text-align: center; 
-            box-shadow: 0 25px 60px rgba(0,0,0,0.4); 
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4); transform: scale(0.9); transition: 0.3s;
         }
-        .modal-input { 
-            width: 100%; padding: 15px; border: 2px solid #eee; 
-            border-radius: 15px; margin-top: 20px; box-sizing: border-box; 
-            font-size: 1rem; outline: none; font-family: 'Sarabun';
-        }
-        .modal-input:focus { border-color: var(--dark-blue); }
-        
+        .modal-overlay.active .modal-box { transform: scale(1); }
         .modal-actions { margin-top: 30px; display: flex; justify-content: center; gap: 15px; }
-        .modal-actions button { 
-            padding: 12px 30px; border-radius: 50px; border: none; 
-            cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s; 
-        }
-        .btn-confirm { background: var(--dark-blue); color: white; }
-        .btn-cancel { background: #f1f1f1; color: #666; }
+        .btn-modal { padding: 12px 35px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-confirm { background: #1e3c72; color: white; }
+        .btn-cancel { background: #f1f5f9; color: #64748b; }
 
         #auto-save-alert { 
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
-            background: #2c3e50; color: white; padding: 14px 35px; 
-            border-radius: 50px; opacity: 0; transition: 0.5s; z-index: 9999; 
-            font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            background: #1e293b; color: white; padding: 12px 30px; 
+            border-radius: 50px; opacity: 0; transition: 0.5s; z-index: 10000; font-size: 0.9rem;
         }
+
+        .profit-display { font-size: 1.8rem; font-weight: bold; color: #1e3c72; }
     </style>
 </head>
 <body>
 
-    <div id="auto-save-alert">บันทึกข้อมูลแล้ว</div>
+    <div id="auto-save-alert">✅ บันทึกข้อมูลแล้ว</div>
 
     <div class="header-container">
         <div class="profile-group">
-            <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Admin 1">
-            <img src="https://img5.pic.in.th/file/secure-sv1/unnamed-7263f4c44a1f2a1a7.jpg" alt="Admin 2">
+            <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Admin">
+            <img src="https://img5.pic.in.th/file/secure-sv1/unnamed-7263f4c44a1f2a1a7.jpg" alt="Admin">
         </div>
         <h2>ADMIN ROCKET PREMIUM</h2>
     </div>
 
-    <div class="stats-overview">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: var(--accent-green);"><i class="fas fa-wallet"></i></div>
-            <div class="stat-info">
-                <div class="label">กำไรรวมทั้งหมด</div>
-                <div id="total-profit-display" class="value">฿0.00</div>
-            </div>
+    <div class="dashboard-grid">
+        <div class="info-card">
+            <h3><i class="fas fa-wallet"></i> ยอดกำไรรวม</h3>
+            <div id="total-profit-display" class="profit-display">฿0.00</div>
+            <p style="color: #64748b; font-size: 0.9rem;">*คำนวณอัตโนมัติจากการลบตาราง (10%)</p>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #3498db;"><i class="fas fa-rocket"></i></div>
-            <div class="stat-info">
-                <div class="label">บั้งไฟที่กำลังรอ</div>
-                <div id="active-tables-count" class="value">0</div>
+        <div class="info-card">
+            <h3><i class="fab fa-line"></i> ส่งข้อความ Line OA</h3>
+            <input type="text" id="lineName" placeholder="ชื่อใน Line OA" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
+            <textarea id="messageToSend" placeholder="ข้อความ..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; font-family:'Sarabun';"></textarea>
+            <button onclick="sendMessageToLine()" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; background:#06c755; color:white; border:none; cursor:pointer; font-weight:bold;">ส่งข้อความ</button>
+        </div>
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> วิธีคิดยอด</h3>
+            <div style="font-size: 0.85rem; color: #475569;">
+                • เอาชื่อคนไล่ไว้ข้างหน้า <br>
+                • ราคา 280/300 ใส่ 80/00 <br>
+                • ถ้า 400+ ใช้ตัวอักษรแทนเลข (เช่น 4OO) <br>
+                • กำไรคิดให้ 10% เมื่อกดปิดบั้ง (X)
             </div>
         </div>
     </div>
 
-   <div class="action-bar">
-    <button class="btn-main" onclick="addTable()"><i class="fas fa-rocket"></i> เพิ่มบั้งใหม่</button>
-    <button class="btn-main" onclick="restoreLastDeleted()"><i class="fas fa-undo"></i> กู้คืนประวัติ</button> <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติการคิดยอด</button>
-    <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลาบั้งไฟ</button>
-    <button class="btn-main btn-clear" onclick="clearAllHistory()"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
-</div>
+    <div class="action-bar">
+        <button class="btn-main" onclick="addTable()"><i class="fas fa-rocket"></i> เพิ่มบั้งใหม่</button>
+        <button class="btn-main" onclick="restoreLastDeleted()"><i class="fas fa-undo"></i> กู้คืนประวัติ</button>
+        <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติการคิดยอด</button>
+        <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลาบั้งไฟ</button>
+        <button class="btn-main btn-clear" onclick="clearAllHistory()"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
+    </div>
 
     <div id="tables-container"></div>
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
-            <i id="modal-icon" class="fas fa-exclamation-circle" style="font-size: 4rem; margin-bottom: 20px; color: var(--accent-orange);"></i>
-            <div id="modal-title" style="font-size: 1.5rem; font-weight: bold; margin-bottom: 12px;"></div>
-            <div id="modal-msg" style="color: #555; margin-bottom: 10px; line-height: 1.6;"></div>
+            <div id="modal-icon"></div>
+            <h2 id="modal-title" style="margin-bottom: 15px; color: #1e293b;"></h2>
+            <div id="modal-msg" style="color: #475569; margin-bottom: 10px; line-height: 1.6;"></div>
             <div id="modal-actions" class="modal-actions"></div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        let historyData = [];
+        let totalDeletedProfit = 0;
+        let currentModalKeyHandler = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadData();
+            const savedHistory = localStorage.getItem("historyData");
+            if (savedHistory) {
+                historyData = JSON.parse(savedHistory);
+                totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
+            }
+            updateDashboardStats();
+        });
+
+        function saveData() {
+            const data = [];
+            document.querySelectorAll(".table-container").forEach(table => {
+                const title = table.querySelector(".table-title-input").value;
+                const rows = [];
+                table.querySelectorAll("tbody tr").forEach(r => {
+                    const cells = r.querySelectorAll("input");
+                    if (cells.length >= 3) rows.push([cells[0].value, cells[1].value, cells[2].value]);
+                });
+                data.push({ title, rows });
+            });
+            localStorage.setItem("savedTables", JSON.stringify(data));
+            const badge = document.getElementById("auto-save-alert");
+            if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
+        }
+
+        function addTable(title = "", rows = null) {
+            const container = document.getElementById("tables-container");
+            const newTable = document.createElement("div");
+            newTable.classList.add("table-container", "table-card");
+
+            let rowsHtml = "";
+            if (rows) {
+                rowsHtml = rows.map(r => `
+                    <tr>
+                        <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
+                        <td><input type="text" value="${r[1]}" oninput="saveData()"></td>
+                        <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
+                        <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                    </tr>`).join('');
+            } else {
+                rowsHtml = `<tr><td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+            }
+
+            newTable.innerHTML = `
+                <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
+                <input type="text" class="table-title-input" value="${title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()">
+                <table class="custom-table">
+                    <thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+                <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="margin: 20px auto 0; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32;">+ เพิ่มแผลที่เล่น</button>`;
+            
+            container.appendChild(newTable);
+            saveData();
+            updateDashboardStats();
+        }
+
+        function removeTable(button) {
+            const tableContainer = button.closest('.table-container');
+            const title = tableContainer.querySelector('.table-title-input').value || "ไม่ระบุชื่อ";
+            let profit = 0;
+            tableContainer.querySelectorAll("tbody tr").forEach(tr => {
+                const val = tr.querySelectorAll("input")[1].value.replace(/[Oo]/g, '0');
+                const match = val.match(/\d{3,}/);
+                if (match) profit += (parseFloat(match[0]) * 0.10);
+            });
+
+            showModal("ยืนยันการปิดยอด", `ค่าย: <b>${title}</b><br>กำไร: ฿${profit.toFixed(2)}`, "confirm", () => {
+                const rowsData = [];
+                tableContainer.querySelectorAll("tbody tr").forEach(tr => {
+                    const cells = tr.querySelectorAll("input");
+                    rowsData.push([cells[0].value, cells[1].value, cells[2].value]);
+                });
+                historyData.push({ title, rows: rowsData, profit, timestamp: new Date().toLocaleString("th-TH") });
+                localStorage.setItem("historyData", JSON.stringify(historyData));
+                totalDeletedProfit += profit;
+                tableContainer.remove();
+                saveData();
+                updateDashboardStats();
+            });
+        }
+
+        function restoreLastDeleted() {
+            if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน", "alert");
+            const last = historyData.pop();
+            totalDeletedProfit -= last.profit;
+            addTable(last.title, last.rows);
+            localStorage.setItem("historyData", JSON.stringify(historyData));
+            updateDashboardStats();
+            showModal("สำเร็จ", `กู้คืนค่าย <b>${last.title}</b> แล้ว`, "alert");
+        }
+
+        function addRow(table) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
+            table.querySelector("tbody").appendChild(tr);
+            saveData();
+        }
+
+        function removeRow(btn) { btn.closest('tr').remove(); saveData(); }
+
+        function showModal(title, msg, type = "alert", cb = null) {
+            const modal = document.getElementById('custom-modal');
+            const iconBox = document.getElementById('modal-icon');
+            iconBox.innerHTML = type === "confirm" ? '<i class="fas fa-exclamation-circle" style="font-size:3rem; color:#f39c12; margin-bottom:15px; display:block;"></i>' : '<i class="fas fa-check-circle" style="font-size:3rem; color:#2ecc71; margin-bottom:15px; display:block;"></i>';
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-msg').innerHTML = msg;
+            const actions = document.getElementById('modal-actions');
+            actions.innerHTML = "";
+
+            if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
+
+            if (type === "confirm") {
+                const b1 = document.createElement("button"); b1.innerText = "ตกลง (Enter)"; b1.className = "btn-modal btn-confirm";
+                b1.onclick = () => { closeModal(); if (cb) cb(); };
+                const b2 = document.createElement("button"); b2.innerText = "ยกเลิก (Esc)"; b2.className = "btn-modal btn-cancel";
+                b2.onclick = closeModal;
+                actions.append(b2, b1);
+                currentModalKeyHandler = (e) => { if (e.key === "Enter") b1.click(); else if (e.key === "Escape") closeModal(); };
+            } else {
+                const b = document.createElement("button"); b.innerText = "ตกลง"; b.className = "btn-modal btn-confirm"; b.onclick = closeModal;
+                actions.append(b);
+                currentModalKeyHandler = (e) => { if (e.key === "Enter" || e.key === "Escape") closeModal(); };
+            }
+            window.addEventListener('keydown', currentModalKeyHandler);
+            modal.classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('custom-modal').classList.remove('active'); }
+
+        function updateDashboardStats() {
+            const pEl = document.getElementById("total-profit-display");
+            if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+        }
+
+        function openStopwatchWindow() {
+            const sw = window.open("", "_blank", "width=800,height=700");
+            sw.document.write(`<html><head><title>Timer</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>body{background:#1e3c72;color:white;font-family:sans-serif;padding:30px}input{padding:15px;border-radius:10px;border:none;width:70%}.timer-text{font-size:3rem;color:#2ecc71;font-weight:bold}</style></head><body><h2>จับเวลาบั้งไฟ</h2><input type="text" id="cIn" placeholder="ชื่อค่าย..."><button onclick="add()" style="padding:15px;border-radius:10px;background:#2ecc71;border:none;color:white;cursor:pointer;margin-left:10px">เพิ่ม</button><div id="list"></div><script>function add(){const n=document.getElementById('cIn').value;if(!n)return;const d=document.createElement('div');d.style.background='rgba(255,255,255,0.1)';d.style.padding='20px';d.style.margin='10px 0';d.style.borderRadius='15px';d.innerHTML='<b>'+n+'</b> <span class="timer-text" id="t">0.000</span> <button onclick="st(this)" style="padding:10px;background:#2ecc71;border:none;color:white;border-radius:5px">เริ่ม</button> <button onclick="rs(this)" style="padding:10px;background:#f39c12;border:none;color:white;border-radius:5px">รีเซ็ต</button>';document.getElementById('list').appendChild(d);document.getElementById('cIn').value=''};let iv;function st(b){const t=b.parentElement.querySelector('#t');if(b.innerText==='เริ่ม'){b.innerText='หยุด';b.style.background='#e74c3c';let s=parseFloat(t.innerText)*1000;let st=Date.now()-s;b.iv=setInterval(()=>{t.innerText=((Date.now()-st)/1000).toFixed(3)},10)}else{b.innerText='เริ่ม';b.style.background='#2ecc71';clearInterval(b.iv)}};function rs(b){const t=b.parentElement.querySelector('#t');const sb=b.parentElement.querySelector('button');clearInterval(sb.iv);sb.innerText='เริ่ม';sb.style.background='#2ecc71';t.innerText='0.000'}<\/script></body></html>`);
+        }
+
+        function showHistory() {
+            if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติ", "alert");
+            let win = window.open("", "History", "width=900,height=800");
+            let content = `<html><head><style>body{font-family:sans-serif;padding:20px;background:#f4f7f9}.card{background:white;padding:20px;border-radius:15px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #eee;text-align:center}</style></head><body><h2>ประวัติการคิดยอด</h2>`;
+            historyData.forEach(h => {
+                let rows = h.rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+                content += `<div class="card"><b>ค่าย: ${h.title}</b> | ฿${h.profit.toFixed(2)}<table><thead><tr><th>คนไล่</th><th>ราคา</th><th>คนยั้ง</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+            });
+            win.document.write(content + "</body></html>");
+        }
+
+        function loadData() {
+            const raw = localStorage.getItem("savedTables");
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            const container = document.getElementById("tables-container");
+            container.innerHTML = "";
+            data.forEach(t => addTable(t.title, t.rows));
+        }
+
+        function clearAllHistory() { showModal("คำเตือน", "ล้างข้อมูลทั้งหมด?", "confirm", () => { localStorage.clear(); location.reload(); }); }
+    </script>
 </body>
 </html>
-
