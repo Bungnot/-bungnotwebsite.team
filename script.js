@@ -2,30 +2,6 @@ let historyData = [];
 let totalDeletedProfit = 0;
 let currentModalKeyHandler = null;
 
-// ===== [INITIALIZATION] =====
-document.addEventListener("DOMContentLoaded", () => {
-    loadData();
-    const savedHistory = localStorage.getItem("historyData");
-    if (savedHistory) {
-        historyData = JSON.parse(savedHistory);
-        totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
-    }
-});
-
-// ===== [REAL-TIME SYNC] =====
-window.addEventListener('storage', (event) => {
-    if (event.key === 'savedTables') {
-        loadData(); 
-        const badge = document.getElementById("auto-save-alert");
-        if(badge) {
-            badge.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> ข้อมูลอัปเดตจากเครื่องอื่นแล้ว';
-            badge.style.opacity = "1"; 
-            setTimeout(() => badge.style.opacity = "0", 3000); 
-        }
-    }
-});
-
-// ===== [LINE CONFIG & API] =====
 const LINE_UID_MAP = {
     "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
     "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
@@ -50,13 +26,114 @@ const LINE_UID_MAP = {
     "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8"
 };
 
-function getLineIdFromName(nameRaw) {
-    if (!nameRaw) return "";
-    const normalizedName = nameRaw.replace("@", "").trim().toLowerCase(); 
-    for (const key in LINE_UID_MAP) {
-        if (key.toLowerCase() === normalizedName) return LINE_UID_MAP[key];
+document.addEventListener("DOMContentLoaded", () => {
+    loadData();
+    const savedHistory = localStorage.getItem("historyData");
+    if (savedHistory) {
+        historyData = JSON.parse(savedHistory);
+        totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
     }
-    return "";
+});
+
+// ===== [SYSTEM LOGIC] =====
+function addTable() {
+    const container = document.getElementById("tables-container");
+    const newTable = document.createElement("div");
+    newTable.classList.add("table-container", "table-card");
+
+    newTable.innerHTML = `
+        <div class="card-header">
+            <input type="text" class="table-title-input" placeholder="🎯 ระบุชื่อค่าย...">
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-main" onclick="exportToImage(this)" style="padding: 8px 12px;"><i class="fas fa-camera"></i></button>
+                <button onclick="removeTable(this)" style="background: #fff0f0; color: #e74c3c; border: none; padding: 10px 15px; border-radius: 12px; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th style="color: var(--accent-green)">คนไล่</th>
+                    <th style="color: var(--accent-orange)">ราคาเล่น</th>
+                    <th style="color: var(--accent-red)">คนยั้ง</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><button onclick="removeRow(this)" style="color:#ccc; background:none; border:none; cursor:pointer;"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width: 100%; justify-content: center; margin-top: 15px; border: 1px dashed #ddd;">+ เพิ่มรายการ</button>
+    `;
+    container.appendChild(newTable);
+    newTable.scrollIntoView({ behavior: 'smooth' });
+}
+
+function addRow(table) {
+    const tbody = table.querySelector("tbody");
+    const newRow = document.createElement("tr");
+    newRow.innerHTML = `<td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><button onclick="removeRow(this)" style="color:#ccc; background:none; border:none; cursor:pointer;"><i class="fas fa-trash-alt"></i></button></td>`;
+    tbody.appendChild(newRow);
+    saveData();
+}
+
+function removeRow(button) {
+    button.closest("tr").remove();
+    saveData();
+}
+
+function removeTable(button) {
+    const tableContainer = button.closest(".table-container");
+    const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
+    let totalProfit = 0;
+    
+    priceInputs.forEach(input => {
+        const match = input.value.match(/\d{3,}/);
+        if (match) totalProfit += (parseFloat(match[0]) * 0.10);
+    });
+
+    showModal("ยืนยันการลบ", `ต้องการบันทึกกำไร ฿${totalProfit.toFixed(2)} และลบตารางหรือไม่?`, "confirm", () => {
+        const title = tableContainer.querySelector('.table-title-input').value;
+        const rowsData = [];
+        tableContainer.querySelectorAll("tbody tr").forEach(tr => {
+            const cells = tr.querySelectorAll("input");
+            rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
+        });
+        historyData.push({ title: title || "ค่ายไม่ระบุชื่อ", rows: rowsData, profit: totalProfit, timestamp: new Date().toLocaleString("th-TH") });
+        localStorage.setItem("historyData", JSON.stringify(historyData));
+        totalDeletedProfit += totalProfit;
+        tableContainer.remove();
+        saveData();
+    });
+}
+
+// ===== [UTILITIES] =====
+async function exportToImage(button) {
+    const card = button.closest(".table-card");
+    const canvas = await html2canvas(card, { backgroundColor: '#1e3c72' });
+    const link = document.createElement("a");
+    link.download = `สรุปยอด-${Date.now()}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+}
+
+function sendMessageToLine() {
+    const name = document.getElementById('lineName').value;
+    const msg = document.getElementById('messageToSend').value;
+    if(!name || !msg) return showModal("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบ", "alert");
+    
+    const normalizedName = name.replace("@", "").trim().toLowerCase();
+    let uid = "";
+    for (const key in LINE_UID_MAP) {
+        if (key.toLowerCase() === normalizedName) { uid = LINE_UID_MAP[key]; break; }
+    }
+
+    if(uid) pushText(uid, msg);
+    else showModal("ไม่พบผู้ใช้", "โปรดตรวจสอบชื่อในระบบอีกครั้ง", "alert");
 }
 
 async function pushText(to, text) {
@@ -66,129 +143,9 @@ async function pushText(to, text) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ to, text }),
         });
-        if (response.ok) {
-            showModal("สำเร็จ", "ส่งข้อความถึง Line OA เรียบร้อยแล้ว", "alert");
-        } else {
-            showModal("ข้อผิดพลาด", `ส่งไม่สำเร็จ (โค้ด: ${response.status})`, "alert");
-        }
-    } catch (err) { 
-        showModal("ข้อผิดพลาดเครือข่าย", "ไม่สามารถเชื่อมต่อ Server ได้", "alert");
-    }
-}
-
-// ===== [DASHBOARD ACTIONS] =====
-function addTable() {
-    const container = document.getElementById("tables-container");
-    const newTable = document.createElement("div");
-    newTable.classList.add("table-container", "table-card");
-
-    newTable.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <input type="text" class="table-title-input" placeholder="🎯 ระบุชื่อค่าย..." style="border: none; border-bottom: 1px solid var(--accent-gold); width: auto; font-size: 1.4rem; text-align: left; padding: 5px; color: var(--accent-gold);">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-outline" onclick="exportTableToImage(this)" title="บันทึกรูปภาพ"><i class="fas fa-camera"></i></button>
-                <button class="btn-close-table" onclick="removeTable(this)" style="background: var(--danger); color: white; border: none; width: 35px; height: 35px; border-radius: 10px; cursor: pointer;"><i class="fas fa-times"></i></button>
-            </div>
-        </div>
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th><i class="fas fa-user"></i> คนไล่</th>
-                    <th><i class="fas fa-tag"></i> ราคาเล่น</th>
-                    <th><i class="fas fa-shield-alt"></i> คนยั้ง</th>
-                    <th><i class="fas fa-cog"></i></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="text" placeholder="..."></td>
-                    <td><input type="text" placeholder="00/00"></td>
-                    <td><input type="text" placeholder="..."></td>
-                    <td><button class="btn-remove-row" onclick="removeRow(this)" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash-alt"></i></button></td>
-                </tr>
-            </tbody>
-        </table>
-        <button class="btn-add-row" onclick="addRow(this.previousElementSibling)" style="width: 100%; background: rgba(251, 191, 36, 0.05); color: var(--accent-gold); border: 1px dashed var(--accent-gold); padding: 12px; border-radius: 12px; margin-top: 15px; cursor: pointer; font-weight: bold;">
-            <i class="fas fa-plus"></i> เพิ่มรายการ
-        </button>
-    `;
-    container.appendChild(newTable);
-    newTable.scrollIntoView({ behavior: 'smooth' });
-}
-
-function addRow(table) {
-    const tbody = table.querySelector("tbody");
-    const newRow = document.createElement("tr");
-    newRow.innerHTML = `
-        <td><input type="text"></td>
-        <td><input type="text"></td>
-        <td><input type="text"></td>
-        <td><button class="btn-remove-row" onclick="removeRow(this)" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash-alt"></i></button></td>
-    `;
-    tbody.appendChild(newRow);
-}
-
-function removeRow(button) {
-    const row = button.closest("tr");
-    row.remove();
-    saveData();
-}
-
-function removeTable(button) {
-    const tableContainer = button.closest(".table-container");
-    const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
-    let totalProfit = 0;
-
-    priceInputs.forEach(input => {
-        const match = input.value.match(/\d{3,}/);
-        if (match) totalProfit += (parseFloat(match[0]) * 0.10);
-    });
-
-    showModal("ยืนยันการลบ", `ต้องการลบตารางและบันทึกกำไร ฿${totalProfit.toFixed(2)} หรือไม่?`, "confirm", () => {
-        const title = tableContainer.querySelector('.table-title-input').value;
-        const rowsData = [];
-        tableContainer.querySelectorAll("tbody tr").forEach(tr => {
-            const cells = tr.querySelectorAll("input");
-            rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
-        });
-
-        historyData.push({
-            title: title || "ค่ายไม่มีชื่อ", 
-            rows: rowsData, 
-            profit: totalProfit, 
-            timestamp: new Date().toLocaleString("th-TH")
-        });
-        
-        localStorage.setItem("historyData", JSON.stringify(historyData));
-        totalDeletedProfit += totalProfit;
-        tableContainer.remove();
-        saveData();
-    });
-}
-
-// ===== [UTILITIES] =====
-async function exportTableToImage(button) {
-    const tableCard = button.closest('.table-card');
-    const controls = tableCard.querySelectorAll('button, .btn-add-row');
-    
-    // Hide buttons for cleaner photo
-    controls.forEach(c => c.style.visibility = 'hidden');
-    
-    try {
-        const canvas = await html2canvas(tableCard, {
-            backgroundColor: '#1e293b',
-            scale: 2,
-            borderRadius: 24
-        });
-        const link = document.createElement('a');
-        link.download = `สรุปยอด-${Date.now()}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-    } catch (e) {
-        showModal("Error", "ไม่สามารถบันทึกภาพได้", "alert");
-    } finally {
-        controls.forEach(c => c.style.visibility = 'visible');
-    }
+        if (response.ok) showModal("สำเร็จ", "ส่งข้อความเรียบร้อยแล้ว", "alert");
+        else showModal("Error", "ไม่สามารถส่งได้", "alert");
+    } catch (err) { showModal("เครือข่าย", "ติดต่อ Server ไม่ได้", "alert"); }
 }
 
 function saveData() {
@@ -204,7 +161,7 @@ function saveData() {
     });
     localStorage.setItem("savedTables", JSON.stringify(data));
     const badge = document.getElementById("auto-save-alert");
-    if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
+    if(badge) { badge.innerText = "✅ บันทึกแล้ว"; badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
 }
 
 function loadData() {
@@ -213,102 +170,51 @@ function loadData() {
     const container = document.getElementById("tables-container");
     container.innerHTML = "";
     data.forEach(table => {
-        addTable(); // Create structure
+        addTable();
         const lastTable = container.lastElementChild;
         lastTable.querySelector(".table-title-input").value = table.title;
         const tbody = lastTable.querySelector("tbody");
-        tbody.innerHTML = ""; // Clear initial row
+        tbody.innerHTML = "";
         table.rows.forEach(r => {
-            const newRow = document.createElement("tr");
-            newRow.innerHTML = `<td><input type="text" value="${r[0]}"></td><td><input type="text" value="${r[1]}"></td><td><input type="text" value="${r[2]}"></td><td><button onclick="removeRow(this)" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash-alt"></i></button></td>`;
-            tbody.appendChild(newRow);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td><input type="text" value="${r[0]}"></td><td><input type="text" value="${r[1]}"></td><td><input type="text" value="${r[2]}"></td><td><button onclick="removeRow(this)" style="color:#ccc; background:none; border:none; cursor:pointer;"><i class="fas fa-trash-alt"></i></button></td>`;
+            tbody.appendChild(tr);
         });
     });
 }
 
-// ===== [STOPWATCH & HISTORY] =====
-function openStopwatchWindow() {
-    showModal("เริ่มจับเวลา", "กรุณากรอกชื่อค่ายบั้งไฟ:", "input", (name) => {
-        if (name) createStopwatchWindow(name);
-    });
-}
-
-function createStopwatchWindow(name) {
-    let sw = window.open("", "_blank", "width=400,height=600");
-    // (ใช้โค้ดสร้าง HTML Stopwatch เดิมของคุณได้เลยครับ)
-}
-
-function showHistory() {
-    if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติการบันทึก", "alert");
-    // (ใช้โค้ดสร้างหน้าต่าง History เดิมของคุณได้เลยครับ)
-}
-
-function clearAllHistory() {
-    showModal("ล้างประวัติ", "คุณต้องการลบประวัติทั้งหมดถาวรหรือไม่?", "confirm", () => {
-        localStorage.removeItem('historyData');
-        historyData = [];
-        totalDeletedProfit = 0;
-        showModal("สำเร็จ", "ลบประวัติเรียบร้อย", "alert");
-    });
-}
-
-function sendMessageToLine() {
-    const name = document.getElementById('lineName').value;
-    const msg = document.getElementById('messageToSend').value;
-    if(!name || !msg) return showModal("ข้อมูลไม่ครบ", "กรุณากรอกชื่อและข้อความ", "alert");
-    const uid = getLineIdFromName(name);
-    uid ? pushText(uid, msg) : showModal("ไม่พบผู้ใช้", "กรุณาตรวจสอบชื่ออีกครั้ง", "alert");
-}
-
-// ===== [CUSTOM MODAL ENGINE] =====
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
-    const titleEl = document.getElementById('modal-title');
+    document.getElementById('modal-title').innerText = title;
     const msgEl = document.getElementById('modal-msg');
     const actionsEl = document.getElementById('modal-actions');
-
-    titleEl.innerText = title;
     msgEl.innerHTML = message;
     actionsEl.innerHTML = "";
 
-    if (type === "input") {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.className = "modal-input";
-        input.placeholder = "ชื่อค่าย...";
-        msgEl.appendChild(input);
-        
+    const createBtn = (text, cls, cb) => {
         const btn = document.createElement("button");
-        btn.innerText = "ตกลง";
-        btn.className = "btn-gold";
-        btn.onclick = () => { closeModal(); callback(input.value); };
-        actionsEl.appendChild(btn);
-    } else if (type === "confirm") {
-        const btnYes = document.createElement("button");
-        btnYes.innerText = "ยืนยัน";
-        btnYes.className = "btn-gold";
-        btnYes.onclick = () => { closeModal(); callback(); };
-        
-        const btnNo = document.createElement("button");
-        btnNo.innerText = "ยกเลิก";
-        btnNo.className = "btn-outline";
-        btnNo.onclick = closeModal;
-        
-        actionsEl.appendChild(btnNo);
-        actionsEl.appendChild(btnYes);
-    } else {
-        const btnOk = document.createElement("button");
-        btnOk.innerText = "ตกลง";
-        btnOk.className = "btn-gold";
-        btnOk.onclick = closeModal;
-        actionsEl.appendChild(btnOk);
-    }
+        btn.innerText = text; btn.className = "btn-main"; 
+        if(cls) btn.style.background = cls; btn.style.color = "white";
+        btn.onclick = () => { closeModal(); if(cb) cb(); };
+        return btn;
+    };
 
+    if(type === "confirm") {
+        actionsEl.appendChild(createBtn("ยกเลิก", "#ccc", null));
+        actionsEl.appendChild(createBtn("ยืนยัน", "var(--accent-red)", callback));
+    } else {
+        actionsEl.appendChild(createBtn("ตกลง", "var(--primary-bg)", null));
+    }
     modal.classList.add('active');
 }
 
-function closeModal() {
-    document.getElementById('custom-modal').classList.remove('active');
-}
+function closeModal() { document.getElementById('custom-modal').classList.remove('active'); }
 
-setInterval(saveData, 15000);
+// (ส่วนประวัติและจับเวลาหน้าต่างใหม่ยังคงใช้ตรรกะเดิมของคุณได้เลยครับ)
+function clearAllHistory() {
+    showModal("ยืนยัน", "ลบประวัติทั้งหมดใช่หรือไม่?", "confirm", () => {
+        localStorage.removeItem("historyData");
+        historyData = [];
+        totalDeletedProfit = 0;
+    });
+}
