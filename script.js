@@ -198,39 +198,61 @@ function clearAllHistory() {
     });
 }
 
+// ฟังก์ชันสร้างการ์ดจับเวลาใหม่ (รองรับหลายค่ายพร้อมกัน)
 function openStopwatchWindow() {
-    showModal("นาฬิกาจับเวลา", "ระบุชื่อค่ายบั้งไฟ:", "input", (name) => {
-        const sw = window.open("", "_blank", "width=450,height=500");
-        sw.document.write(`
-            <html><head><title>Stopwatch - ${name}</title>
-            <style>
-                body { background: #1e3c72; color: white; text-align: center; font-family: 'Sarabun', sans-serif; padding-top: 50px; }
-                .time { font-size: 5rem; font-weight: bold; margin: 30px 0; font-family: monospace; }
-                .btn { padding: 15px 40px; font-size: 1.5rem; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-                .start { background: #2ecc71; color: white; }
-                .stop { background: #e74c3c; color: white; }
-            </style></head>
-            <body>
-                <h2>${name}</h2>
-                <div class="time" id="t">0.000</div>
-                <button onclick="s()" id="b" class="btn start">START</button>
-                <script>
-                    let st=0, ac=0, iv;
-                    function s(){
-                        const btn = document.getElementById('b');
-                        if(!ac){
-                            st=Date.now();
-                            iv=setInterval(()=>{
-                                document.getElementById('t').innerText=((Date.now()-st)/1000).toFixed(3);
-                            },10);
-                            btn.innerText='STOP'; btn.className='btn stop'; ac=1;
-                        }else{
-                            clearInterval(iv);
-                            btn.innerText='START'; btn.className='btn start'; ac=0;
-                        }
-                    }
-                </script>
-            </body></html>
-        `);
+    showModal("เพิ่มนาฬิกาจับเวลา", "ระบุชื่อค่ายบั้งไฟที่ต้องการจับเวลา:", "input", (name) => {
+        if (!name) return;
+        
+        const container = document.getElementById("stopwatch-list");
+        const swCard = document.createElement("div");
+        swCard.className = "table-card"; // ใช้สไตล์เดียวกับตารางเพื่อความสวยงาม
+        swCard.style.textAlign = "center";
+        swCard.style.borderTop = "8px solid #2ecc71"; // ใช้สีเขียวแยกส่วนจับเวลา
+
+        swCard.innerHTML = `
+            <button class="btn-close-table" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+            <h3 style="margin-top:0; color:#1e3c72;">${name}</h3>
+            <div class="sw-display" style="font-size: 3rem; font-weight: bold; font-family: monospace; margin: 15px 0;">0.000</div>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="btn-main sw-start-btn" onclick="toggleSW(this)" style="background:#2ecc71; color:white;">START</button>
+                <button class="btn-main" onclick="resetSW(this)" style="background:#eee; color:#666;">RESET</button>
+            </div>
+        `;
+        container.appendChild(swCard);
     });
+}
+
+// ฟังก์ชันควบคุมการเริ่ม/หยุด
+function toggleSW(btn) {
+    const card = btn.closest(".table-card");
+    const display = card.querySelector(".sw-display");
+    
+    if (btn.innerText === "START") {
+        btn.innerText = "STOP";
+        btn.style.background = "#e74c3c";
+        
+        const startTime = Date.now() - (card.dataset.elapsed || 0);
+        card.dataset.intervalId = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            card.dataset.elapsed = elapsed;
+            display.innerText = (elapsed / 1000).toFixed(3);
+        }, 10);
+    } else {
+        btn.innerText = "START";
+        btn.style.background = "#2ecc71";
+        clearInterval(card.dataset.intervalId);
+    }
+}
+
+// ฟังก์ชันรีเซ็ตเวลา
+function resetSW(btn) {
+    const card = btn.closest(".table-card");
+    const display = card.querySelector(".sw-display");
+    const startBtn = card.querySelector(".sw-start-btn");
+    
+    clearInterval(card.dataset.intervalId);
+    card.dataset.elapsed = 0;
+    display.innerText = "0.000";
+    startBtn.innerText = "START";
+    startBtn.style.background = "#2ecc71";
 }
