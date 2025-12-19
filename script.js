@@ -2,6 +2,7 @@ let historyData = [];
 let totalDeletedProfit = 0;
 let currentModalKeyHandler = null;
 
+// [INITIAL LOAD]
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
     const savedHistory = localStorage.getItem("historyData");
@@ -9,34 +10,36 @@ document.addEventListener("DOMContentLoaded", () => {
         historyData = JSON.parse(savedHistory);
         totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
     }
+    updateDashboardStats(); //
 });
 
-
-// ในไฟล์ script (12).js, เพิ่มโค้ดส่วนนี้
-
-// ===== [REAL-TIME LOCAL STORAGE SYNC] =====
+// [REAL-TIME SYNC]
 window.addEventListener('storage', (event) => {
-    // ตรวจสอบว่าคีย์ที่เปลี่ยนคือ 'savedTables' (ข้อมูลตาราง) หรือไม่
     if (event.key === 'savedTables') {
-        // โหลดข้อมูลใหม่ทันที
         loadData(); 
-        
-        // (ทางเลือก) หากต้องการแจ้งเตือนผู้ใช้
-        const badge = document.getElementById("auto-save-alert");
-        if(badge) {
-            badge.innerText = "🔄 ข้อมูลอัปเดตจากหน้าต่างอื่นแล้ว";
-            badge.style.opacity = "1"; 
-            setTimeout(() => {
-                badge.style.opacity = "0";
-                badge.innerText = "✅ บันทึกข้อมูลอัตโนมัติแล้ว"; // คืนค่าข้อความเดิม
-            }, 3000); 
-        }
-        console.log("Data loaded from other window's storage event.");
+        showToast("🔄 อัปเดตข้อมูลจากหน้าต่างอื่น");
     }
 });
 
-// ===== [LINE CONFIG] =====
-const CHANNEL_ACCESS_TOKEN = "JI9s4rEtMYgnaeuz4hCwkQxAfCXU6Wpm+J9GZcJ4HV2Y93Vdxt+odXRrhMhKxPRIt9e2UqmYskLOixXKg2qaqMNAIastgvza7RfaTgiAa+Izo7syjq3VVgDPDybLSxxjnYpFGcd9W/y13tWWSdQhaQdB04t89/1O/w1cDnyilFU=";
+// [UI UPDATER]
+function updateDashboardStats() {
+    const profitEl = document.getElementById("total-profit-display");
+    const countEl = document.getElementById("active-tables-count");
+    
+    if(profitEl) profitEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    if(countEl) countEl.innerText = document.querySelectorAll(".table-container").length;
+}
+
+function showToast(text) {
+    const badge = document.getElementById("auto-save-alert");
+    if(badge) {
+        badge.innerHTML = `<i class="fas fa-check-circle"></i> ${text}`;
+        badge.style.opacity = "1";
+        setTimeout(() => badge.style.opacity = "0", 3000);
+    }
+}
+
+// [LINE CONFIG]
 const LINE_UID_MAP = {
     "Bungnot._": "U255dd67c1fef32fb0eae127149c7cadc",
     "BuK Do": "U163186c5013c8f1e4820291b7b1d86bd",
@@ -61,21 +64,15 @@ const LINE_UID_MAP = {
     "🥰แอดมิน ตัวกลม🚀": "Ufe84b76808464511da99d60b7c7449b8"
 };
 
-// **[แก้ไข]** ทำให้การค้นหาชื่อ Line ID เป็นแบบ Case-Insensitive และตัดช่องว่าง/เครื่องหมาย @
 function getLineIdFromName(nameRaw) {
     if (!nameRaw) return "";
     const normalizedName = nameRaw.replace("@", "").trim().toLowerCase(); 
-    
-    // ค้นหาใน MAP โดยแปลง Key ทุกตัวให้เป็นตัวพิมพ์เล็กก่อนเปรียบเทียบ
     for (const key in LINE_UID_MAP) {
-        if (key.toLowerCase() === normalizedName) {
-            return LINE_UID_MAP[key];
-        }
+        if (key.toLowerCase() === normalizedName) return LINE_UID_MAP[key];
     }
     return "";
 }
 
-// **[แก้ไข]** เพิ่มการตรวจสอบ Response และการจัดการ Error จาก Server
 async function pushText(to, text) {
     try {
         const response = await fetch("http://102.129.229.219:5000/send_line", {
@@ -83,22 +80,14 @@ async function pushText(to, text) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ to, text }),
         });
-        
-        if (response.ok) {
-            showModal("สำเร็จ", "ส่งข้อความถึง Line OA เรียบร้อยแล้ว", "alert");
-        } else {
-            // หาก Server ตอบกลับมาด้วย Error Code (เช่น 4xx, 5xx)
-            showModal("ข้อผิดพลาดการส่ง", `ส่งไม่สำเร็จ (โค้ด: ${response.status})\nโปรดตรวจสอบ Server 102.129.229.219:5000`, "alert");
-        }
-
+        if (response.ok) showModal("สำเร็จ", "ส่งข้อความเรียบร้อยแล้ว", "alert");
+        else showModal("Error", `โค้ด: ${response.status}`, "alert");
     } catch (err) { 
-        // หากเกิด Error ระดับ Network (เช่น CORS, Connection Refused)
-        console.error("Error:", err); 
-        showModal("ข้อผิดพลาดเครือข่าย", "ไม่สามารถเชื่อมต่อกับ Server ภายนอกได้\nกรุณาตรวจสอบการเชื่อมต่อหรือ Server IP", "alert");
+        showModal("ข้อผิดพลาด", "เชื่อมต่อ Server ไม่ได้", "alert");
     }
 }
 
-// ===== CUSTOM MODAL LOGIC (Keyboard Support) - UPDATED TO SUPPORT INPUT FIELD =====
+// [MODAL SYSTEM]
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('modal-title');
@@ -106,506 +95,208 @@ function showModal(title, message, type = "alert", callback = null) {
     const actionsEl = document.getElementById('modal-actions');
     const iconEl = document.getElementById('modal-icon');
 
-    // ลบการจัดการคีย์บอร์ดเดิมออกก่อน
-    if (currentModalKeyHandler) {
-        document.removeEventListener("keydown", currentModalKeyHandler);
-    }
+    if (currentModalKeyHandler) document.removeEventListener("keydown", currentModalKeyHandler);
     
     titleEl.innerText = title;
-    msgEl.innerHTML = ""; // เคลียร์ข้อความเดิมเพื่อรองรับการใส่ Input
+    msgEl.innerHTML = ""; 
     actionsEl.innerHTML = ""; 
 
     if (type === "input") {
-        iconEl.className = "fas fa-user modal-icon icon-warn";
-        
-        // แสดงข้อความนำ
-        const promptText = document.createElement("div");
-        promptText.innerText = message;
-        msgEl.appendChild(promptText);
-
-        // สร้างช่อง Input
+        iconEl.className = "fas fa-edit modal-icon";
+        iconEl.style.color = "#3498db";
         const inputField = document.createElement("input");
         inputField.type = "text";
-        inputField.id = "modal-input-field";
-        inputField.placeholder = "ชื่อค่าย";
+        inputField.placeholder = message;
         inputField.className = "modal-input";
+        inputField.style.width = "100%";
         msgEl.appendChild(inputField);
 
         const btnStart = document.createElement("button");
         btnStart.className = "btn-modal btn-confirm";
-        btnStart.innerText = "เริ่มจับเวลา";
         btnStart.style.background = "#2ecc71";
-        btnStart.style.boxShadow = "0 5px 15px rgba(46, 204, 113, 0.4)";
+        btnStart.innerText = "ตกลง";
         btnStart.onclick = () => { closeModal(); if (callback) callback(inputField.value); };
 
-        const btnNo = document.createElement("button");
-        btnNo.className = "btn-modal btn-cancel";
-        btnNo.innerText = "ยกเลิก";
-        btnNo.onclick = closeModal;
-
-        actionsEl.appendChild(btnNo);
         actionsEl.appendChild(btnStart);
-        
-        setTimeout(() => { 
-            inputField.focus(); 
-            // Enter key submits the input
-            inputField.addEventListener('keydown', (e) => {
-                if (e.key === "Enter") btnStart.click();
-            }); 
-        }, 100);
-
-        currentModalKeyHandler = (e) => {
-            if (e.key === "Escape") closeModal();
-        };
-
+        setTimeout(() => inputField.focus(), 100);
     } else if (type === "confirm") {
-        iconEl.className = "fas fa-question-circle modal-icon icon-warn";
+        iconEl.className = "fas fa-question-circle modal-icon";
+        iconEl.style.color = "#f39c12";
         msgEl.innerText = message;
-
         const btnYes = document.createElement("button");
         btnYes.className = "btn-modal btn-confirm";
-        btnYes.innerText = "ยืนยันลบ";
+        btnYes.innerText = "ยืนยัน";
         btnYes.onclick = () => { closeModal(); if (callback) callback(); };
-
         const btnNo = document.createElement("button");
         btnNo.className = "btn-modal btn-cancel";
         btnNo.innerText = "ยกเลิก";
         btnNo.onclick = closeModal;
-
         actionsEl.appendChild(btnNo);
         actionsEl.appendChild(btnYes);
-        setTimeout(() => btnYes.focus(), 100);
-
-        currentModalKeyHandler = (e) => {
-            if (e.key === "Escape") closeModal();
-            else if ((e.key === "Enter" || e.key === " ") && document.activeElement === btnYes) { // **[ปรับปรุง]** ให้ Enter ทำงานเฉพาะบนปุ่มที่ถูกโฟกัส
-                e.preventDefault();
-                btnYes.click();
-            } else if ((e.key === "Enter" || e.key === " ") && document.activeElement === btnNo) {
-                e.preventDefault();
-                btnNo.click();
-            }
-        };
-
-    } else { // type === "alert"
-        iconEl.className = "fas fa-info-circle modal-icon icon-warn";
+    } else {
+        iconEl.className = "fas fa-info-circle modal-icon";
+        iconEl.style.color = "#3498db";
         msgEl.innerText = message;
-
         const btnOk = document.createElement("button");
         btnOk.className = "btn-modal btn-cancel";
         btnOk.innerText = "ตกลง";
-        btnOk.style.background = "#3498db";
-        btnOk.style.color = "white";
         btnOk.onclick = closeModal;
         actionsEl.appendChild(btnOk);
-        setTimeout(() => btnOk.focus(), 100);
-
-        currentModalKeyHandler = (e) => {
-            if (e.key === "Escape" || e.key === "Enter" || e.key === " ") closeModal();
-        };
     }
     
-    document.addEventListener("keydown", currentModalKeyHandler);
     modal.classList.add('active');
+    currentModalKeyHandler = (e) => { if (e.key === "Escape") closeModal(); };
+    document.addEventListener("keydown", currentModalKeyHandler);
 }
 
 function closeModal() {
     document.getElementById('custom-modal').classList.remove('active');
-    if (currentModalKeyHandler) {
-        document.removeEventListener("keydown", currentModalKeyHandler);
-        currentModalKeyHandler = null;
-    }
 }
 
-// ===== Function หลัก =====
-function addRow(table) {
-    const tbody = table.querySelector("tbody");
-    const newRow = document.createElement("tr");
-    newRow.innerHTML = `
-        <td><input type="text" placeholder=""></td>
-        <td><input type="text" placeholder=""></td>
-        <td><input type="text" placeholder=""></td>
-        <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
-    `;
-    tbody.appendChild(newRow);
-}
-
+// [CORE FUNCTIONS]
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
     newTable.classList.add("table-container", "table-card");
-
     newTable.innerHTML = `
-        <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
-        <div class="card-header">
-            <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่ายที่นี่...">
+        <button class="btn-close-table" onclick="removeTable(this)" style="position:absolute; top:10px; right:10px; border:none; background:none; cursor:pointer; color:#e74c3c;"><i class="fas fa-times-circle fa-lg"></i></button>
+        <div class="card-header" style="margin-bottom:15px;">
+            <input type="text" class="table-title-input" placeholder="ระบุชื่อค่าย...">
         </div>
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th class="th-green">รายชื่อคนไล่</th>
-                    <th class="th-orange">ราคาเล่น</th>
-                    <th class="th-red">รายชื่อคนยั้ง</th>
-                    <th class="th-purple">จัดการ</th>
+                    <th class="th-green">ไล่</th>
+                    <th class="th-orange">ราคา</th>
+                    <th class="th-red">ยั้ง</th>
+                    <th class="th-purple">ลบ</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder=""></td>
-                    <td><input type="text" placeholder=""></td>
-                    <td><input type="text" placeholder=""></td>
-                    <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><button onclick="removeRow(this)" style="border:none; background:none; color:#e67e22; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
                 </tr>
             </tbody>
         </table>
-        <button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button>
+        <button class="btn-add-row" onclick="addRow(this.previousElementSibling)" style="width:100%; padding:10px; border:1px dashed #ccc; background:#f9f9f9; cursor:pointer; border-radius:10px;">+ เพิ่มแถว</button>
     `;
     container.appendChild(newTable);
-    newTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    updateDashboardStats();
 }
 
-function removeTable(button) {
-    const tableContainer = button.parentElement;
-    const inputs = tableContainer.querySelectorAll('input');
-    if (!Array.from(inputs).some(i => i.value.trim() !== "")) {
-        showModal("แจ้งเตือน", "ต้องกรอกข้อมูลก่อนจึงลบได้", "alert");
-        return;
-    }
-
-    const priceInputs = tableContainer.querySelectorAll("td:nth-child(2) input");
-    let totalProfit = 0;
-    priceInputs.forEach(input => {
-        const match = input.value.match(/\d{3,}/);
-        if (match) totalProfit += (parseFloat(match[0]) * 0.10);
-    });
-
-    showModal("ยืนยันการลบ", `ต้องการลบตารางนี้ใช่ไหม?\n(กำไร: ฿${totalProfit.toFixed(2)})`, "confirm", () => {
-        const title = tableContainer.querySelector('.table-title-input').value;
-        const rowsData = [];
-        tableContainer.querySelectorAll("tbody tr").forEach(tr => {
-            const cells = tr.querySelectorAll("input");
-            rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
-        });
-
-        historyData.push({
-            title: title, rows: rowsData, profit: totalProfit, timestamp: new Date().toLocaleString("th-TH")
-        });
-        
-        localStorage.setItem("historyData", JSON.stringify(historyData));
-        totalDeletedProfit += totalProfit;
-        
-        tableContainer.style.transition = "opacity 0.5s";
-        tableContainer.style.opacity = '0';
-        setTimeout(() => { tableContainer.remove(); saveData(); }, 500);
-    });
+function addRow(table) {
+    const tbody = table.querySelector("tbody");
+    const row = document.createElement("tr");
+    row.innerHTML = `<td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><button onclick="removeRow(this)" style="border:none; background:none; color:#e67e22; cursor:pointer;"><i class="fas fa-trash"></i></button></td>`;
+    tbody.appendChild(row);
+    row.querySelector("input").focus();
 }
 
-function removeRow(button) {
-    const row = button.parentElement.parentElement;
-    if (!Array.from(row.querySelectorAll('input')).some(i => i.value.trim() !== "")) {
-        showModal("แจ้งเตือน", "ต้องกรอกข้อมูลก่อนลบ", "alert");
-        return;
-    }
-    row.remove();
+function removeRow(btn) {
+    btn.closest("tr").remove();
     saveData();
 }
 
-// ===== ฟังก์ชันล้างประวัติจากหน้าหลัก =====
-function clearAllHistory() {
-    if(historyData.length === 0) {
-        showModal("แจ้งเตือน", "ไม่มีประวัติให้ลบ", "alert");
-        return;
-    }
+function removeTable(btn) {
+    const card = btn.closest(".table-card");
+    const title = card.querySelector(".table-title-input").value;
     
-    showModal("ยืนยันการลบ", "คุณต้องการลบประวัติการคำนวณทั้งหมดใช่หรือไม่?\n(ข้อมูลจะหายไปถาวร)", "confirm", () => {
-        localStorage.removeItem('historyData');
-        historyData = [];
-        totalDeletedProfit = 0;
-        showModal("สำเร็จ", "ล้างประวัติเรียบร้อยแล้ว", "alert");
+    // คำนวณกำไร
+    let profit = 0;
+    card.querySelectorAll("tbody tr").forEach(tr => {
+        const val = tr.querySelectorAll("input")[1].value.replace(/[Oo]/g, '0');
+        const match = val.match(/\d{3,}/);
+        if(match) profit += (parseFloat(match[0]) * 0.10);
     });
-}
 
-// ===== แสดงประวัติ (Text Mode) =====
-function showHistory() {
-    if (historyData.length === 0) return showModal("แจ้งเตือน", "ยังไม่มีประวัติ", "alert");
-    
-    let newWindow = window.open("", "History", "width=1000,height=800");
-    
-    let content = `
-        <html>
-        <head>
-            <title>ประวัติการลบ (Text Mode)</title>
-            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-            <style>
-                body { font-family: 'Sarabun', sans-serif; padding: 20px; background: #f0f2f5; }
-                .table-card { 
-                    background: white; border-radius: 20px; padding: 25px; margin-bottom: 30px; 
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 900px; margin-left: auto; margin-right: auto;
-                }
-                .header-title { font-size: 1.5rem; font-weight: bold; color: #1e3c72; text-align: center; background: #f0f4f8; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
-                table { width: 100%; border-collapse: separate; border-spacing: 0; }
-                th { padding: 12px; color: white; font-weight: 600; text-align: center; }
-                td { padding: 10px; border-bottom: 1px solid #eee; }
-                .th-green { background: linear-gradient(45deg, #11998e, #38ef7d); border-radius: 10px 0 0 0; }
-                .th-orange { background: linear-gradient(45deg, #f2994a, #f2c94c); }
-                .th-red { background: linear-gradient(45deg, #eb3349, #f45c43); border-radius: 0 10px 0 0; }
-                input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; text-align: center; background: white; font-family: 'Sarabun'; font-size: 1rem; color: #333; }
-                .timestamp { font-size: 0.8rem; color: #888; text-align: right; margin-top: 10px; }
-                .profit-tag { font-weight: bold; color: green; float: left; }
-                h2 { text-align: center; color: #1e3c72; }
-                .summary { text-align: center; font-size: 1.2rem; font-weight: bold; color: green; margin-bottom: 30px; }
-            </style>
-        </head>
-        <body>
-            <h2>📜 ประวัติการลบตาราง (ค้นหาได้)</h2>
-            <div class="summary">💰 กำไรรวมทั้งหมด: ฿${totalDeletedProfit.toFixed(2)}</div>
-    `;
-
-    historyData.forEach((h) => {
-        let rowsHtml = "";
-        h.rows.forEach(r => {
-            rowsHtml += `<tr><td><input type="text" value="${r[0]}" readonly></td><td><input type="text" value="${r[1]}" readonly></td><td><input type="text" value="${r[2]}" readonly></td></tr>`;
+    showModal("ลบตาราง", `ยืนยันการลบ? (กำไร: ฿${profit.toFixed(2)})`, "confirm", () => {
+        const rows = [];
+        card.querySelectorAll("tbody tr").forEach(tr => {
+            const ins = tr.querySelectorAll("input");
+            rows.push([ins[0].value, ins[1].value, ins[2].value]);
         });
-        content += `<div class="table-card"><div class="header-title">${h.title || "(ไม่มีชื่อค่าย)"}</div><table><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="timestamp"><span class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</span>ลบเมื่อ: ${h.timestamp}</div></div>`;
+        
+        historyData.push({ title, rows, profit, timestamp: new Date().toLocaleString("th-TH") });
+        localStorage.setItem("historyData", JSON.stringify(historyData));
+        totalDeletedProfit += profit;
+        
+        card.remove();
+        saveData();
+        updateDashboardStats();
+        showToast("ลบและบันทึกกำไรแล้ว");
     });
-
-    content += "</body></html>";
-    newWindow.document.write(content);
-    newWindow.document.close();
 }
 
 function saveData() {
     const data = [];
-    document.querySelectorAll(".table-container").forEach(table => {
-        const title = table.querySelector(".table-title-input").value;
+    document.querySelectorAll(".table-card").forEach(card => {
+        const title = card.querySelector(".table-title-input").value;
         const rows = [];
-        table.querySelectorAll("tbody tr").forEach(r => {
-            const cells = r.querySelectorAll("input");
-            rows.push([cells[0]?.value||"", cells[1]?.value||"", cells[2]?.value||""]);
+        card.querySelectorAll("tbody tr").forEach(tr => {
+            const ins = tr.querySelectorAll("input");
+            rows.push([ins[0].value, ins[1].value, ins[2].value]);
         });
         data.push({ title, rows });
     });
     localStorage.setItem("savedTables", JSON.stringify(data));
-    const badge = document.getElementById("auto-save-alert");
-    if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
 }
 
 function loadData() {
-    const data = JSON.parse(localStorage.getItem("savedTables"));
-    if (!data) return;
+    const data = JSON.parse(localStorage.getItem("savedTables") || "[]");
     const container = document.getElementById("tables-container");
     container.innerHTML = "";
-    data.forEach(table => {
-        const newTable = document.createElement("div");
-        newTable.classList.add("table-container", "table-card");
-        let rowsHtml = "";
-        table.rows.forEach(r => {
-            rowsHtml += `<tr><td><input type="text" value="${r[0]}" placeholder="ชื่อคนไล่"></td><td><input type="text" value="${r[1]}" placeholder="ราคา"></td><td><input type="text" value="${r[2]}" placeholder="ชื่อคนยั้ง"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td></tr>`;
+    data.forEach(item => {
+        addTable();
+        const lastCard = container.lastElementChild;
+        lastCard.querySelector(".table-title-input").value = item.title;
+        const tbody = lastCard.querySelector("tbody");
+        tbody.innerHTML = "";
+        item.rows.forEach(r => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td><input type="text" value="${r[0]}"></td><td><input type="text" value="${r[1]}"></td><td><input type="text" value="${r[2]}"></td><td><button onclick="removeRow(this)" style="border:none; background:none; color:#e67e22; cursor:pointer;"><i class="fas fa-trash"></i></button></td>`;
+            tbody.appendChild(row);
         });
-        newTable.innerHTML = `<button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button><div class="card-header"><input type="text" class="table-title-input" value="${table.title}" placeholder="ใส่ชื่อค่ายที่นี่..."></div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rowsHtml}</tbody></table><button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button>`;
-        container.appendChild(newTable);
     });
 }
 
-document.addEventListener("keydown", e => { if (e.ctrlKey && e.key.toLowerCase() === "u") { e.preventDefault(); showModal("เตือน", "ไม่อนุญาตให้ดูซอร์สโค้ด", "alert"); }});
-setInterval(() => { saveData(); console.log("Auto saved"); }, 15000);
-
+// [OTHERS]
 function sendMessageToLine() {
     const name = document.getElementById('lineName').value;
     const msg = document.getElementById('messageToSend').value;
-    if(!name || !msg) return showModal("ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบ", "alert");
     const uid = getLineIdFromName(name);
-    uid ? pushText(uid, msg) : showModal("ไม่พบผู้ใช้", "ไม่พบรายชื่อในระบบ\nโปรดตรวจสอบการสะกดชื่อให้ถูกต้อง", "alert"); // **[ปรับปรุง]** เพิ่มข้อความแนะนำ
+    uid ? pushText(uid, msg) : showModal("ไม่พบผู้ใช้", "กรุณาเช็คชื่อให้ตรงกับระบบ", "alert");
 }
 
-
-// ===== [ANALOG STOPWATCH LOGIC] - โค้ดที่เพิ่มใหม่และแก้ไขแล้ว =====
-
-function openStopwatchWindow() {
-    // ใช้ showModal เพื่อให้ผู้ใช้กรอกชื่อ
-    showModal("เริ่มจับเวลา", "กรุณากรอกชื่อสำหรับรอบการจับเวลานี้:", "input", (name) => {
-        if (name && name.trim() !== "") {
-            createStopwatchWindow(name.trim());
-        } else {
-            // หากผู้ใช้ไม่ได้กรอกชื่อ ให้แจ้งเตือนและเรียก Modal ป้อนค่าขึ้นมาใหม่
-            showModal("ข้อผิดพลาด", "กรุณากรอกชื่อก่อนเริ่มจับเวลา", "alert");
-        }
+function clearAllHistory() {
+    showModal("ล้างประวัติ", "ต้องการลบประวัติถาวรหรือไม่?", "confirm", () => {
+        localStorage.removeItem("historyData");
+        historyData = [];
+        totalDeletedProfit = 0;
+        updateDashboardStats();
+        showToast("ล้างประวัติแล้ว");
     });
 }
 
-function createStopwatchWindow(name) {
-    let newWindow = window.open("", "Stopwatch", "width=400,height=650");
-    
-    // สร้างโค้ด JavaScript ที่สมบูรณ์แบบสำหรับ New Window
-    const newWindowScript = `
-        let startTime = 0;
-        let elapsed = 0;
-        let timerInterval = null;
-
-        const updateClock = () => {
-            elapsed = Date.now() - startTime;
-            
-            // --- การคำนวณและการแสดงผลวินาทีเท่านั้น ---
-            const totalSeconds = elapsed / 1000;
-            const currentSecondOnClock = totalSeconds % 60; // เข็มยังคงวนที่ 60s
-            const secondDegrees = currentSecondOnClock * 6; 
-
-            document.getElementById('sec-hand').style.transform = \`rotate(\${secondDegrees}deg)\`;
-            
-            // แสดงผลเฉพาะ SECONDS และ MILLISECONDS: SS.ms
-            const ms = String(elapsed % 1000).padStart(3, '0');
-            const secs = String(Math.floor(elapsed / 1000)).padStart(2, '0');
-            
-            // แสดงผลเป็น SS.ms (ตัดนาทีออก)
-            document.getElementById('digital-display').innerText = \`\${secs}.\${ms}\`;
-        };
-
-        const startTimer = () => {
-            if (timerInterval) return;
-            startTime = Date.now() - elapsed; 
-            
-            timerInterval = setInterval(updateClock, 10);
-            document.getElementById('start-btn').disabled = true;
-            document.getElementById('pause-btn').disabled = false;
-            document.getElementById('reset-btn').disabled = false;
-        };
-
-        const pauseTimer = () => {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            document.getElementById('start-btn').disabled = false;
-            document.getElementById('pause-btn').disabled = true;
-        };
-
-        const resetTimer = () => {
-            pauseTimer();
-            elapsed = 0;
-            document.getElementById('sec-hand').style.transform = \`rotate(0deg)\`;
-            // แก้ไขการแสดงผลเริ่มต้นเป็น 00.000
-            document.getElementById('digital-display').innerText = \`00.000\`; 
-            document.getElementById('start-btn').disabled = false;
-            document.getElementById('reset-btn').disabled = true;
-        };
-
-        // กำหนด Event Listeners
-        document.getElementById('start-btn').onclick = startTimer;
-        document.getElementById('pause-btn').onclick = pauseTimer;
-        document.getElementById('reset-btn').onclick = resetTimer;
-
-        // จัดการเมื่อปิดหน้าต่าง
-        window.onbeforeunload = function() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
-        };
-
-        // Keyboard shortcuts (Space to Start/Pause, R to Reset)
-        document.addEventListener('keydown', (e) => {
-            if (e.key === ' ') { 
-                e.preventDefault(); 
-                if (timerInterval) { 
-                    pauseTimer(); 
-                } else { 
-                    startTimer(); 
-                } 
-            } else if (e.key === 'r' || e.key === 'R') {
-                e.preventDefault();
-                resetTimer();
-            }
-        });
-    `;
-
-    // สร้างเนื้อหา HTML สำหรับหน้าต่างนาฬิกาจับเวลา
-    let content = `
-        <html>
-        <head>
-            <title>นาฬิกาจับเวลา: ${name}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-            <style>
-                body { 
-                    font-family: 'Sarabun', sans-serif; 
-                    display: flex; flex-direction: column; align-items: center; 
-                    justify-content: flex-start; padding: 20px; margin: 0;
-                    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-                    color: white;
-                }
-                .name-display { font-size: 1.1rem; margin-bottom: 20px; font-weight: 600; color: #f2c94c; }
-                .digital-display { 
-                    font-family: monospace; font-size: 2.5rem; margin-bottom: 30px; 
-                    background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 10px;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-                }
-                
-                /* Analog Clock Styling */
-                .clock {
-                    width: 250px; height: 250px; border: 15px solid #fff; border-radius: 50%;
-                    position: relative; margin-bottom: 40px; background: #333;
-                    box-shadow: 0 0 0 4px #000, inset 0 0 0 3px #e74c3c;
-                }
-                .center-dot {
-                    width: 15px; height: 15px; background: #e74c3c; border-radius: 50%;
-                    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                    z-index: 10;
-                }
-                .hand {
-                    position: absolute; left: 50%; bottom: 50%;
-                    transform-origin: bottom; 
-                    transition: transform 0.1s linear;
-                }
-                #sec-hand {
-                    width: 4px; height: 110px; background: #e74c3c;
-                    border-radius: 2px; transform: rotate(0deg); 
-                    margin-left: -2px; 
-                }
-                
-                /* Clock Marks */
-                .mark { position: absolute; width: 100%; height: 100%; }
-                .mark:before {
-                    content: ''; position: absolute; top: 0; left: 50%;
-                    transform: translateX(-50%); width: 2px; height: 10px;
-                    background: rgba(255, 255, 255, 0.7);
-                }
-                ${Array.from({length: 12}, (_, i) => `.mark:nth-child(${i * 5 + 1}):before { height: 15px; background: white; width: 3px; }`).join('')}
-
-                .actions { display: flex; gap: 15px; }
-                .btn-sw { 
-                    padding: 10px 20px; border: none; border-radius: 30px; font-weight: 600;
-                    cursor: pointer; transition: 0.2s; font-size: 1rem;
-                }
-                #start-btn { background: #2ecc71; color: white; }
-                #start-btn:hover:not(:disabled) { background: #27ae60; transform: translateY(-2px); }
-                #pause-btn { background: #f39c12; color: white; }
-                #pause-btn:hover:not(:disabled) { background: #e67e22; transform: translateY(-2px); }
-                #reset-btn { background: #e74c3c; color: white; }
-                #reset-btn:hover:not(:disabled) { background: #c0392b; transform: translateY(-2px); }
-                .btn-sw:disabled { opacity: 0.5; cursor: not-allowed; }
-            </style>
-        </head>
-        <body>
-            <div class="name-display"><i class="fas fa-user"></i> ค่าย: **${name}**</div>
-            <div id="digital-display" class="digital-display">00.000</div> 
-            
-            <div class="clock">
-                <div id="sec-hand" class="hand"></div>
-                <div class="center-dot"></div>
-                ${Array.from({length: 60}, (_, i) => `<div class="mark" style="transform: rotate(${i * 6}deg);"></div>`).join('')}
-            </div>
-
-            <div class="actions">
-                <button id="start-btn" class="btn-sw"><i class="fas fa-play"></i> เริ่ม</button>
-                <button id="pause-btn" class="btn-sw" disabled><i class="fas fa-pause"></i> หยุด</button>
-                <button id="reset-btn" class="btn-sw" disabled><i class="fas fa-sync-alt"></i> รีเซ็ต</button>
-            </div>
-
-            <script>
-                ${newWindowScript}
-            </script>
-        </body>
-        </html>
-    `;
-
-    newWindow.document.write(content);
-    newWindow.document.close();
-    newWindow.focus();
+function showHistory() {
+    if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติ", "alert");
+    let win = window.open("", "History", "width=800,height=600");
+    let html = `<html><head><title>ประวัติ</title><style>body{font-family:Sarabun;padding:20px} .card{border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:10px;}</style></head><body><h2>ประวัติกำไรรวม: ฿${totalDeletedProfit.toFixed(2)}</h2>`;
+    historyData.forEach(h => {
+        html += `<div class="card"><b>${h.title}</b> (กำไร: ฿${h.profit.toFixed(2)})<br><small>${h.timestamp}</small></div>`;
+    });
+    html += `</body></html>`;
+    win.document.write(html);
 }
+
+function openStopwatchWindow() {
+    showModal("เริ่มจับเวลา", "ระบุชื่อค่าย:", "input", (name) => {
+        if (!name) return;
+        let sw = window.open("", "_blank", "width=400,height=500");
+        sw.document.write(`<html><head><title>Timer: ${name}</title><style>body{background:#2c3e50;color:white;text-align:center;font-family:sans-serif;padding-top:50px} #display{font-size:4rem;margin:20px}</style></head><body><h2>${name}</h2><div id="display">0.000</div><button id="btn" style="padding:15px 30px; font-size:1.2rem; border-radius:50px; border:none; cursor:pointer; background:#2ecc71; color:white;">START</button><script>let start=0, active=false, interval; const d=document.getElementById("display"), b=document.getElementById("btn"); b.onclick=()=>{ if(!active){ start=Date.now(); interval=setInterval(()=>{ d.innerText=((Date.now()-start)/1000).toFixed(3) },10); b.innerText="STOP"; b.style.background="#e74c3c"; active=true; } else { clearInterval(interval); b.innerText="RESET"; b.style.background="#3498db"; b.onclick=()=>location.reload(); } };</script></body></html>`);
+    });
+}
+
+setInterval(saveData, 10000);
