@@ -14,10 +14,12 @@
         :root {
             --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             --glass-bg: rgba(255, 255, 255, 0.95);
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             --accent-green: #2ecc71;
             --accent-orange: #f39c12;
             --accent-red: #e74c3c;
+            --accent-purple: #9b59b6;
+            --dark-blue: #1e3c72;
         }
 
         body {
@@ -30,61 +32,85 @@
             color: #333;
         }
 
-        /* --- Header & Stats --- */
-        .header-container { text-align: center; margin-bottom: 25px; color: white; }
-        .profile-group img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin: 0 5px; }
-        h2 { font-weight: 700; font-size: 2.2rem; margin: 10px 0; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        /* --- Header --- */
+        .header-container { text-align: center; margin-bottom: 30px; color: white; }
+        .profile-group img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin: 0 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h2 { font-weight: 700; font-size: 2.2rem; margin: 15px 0; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
 
-        .stats-overview { max-width: 1250px; margin: 0 auto 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+        /* --- Stats --- */
+        .stats-overview { max-width: 1100px; margin: 0 auto 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
         .stat-card { background: var(--glass-bg); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); }
-        .stat-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
-        .stat-info .label { font-size: 0.85rem; color: #7f8c8d; }
-        .stat-info .value { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
+        .stat-icon { width: 55px; height: 55px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: white; }
+        .stat-info .label { font-size: 0.9rem; color: #7f8c8d; }
+        .stat-info .value { font-size: 1.6rem; font-weight: bold; color: #2c3e50; }
 
-        /* --- Action Bar Buttons --- */
-        .action-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
-        .btn-main { background: white; color: #1e3c72; border: none; padding: 12px 22px; border-radius: 50px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; display: flex; align-items: center; gap: 8px; }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+        /* --- Action Bar --- */
+        .action-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; }
+        .btn-main { background: white; color: var(--dark-blue); border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
 
-        /* --- Table Card & Premium UI Buttons --- */
-        #tables-container { max-width: 1250px; margin: 0 auto; }
-        .table-card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; border-left: 6px solid #1e3c72; }
-
-        .btn-close-table {
-            position: absolute; top: -15px; left: -15px; background: #333; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); transition: 0.3s; z-index: 10;
+        /* --- Table Card --- */
+        #tables-container { max-width: 1100px; margin: 0 auto; }
+        .table-card { 
+            background: white; 
+            border-radius: 24px; 
+            padding: 30px; 
+            margin-bottom: 40px; 
+            box-shadow: var(--shadow); 
+            position: relative; 
+            border-top: 8px solid var(--dark-blue);
         }
-        .btn-close-table:hover { transform: scale(1.1) rotate(90deg); background: var(--accent-red); }
 
-        .table-title-input { font-size: 1.3rem; font-weight: bold; color: #1e3c72; text-align: center; border: none; background: #f8fafc; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 20px; }
+        /* ปุ่ม X ย้ายมาไว้มุมบนขวาด้านใน */
+        .btn-close-table {
+            position: absolute; top: 15px; right: 15px; background: #f1f1f1; color: #999; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        .btn-close-table:hover { background: var(--accent-red); color: white; transform: rotate(90deg); }
+
+        .table-title-input { 
+            font-size: 1.4rem; font-weight: bold; color: var(--dark-blue); text-align: center; border: 2px solid #eee; background: #fff; padding: 12px; border-radius: 15px; width: 80%; display: block; margin: 0 auto 25px; outline: none; transition: 0.3s;
+        }
+        .table-title-input:focus { border-color: var(--dark-blue); box-shadow: 0 0 10px rgba(30, 60, 114, 0.1); }
         
-        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        .custom-table th { padding: 12px; color: white; border-radius: 12px; font-size: 0.9rem; text-transform: uppercase; }
+        /* Table Style */
+        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .custom-table th { padding: 15px 10px; color: white; font-size: 0.95rem; font-weight: 600; letter-spacing: 1px; }
+        .custom-table th:first-child { border-radius: 12px 0 0 12px; }
+        .custom-table th:last-child { border-radius: 0 12px 12px 0; }
+
         .th-green { background: var(--accent-green); }
         .th-orange { background: var(--accent-orange); }
         .th-red { background: var(--accent-red); }
-        .th-purple { background: #9b59b6; }
+        .th-purple { background: var(--accent-purple); }
 
-        .custom-table td { padding: 5px; }
-        .custom-table input { width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 10px; text-align: center; }
-
-        .btn-remove-row-premium {
-            background: #444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; margin: 0 auto;
+        .custom-table td { padding: 5px; vertical-align: middle; }
+        .custom-table input { 
+            width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; text-align: center; font-family: 'Sarabun'; font-size: 1rem; box-sizing: border-box; transition: 0.2s;
         }
-        .btn-remove-row-premium:hover { background: var(--accent-red); box-shadow: 0 0 15px rgba(231, 76, 60, 0.5); transform: scale(1.1); }
+        .custom-table input:focus { border-color: var(--accent-orange); outline: none; background: #fffdf9; }
+
+        /* Action Buttons */
+        .btn-remove-row-premium {
+            background: #eee; color: #666; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; margin: 0 auto;
+        }
+        .btn-remove-row-premium:hover { background: var(--accent-red); color: white; transform: scale(1.05); }
 
         .btn-add-row {
-            margin-top: 15px; background: linear-gradient(45deg, #2ecc71, #1abc9c); color: white; border: none; padding: 10px 25px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); transition: 0.3s;
+            margin: 20px auto 0; background: var(--accent-green); color: white; border: none; padding: 12px 30px; border-radius: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; font-size: 1rem;
         }
-        .btn-add-row:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(46, 204, 113, 0.4); }
-        .btn-add-row i { background: white; color: #2ecc71; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        .btn-add-row:hover { background: #27ae60; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3); }
 
-        /* --- Modal & Overlay --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
+        /* --- Modal --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 25px; padding: 30px; text-align: center; }
-        .modal-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 15px; }
+        .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 25px; padding: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .modal-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 15px; box-sizing: border-box; }
+        
+        .modal-actions button { padding: 10px 25px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; margin: 5px; transition: 0.2s; }
+        .btn-confirm { background: var(--dark-blue); color: white; }
+        .btn-cancel { background: #eee; color: #666; }
 
-        #auto-save-alert { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2c3e50; color: white; padding: 10px 25px; border-radius: 30px; opacity: 0; transition: 0.5s; z-index: 9999; }
+        #auto-save-alert { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 30px; border-radius: 50px; opacity: 0; transition: 0.5s; z-index: 9999; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -108,7 +134,7 @@
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon" style="background: #3498db;"><i class="fas fa-table"></i></div>
+            <div class="stat-icon" style="background: #3498db;"><i class="fas fa-rocket"></i></div>
             <div class="stat-info">
                 <div class="label">บั้งไฟที่กำลังรอ</div>
                 <div id="active-tables-count" class="value">0</div>
@@ -127,10 +153,10 @@
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
-            <i id="modal-icon" class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 15px; color: var(--accent-orange);"></i>
-            <div id="modal-title" style="font-size: 1.3rem; font-weight: bold; margin-bottom: 10px;"></div>
-            <div id="modal-msg" style="color: #666; margin-bottom: 25px;"></div>
-            <div id="modal-actions" style="display: flex; justify-content: center; gap: 10px;"></div>
+            <i id="modal-icon" class="fas fa-exclamation-circle" style="font-size: 3.5rem; margin-bottom: 20px; color: var(--accent-orange);"></i>
+            <div id="modal-title" style="font-size: 1.4rem; font-weight: bold; margin-bottom: 10px;"></div>
+            <div id="modal-msg" style="color: #666; margin-bottom: 25px; line-height: 1.5;"></div>
+            <div id="modal-actions" class="modal-actions"></div>
         </div>
     </div>
 
