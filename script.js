@@ -1,6 +1,5 @@
 let historyData = [];
 let totalDeletedProfit = 0;
-let currentModalKeyHandler = null;
 
 // โหลดข้อมูลเมื่อเริ่มต้น
 document.addEventListener("DOMContentLoaded", () => {
@@ -13,7 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateDashboardStats();
 });
 
-// อัปเดตตัวเลข Dashboard
 function updateDashboardStats() {
     document.getElementById("total-profit-display").innerText = `฿${totalDeletedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     document.getElementById("active-tables-count").innerText = document.querySelectorAll(".table-container").length;
@@ -26,7 +24,6 @@ function showToast(text) {
     setTimeout(() => badge.style.opacity = "0", 3000);
 }
 
-// ฟังก์ชันเพิ่มตาราง
 function addTable() {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -34,7 +31,7 @@ function addTable() {
 
     newTable.innerHTML = `
         <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
-        <input type="text" class="table-title-input" placeholder="ระบุชื่อค่ายบั้งไฟ...">
+        <input type="text" class="table-title-input" placeholder="ระบุชื่อค่ายบั้งไฟ..." oninput="saveData()">
         <table class="custom-table">
             <thead>
                 <tr>
@@ -46,52 +43,58 @@ function addTable() {
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="text" placeholder="ชื่อคนไล่"></td>
-                    <td><input type="text" placeholder="ราคา"></td>
-                    <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
+                    <td><input type="text" placeholder="ชื่อคนไล่" oninput="saveData()"></td>
+                    <td><input type="text" placeholder="ราคา" oninput="saveData()"></td>
+                    <td><input type="text" placeholder="ชื่อคนยั้ง" oninput="saveData()"></td>
                     <td><button class="btn-remove-row-premium" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>
             </tbody>
         </table>
         <button class="btn-add-row" onclick="addRow(this.previousElementSibling)">
-            <i><i class="fas fa-plus"></i></i> เพิ่มแผลเล่น
+            <i class="fas fa-plus"></i> เพิ่มแผลเล่น
         </button>
     `;
     container.appendChild(newTable);
     updateDashboardStats();
+    saveData();
 }
 
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const row = document.createElement("tr");
     row.innerHTML = `
-        <td><input type="text" placeholder="ชื่อคนไล่"></td>
-        <td><input type="text" placeholder="ราคา"></td>
-        <td><input type="text" placeholder="ชื่อคนยั้ง"></td>
+        <td><input type="text" placeholder="ชื่อคนไล่" oninput="saveData()"></td>
+        <td><input type="text" placeholder="ราคา" oninput="saveData()"></td>
+        <td><input type="text" placeholder="ชื่อคนยั้ง" oninput="saveData()"></td>
         <td><button class="btn-remove-row-premium" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
     `;
     tbody.appendChild(row);
     row.querySelector("input").focus();
+    saveData();
 }
 
 function removeRow(btn) {
-    btn.closest("tr").remove();
-    saveData();
+    const tbody = btn.closest("tbody");
+    if (tbody.querySelectorAll("tr").length > 1) {
+        btn.closest("tr").remove();
+        saveData();
+    } else {
+        showModal("แจ้งเตือน", "ต้องมีอย่างน้อย 1 แถว", "alert");
+    }
 }
 
 function removeTable(btn) {
     const card = btn.closest(".table-card");
-    const title = card.querySelector(".table-title-input").value;
+    const title = card.querySelector(".table-title-input").value || "ไม่ระบุชื่อ";
     
-    // คำนวณกำไร (รองรับ 4OO แทน 400)
     let profit = 0;
     card.querySelectorAll("tbody tr").forEach(tr => {
         const val = tr.querySelectorAll("input")[1].value.replace(/[Oo]/g, '0');
-        const match = val.match(/\d{3,}/);
+        const match = val.match(/\d+/);
         if(match) profit += (parseFloat(match[0]) * 0.10);
     });
 
-    showModal("ลบตาราง", `ยืนยันการลบ? (กำไร: ฿${profit.toFixed(2)})`, "confirm", () => {
+    showModal("ยืนยันการลบ", `คุณต้องการลบตาราง <b>${title}</b>?<br>กำไรที่จะบันทึก: <span style="color:green">฿${profit.toFixed(2)}</span>`, "confirm", () => {
         const rows = [];
         card.querySelectorAll("tbody tr").forEach(tr => {
             const ins = tr.querySelectorAll("input");
@@ -105,11 +108,10 @@ function removeTable(btn) {
         card.remove();
         saveData();
         updateDashboardStats();
-        showToast("ลบและบันทึกยอดแล้ว");
+        showToast("บันทึกข้อมูลเรียบร้อยแล้ว");
     });
 }
 
-// ระบบบันทึกข้อมูล
 function saveData() {
     const data = [];
     document.querySelectorAll(".table-card").forEach(card => {
@@ -136,13 +138,17 @@ function loadData() {
         tbody.innerHTML = "";
         item.rows.forEach(r => {
             const row = document.createElement("tr");
-            row.innerHTML = `<td><input type="text" value="${r[0]}"></td><td><input type="text" value="${r[1]}"></td><td><input type="text" value="${r[2]}"></td><td><button class="btn-remove-row-premium" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
+            row.innerHTML = `
+                <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
+                <td><input type="text" value="${r[1]}" oninput="saveData()"></td>
+                <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
+                <td><button class="btn-remove-row-premium" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+            `;
             tbody.appendChild(row);
         });
     });
 }
 
-// ระบบ Modal
 function showModal(title, message, type = "alert", callback = null) {
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = title;
@@ -154,24 +160,29 @@ function showModal(title, message, type = "alert", callback = null) {
     if (type === "input") {
         const inp = document.createElement("input");
         inp.className = "modal-input";
-        inp.placeholder = "ระบุชื่อ...";
+        inp.placeholder = "พิมพ์ชื่อที่นี่...";
         msgEl.appendChild(inp);
         const b = document.createElement("button");
         b.innerText = "ตกลง";
-        b.onclick = () => { closeModal(); if(callback) callback(inp.value); };
+        b.className = "btn-confirm";
+        b.onclick = () => { if(inp.value) { closeModal(); if(callback) callback(inp.value); } };
         actions.appendChild(b);
     } else if (type === "confirm") {
         const b1 = document.createElement("button");
-        b1.innerText = "ยืนยัน";
+        b1.innerText = "ยืนยันการลบ";
+        b1.className = "btn-confirm";
+        b1.style.background = "#e74c3c";
         b1.onclick = () => { closeModal(); if(callback) callback(); };
         const b2 = document.createElement("button");
         b2.innerText = "ยกเลิก";
+        b2.className = "btn-cancel";
         b2.onclick = closeModal;
+        actions.appendChild(b1);
         actions.appendChild(b2);
-        actions.querySelectorAll("button").forEach(btn => btn.style.padding = "10px 20px");
     } else {
         const b = document.createElement("button");
-        b.innerText = "ตกลง";
+        b.innerText = "รับทราบ";
+        b.className = "btn-confirm";
         b.onclick = closeModal;
         actions.appendChild(b);
     }
@@ -181,20 +192,44 @@ function showModal(title, message, type = "alert", callback = null) {
 function closeModal() { document.getElementById('custom-modal').classList.remove('active'); }
 
 function clearAllHistory() {
-    showModal("ล้างประวัติ", "คุณต้องการลบข้อมูลทั้งหมดถาวรใช่หรือไม่?", "confirm", () => {
+    showModal("ล้างข้อมูลทั้งหมด", "คำเตือน: ข้อมูลและประวัติทั้งหมดจะถูกลบถาวร ไม่สามารถกู้คืนได้!", "confirm", () => {
         localStorage.clear();
         location.reload();
     });
 }
 
 function openStopwatchWindow() {
-    showModal("จับเวลา", "ระบุชื่อค่ายบั้งไฟ:", "input", (name) => {
-        if (!name) return;
-        window.open("", "_blank", "width=400,height=400").document.write(`
-            <html><body style="background:#2c3e50;color:white;text-align:center;font-family:sans-serif;">
-            <h1>${name}</h1><div id="t" style="font-size:4rem;">0.000</div>
-            <button onclick="s()" id="b" style="padding:15px 30px;font-size:1.5rem;border-radius:50px;border:none;cursor:pointer;">START</button>
-            <script>let st=0,ac=0,iv;function s(){if(!ac){st=Date.now();iv=setInterval(()=>{document.getElementById('t').innerText=((Date.now()-st)/1000).toFixed(3)},10);document.getElementById('b').innerText='STOP';ac=1;}else{clearInterval(iv);}}</script>
+    showModal("นาฬิกาจับเวลา", "ระบุชื่อค่ายบั้งไฟ:", "input", (name) => {
+        const sw = window.open("", "_blank", "width=450,height=500");
+        sw.document.write(`
+            <html><head><title>Stopwatch - ${name}</title>
+            <style>
+                body { background: #1e3c72; color: white; text-align: center; font-family: 'Sarabun', sans-serif; padding-top: 50px; }
+                .time { font-size: 5rem; font-weight: bold; margin: 30px 0; font-family: monospace; }
+                .btn { padding: 15px 40px; font-size: 1.5rem; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+                .start { background: #2ecc71; color: white; }
+                .stop { background: #e74c3c; color: white; }
+            </style></head>
+            <body>
+                <h2>${name}</h2>
+                <div class="time" id="t">0.000</div>
+                <button onclick="s()" id="b" class="btn start">START</button>
+                <script>
+                    let st=0, ac=0, iv;
+                    function s(){
+                        const btn = document.getElementById('b');
+                        if(!ac){
+                            st=Date.now();
+                            iv=setInterval(()=>{
+                                document.getElementById('t').innerText=((Date.now()-st)/1000).toFixed(3);
+                            },10);
+                            btn.innerText='STOP'; btn.className='btn stop'; ac=1;
+                        }else{
+                            clearInterval(iv);
+                            btn.innerText='START'; btn.className='btn start'; ac=0;
+                        }
+                    }
+                </script>
             </body></html>
         `);
     });
