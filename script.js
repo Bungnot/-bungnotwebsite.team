@@ -4,7 +4,7 @@ let currentModalKeyHandler = null;
 
 // [1] เริ่มต้นระบบและโหลดข้อมูล
 document.addEventListener("DOMContentLoaded", () => {
-    loadData(); // โหลดตารางที่บันทึกค้างไว้
+    loadData(); 
     const savedHistory = localStorage.getItem("historyData");
     if (savedHistory) {
         historyData = JSON.parse(savedHistory);
@@ -38,15 +38,34 @@ function saveData() {
 }
 
 // [3] จัดการตาราง (หน้าตา UI 15 + Logic 17)
-function addTable() {
+function addTable(title = "", rows = null) {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
     newTable.classList.add("table-container", "table-card");
 
+    let rowsHtml = "";
+    if (rows) {
+        rowsHtml = rows.map(r => `
+            <tr>
+                <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
+                <td><input type="text" value="${r[1]}" oninput="saveData()"></td>
+                <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
+                <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>`).join('');
+    } else {
+        rowsHtml = `
+            <tr>
+                <td><input type="text" oninput="saveData()"></td>
+                <td><input type="text" oninput="saveData()"></td>
+                <td><input type="text" oninput="saveData()"></td>
+                <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>`;
+    }
+
     newTable.innerHTML = `
         <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
         <div class="card-header">
-            <input type="text" class="table-title-input" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()">
+            <input type="text" class="table-title-input" value="${title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()">
         </div>
         <table class="custom-table">
             <thead>
@@ -57,20 +76,30 @@ function addTable() {
                     <th class="th-purple">จัดการ</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td><input type="text" oninput="saveData()"></td>
-                    <td><input type="text" oninput="saveData()"></td>
-                    <td><input type="text" oninput="saveData()"></td>
-                    <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
-                </tr>
-            </tbody>
+            <tbody>${rowsHtml}</tbody>
         </table>
         <button class="btn-add-row" onclick="addRow(this.previousElementSibling)">+ เพิ่มแผลที่เล่น</button>`;
     
     container.appendChild(newTable);
     saveData();
     updateDashboardStats();
+}
+
+// กู้คืนตารางล่าสุดที่เพิ่งลบไป (Undo)
+function restoreLastDeleted() {
+    if (historyData.length === 0) {
+        return showModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน", "alert");
+    }
+
+    const lastItem = historyData.pop(); // ดึงรายการล่าสุดออกมาจากประวัติ
+    totalDeletedProfit -= lastItem.profit; // หักลบยอดกำไรคืน
+    
+    // สร้างตารางใหม่จากข้อมูลที่ดึงกลับมา
+    addTable(lastItem.title, lastItem.rows);
+    
+    localStorage.setItem("historyData", JSON.stringify(historyData));
+    updateDashboardStats();
+    showModal("สำเร็จ", `กู้คืนค่าย <b>${lastItem.title}</b> เรียบร้อยแล้ว`, "alert");
 }
 
 function removeTable(button) {
@@ -101,11 +130,6 @@ function removeTable(button) {
     });
 }
 
-function removeRow(btn) { 
-    btn.closest('tr').remove(); 
-    saveData(); 
-}
-
 function addRow(table) {
     const tbody = table.querySelector("tbody");
     const tr = document.createElement("tr");
@@ -120,7 +144,9 @@ function addRow(table) {
     saveData();
 }
 
-// [4] ระบบจับเวลาแบบตัวที่ 17 (เปิดหน้าต่างใหม่/หลายค่าย)
+function removeRow(btn) { btn.closest('tr').remove(); saveData(); }
+
+// [4] ระบบจับเวลาแบบตัวที่ 17
 function openStopwatchWindow() {
     const width = 800, height = 750;
     const left = (window.screen.width / 2) - (width / 2);
@@ -244,7 +270,7 @@ function closeModal() {
     }
 }
 
-// [6] ฟังก์ชันเสริม (Dashboard, History, LoadData)
+// [6] ฟังก์ชันเสริม
 function updateDashboardStats() {
     const pEl = document.getElementById("total-profit-display");
     const cEl = document.getElementById("active-tables-count");
@@ -270,10 +296,7 @@ function loadData() {
     const container = document.getElementById("tables-container");
     container.innerHTML = "";
     data.forEach(t => {
-        addTable();
-        const last = container.lastElementChild;
-        last.querySelector(".table-title-input").value = t.title;
-        last.querySelector("tbody").innerHTML = t.rows.map(r => `<tr><td><input type="text" value="${r[0]}" oninput="saveData()"></td><td><input type="text" value="${r[1]}" oninput="saveData()"></td><td><input type="text" value="${r[2]}" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+        addTable(t.title, t.rows);
     });
 }
 
