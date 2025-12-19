@@ -225,8 +225,87 @@ function loadData() {
         addTable();
         const last = container.lastElementChild;
         last.querySelector(".table-title-input").value = t.title;
-        last.querySelector("tbody").innerHTML = t.rows.map(r => `<tr><td><input type="text" value="${r[0]}" oninput="saveData()"></td><td><input type="text" value="${r[1]}" oninput="saveData()"></td><td><input type="text" value="${r[2]}" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
-    });
+        last.querySelector("tbody").innerHTML = t.rows.map(r => `<tr><td><input type=// ===== [ปรับปรุงระบบ Modal ให้รองรับ Enter / Esc] =====
+
+
+// ===== [ปรับปรุงระบบ Modal ให้รองรับ Enter / Esc] =====
+function showModal(title, msg, type = "alert", cb = null) {
+    const modal = document.getElementById('custom-modal');
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-msg').innerHTML = msg;
+    const actions = document.getElementById('modal-actions');
+    actions.innerHTML = "";
+
+    // ล้าง Event คีย์บอร์ดเดิมออกก่อน (ถ้ามี)
+    if (currentModalKeyHandler) {
+        window.removeEventListener('keydown', currentModalKeyHandler);
+    }
+
+    if (type === "confirm") {
+        const b1 = document.createElement("button");
+        b1.innerText = "ตกลง (Enter)"; 
+        b1.className = "btn-modal btn-confirm";
+        b1.onclick = () => { closeModal(); if (cb) cb(); };
+
+        const b2 = document.createElement("button");
+        b2.innerText = "ยกเลิก (Esc)";
+        b2.className = "btn-modal btn-cancel";
+        b2.onclick = closeModal;
+
+        actions.append(b2, b1);
+
+        // สร้าง Event Handler สำหรับปุ่มลัด
+        currentModalKeyHandler = (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                b1.click();
+            } else if (e.key === "Escape") {
+                e.preventDefault();
+                closeModal();
+            }
+        };
+    } else {
+        const b = document.createElement("button");
+        b.innerText = "ปิด (Enter/Esc)";
+        b.className = "btn-modal btn-cancel";
+        b.style.background = "#1e3c72";
+        b.style.color = "white";
+        b.onclick = closeModal;
+        actions.append(b);
+
+        currentModalKeyHandler = (e) => {
+            if (e.key === "Enter" || e.key === "Escape") {
+                e.preventDefault();
+                closeModal();
+            }
+        };
+    }
+
+    window.addEventListener('keydown', currentModalKeyHandler);
+    modal.classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('custom-modal').classList.remove('active');
+    if (currentModalKeyHandler) {
+        window.removeEventListener('keydown', currentModalKeyHandler);
+        currentModalKeyHandler = null;
+    }
+}
+
+// ===== [ส่วนจัดการแถว: ปรับปรุงปุ่มลบให้สวยขึ้น] =====
+function addRow(table) {
+    const tr = document.createElement("tr");
+    // เปลี่ยนจากปุ่ม x ธรรมดา เป็น Icon ถังขยะที่ดูพรีเมียมขึ้น
+    tr.innerHTML = `
+        <td><input type="text" oninput="saveData()"></td>
+        <td><input type="text" oninput="saveData()"></td>
+        <td><input type="text" oninput="saveData()"></td>
+        <td><button class="btn-remove-row" onclick="removeRow(this)" style="background:#fff0f0; color:#e74c3c; border:none; border-radius:8px; cursor:pointer; width:35px; height:35px; transition:0.2s;">
+            <i class="fas fa-trash-alt"></i>
+        </button></td>`;
+    table.querySelector("tbody").appendChild(tr);
+    saveData();
 }
 
 function addRow(table) {
