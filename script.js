@@ -200,59 +200,124 @@ function clearAllHistory() {
 
 // ฟังก์ชันสร้างการ์ดจับเวลาใหม่ (รองรับหลายค่ายพร้อมกัน)
 function openStopwatchWindow() {
-    showModal("เพิ่มนาฬิกาจับเวลา", "ระบุชื่อค่ายบั้งไฟที่ต้องการจับเวลา:", "input", (name) => {
+    showModal("จับเวลาบั้งไฟ", "ระบุชื่อค่ายบั้งไฟ:", "input", (name) => {
         if (!name) return;
-        
-        const container = document.getElementById("stopwatch-list");
-        const swCard = document.createElement("div");
-        swCard.className = "table-card"; // ใช้สไตล์เดียวกับตารางเพื่อความสวยงาม
-        swCard.style.textAlign = "center";
-        swCard.style.borderTop = "8px solid #2ecc71"; // ใช้สีเขียวแยกส่วนจับเวลา
 
-        swCard.innerHTML = `
-            <button class="btn-close-table" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
-            <h3 style="margin-top:0; color:#1e3c72;">${name}</h3>
-            <div class="sw-display" style="font-size: 3rem; font-weight: bold; font-family: monospace; margin: 15px 0;">0.000</div>
-            <div style="display: flex; justify-content: center; gap: 10px;">
-                <button class="btn-main sw-start-btn" onclick="toggleSW(this)" style="background:#2ecc71; color:white;">START</button>
-                <button class="btn-main" onclick="resetSW(this)" style="background:#eee; color:#666;">RESET</button>
-            </div>
-        `;
-        container.appendChild(swCard);
+        // กำหนดขนาดหน้าต่างใหม่
+        const width = 400;
+        const height = 450;
+        const left = (window.screen.width / 2) - (width / 2);
+        const top = (window.screen.height / 2) - (height / 2);
+
+        // เปิดหน้าต่างใหม่
+        const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
+        
+        sw.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>จับเวลา - ${name}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                <style>
+                    body { 
+                        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+                        color: white; 
+                        text-align: center; 
+                        font-family: 'Sarabun', sans-serif; 
+                        margin: 0; 
+                        display: flex; 
+                        flex-direction: column; 
+                        justify-content: center; 
+                        height: 100vh;
+                    }
+                    .container { padding: 20px; }
+                    h2 { font-size: 1.8rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+                    .time-display { 
+                        font-size: 5rem; 
+                        font-weight: bold; 
+                        font-family: monospace; 
+                        margin: 20px 0; 
+                        background: rgba(255,255,255,0.1); 
+                        padding: 20px; 
+                        border-radius: 20px; 
+                        box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+                    }
+                    .controls { display: flex; justify-content: center; gap: 15px; }
+                    .btn { 
+                        padding: 15px 35px; 
+                        font-size: 1.2rem; 
+                        border-radius: 50px; 
+                        border: none; 
+                        cursor: pointer; 
+                        font-weight: bold; 
+                        transition: 0.3s; 
+                        display: flex; 
+                        align-items: center; 
+                        gap: 10px; 
+                    }
+                    .btn-start { background: #2ecc71; color: white; box-shadow: 0 4px 15px rgba(46,204,113,0.4); }
+                    .btn-stop { background: #e74c3c; color: white; box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
+                    .btn-reset { background: #f39c12; color: white; box-shadow: 0 4px 15px rgba(243,156,18,0.4); }
+                    .btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
+                    .btn:active { transform: translateY(0); }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h2><i class="fas fa-rocket"></i> ${name}</h2>
+                    <div class="time-display" id="display">0.000</div>
+                    <div class="controls">
+                        <button id="mainBtn" onclick="toggle()" class="btn btn-start">
+                            <i class="fas fa-play"></i> START
+                        </button>
+                        <button onclick="reset()" class="btn btn-reset">
+                            <i class="fas fa-redo"></i> RESET
+                        </button>
+                    </div>
+                </div>
+
+                <script>
+                    let startTime = 0;
+                    let elapsed = 0;
+                    let timerInterval;
+                    let running = false;
+
+                    function toggle() {
+                        const btn = document.getElementById('mainBtn');
+                        const display = document.getElementById('display');
+
+                        if (!running) {
+                            // Start
+                            running = true;
+                            startTime = Date.now() - elapsed;
+                            timerInterval = setInterval(() => {
+                                elapsed = Date.now() - startTime;
+                                display.innerText = (elapsed / 1000).toFixed(3);
+                            }, 10);
+                            btn.innerHTML = '<i class="fas fa-pause"></i> STOP';
+                            btn.className = 'btn btn-stop';
+                        } else {
+                            // Stop
+                            running = false;
+                            clearInterval(timerInterval);
+                            btn.innerHTML = '<i class="fas fa-play"></i> START';
+                            btn.className = 'btn btn-start';
+                        }
+                    }
+
+                    function reset() {
+                        running = false;
+                        clearInterval(timerInterval);
+                        elapsed = 0;
+                        document.getElementById('display').innerText = '0.000';
+                        const btn = document.getElementById('mainBtn');
+                        btn.innerHTML = '<i class="fas fa-play"></i> START';
+                        btn.className = 'btn btn-start';
+                    }
+                </script>
+            </body>
+            </html>
+        `);
     });
-}
-
-// ฟังก์ชันควบคุมการเริ่ม/หยุด
-function toggleSW(btn) {
-    const card = btn.closest(".table-card");
-    const display = card.querySelector(".sw-display");
-    
-    if (btn.innerText === "START") {
-        btn.innerText = "STOP";
-        btn.style.background = "#e74c3c";
-        
-        const startTime = Date.now() - (card.dataset.elapsed || 0);
-        card.dataset.intervalId = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            card.dataset.elapsed = elapsed;
-            display.innerText = (elapsed / 1000).toFixed(3);
-        }, 10);
-    } else {
-        btn.innerText = "START";
-        btn.style.background = "#2ecc71";
-        clearInterval(card.dataset.intervalId);
-    }
-}
-
-// ฟังก์ชันรีเซ็ตเวลา
-function resetSW(btn) {
-    const card = btn.closest(".table-card");
-    const display = card.querySelector(".sw-display");
-    const startBtn = card.querySelector(".sw-start-btn");
-    
-    clearInterval(card.dataset.intervalId);
-    card.dataset.elapsed = 0;
-    display.innerText = "0.000";
-    startBtn.innerText = "START";
-    startBtn.style.background = "#2ecc71";
 }
