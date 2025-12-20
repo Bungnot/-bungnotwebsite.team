@@ -159,7 +159,7 @@ function showHistory() {
         return;
     }
 
-    const win = window.open("", "_blank", "width=1200,height=800");
+    const win = window.open("", "_blank", "width=1300,height=900");
 
     let html = `
     <html>
@@ -169,82 +169,49 @@ function showHistory() {
             body {
                 font-family: Sarabun, sans-serif;
                 background: #f4f7f9;
-                padding: 20px;
+                padding: 30px;
             }
-            h2 {
-                text-align: center;
-                margin-bottom: 20px;
+            .history-card {
+                margin-bottom: 50px;
             }
-            .hint {
-                text-align: center;
-                color: #64748b;
-                margin-bottom: 20px;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                background: white;
-                border-radius: 16px;
-                overflow: hidden;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            }
-            th, td {
-                border: 1px solid #e5e7eb;
-                padding: 12px;
-                text-align: center;
-                font-size: 0.95rem;
-            }
-            th {
-                background: #e5e7eb;
-                font-weight: bold;
-            }
-            tr:nth-child(even) {
-                background: #f8fafc;
+            .meta {
+                margin-bottom: 10px;
+                color: #475569;
+                font-size: 0.9rem;
             }
         </style>
     </head>
     <body>
 
-    <h2>📜 ประวัติการคิดยอด (รวมทั้งหมด)</h2>
-    <div class="hint">💡 ใช้ <b>Ctrl + F</b> เพื่อค้นหาชื่อ / ราคา / ค่าย ได้ทันที</div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>ค่าย</th>
-                <th>ปิดยอดเมื่อ</th>
-                <th>รายชื่อคนไล่</th>
-                <th>ราคาเล่น</th>
-                <th>รายชื่อคนยั้ง</th>
-            </tr>
-        </thead>
-        <tbody>
+    <h2 style="text-align:center">📜 ประวัติการคิดยอด</h2>
+    <p style="text-align:center;color:#64748b">
+        ใช้ <b>Ctrl + F</b> เพื่อค้นหาชื่อได้ทันที
+    </p>
     `;
 
     historyData.forEach(h => {
-        h.rows.forEach(r => {
-            html += `
-            <tr>
-                <td>${h.title}</td>
-                <td>${h.deletedAt || "-"}</td>
-                <td>${r[0]}</td>
-                <td>${r[1]}</td>
-                <td>${r[2]}</td>
-            </tr>
-            `;
-        });
+        html += `
+        <div class="history-card">
+            <div class="meta">
+                <b>ค่าย:</b> ${h.title} |
+                <b>ปิดยอดเมื่อ:</b> ${h.deletedAt}
+            </div>
+
+            <div class="table-wrapper">
+                ${h.tableHTML}
+            </div>
+        </div>
+        `;
     });
 
     html += `
-        </tbody>
-    </table>
-
     </body>
     </html>
     `;
 
     win.document.write(html);
 }
+
 
 
 /* ===============================
