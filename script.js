@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateDashboardStats();
 });
 
-// [2] ระบบบันทึกข้อมูลอัตโนมัติ (Logic 17)
+// [2] ระบบบันทึกข้อมูลอัตโนมัติ
 function saveData() {
     const data = [];
     document.querySelectorAll(".table-container").forEach(table => {
@@ -37,7 +37,7 @@ function saveData() {
     }
 }
 
-// [3] จัดการตาราง (หน้าตา UI 15 + Logic 17)
+// [3] จัดการตารางหน้าหลัก (ดีไซน์ก๊อบปี้หน้าแรกมาทั้งหมด)
 function addTable(title = "", rows = null) {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -130,71 +130,53 @@ function addRow(table) {
         <td><input type="text" oninput="saveData()"></td>
         <td><input type="text" oninput="saveData()"></td>
         <td><input type="text" oninput="saveData()"></td>
-        <td><button class="btn-remove-row" onclick="removeRow(this)" style="background:#fff0f0; color:#e74c3c; border:none; border-radius:8px; cursor:pointer; width:35px; height:35px;">
-            <i class="fas fa-trash-alt"></i>
-        </button></td>`;
+        <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
     tbody.appendChild(tr);
     saveData();
 }
 
 function removeRow(btn) { btn.closest('tr').remove(); saveData(); }
 
-// [4] ระบบแสดงประวัติแบบพรีเมียม (แก้ไขล่าสุดให้เหมือนหน้าหลักเป๊ะ)
+// [4] ระบบแสดงประวัติแบบก๊อบปี้ดีไซน์หน้าหลักมา 100%
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติ", "alert");
-    
     let win = window.open("", "History", "width=1200,height=900");
-    
     let style = `
         <style>
-            body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); background-attachment: fixed; padding: 40px 20px; color: #333; }
-            .history-title { text-align: center; color: white; margin-bottom: 30px; font-size: 2.5rem; text-shadow: 0 3px 10px rgba(0,0,0,0.3); }
-            .table-card { background: white; border-radius: 24px; padding: 35px; margin: 0 auto 40px; max-width: 1100px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); position: relative; border-top: 8px solid #1e3c72; }
-            .history-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-            .camp-name-display { font-size: 1.8rem; font-weight: bold; color: #1e3c72; }
-            .profit-tag { background: #e8f5e9; color: #2e7d32; padding: 10px 20px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; }
-            .timestamp { color: #64748b; font-size: 0.9rem; }
+            :root { --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); --shadow-premium: 0 15px 35px rgba(0, 0, 0, 0.1); }
+            body { font-family: 'Sarabun', sans-serif; background: var(--primary-bg); background-attachment: fixed; padding: 40px 20px; margin: 0; }
+            .history-title { text-align: center; color: white; margin-bottom: 30px; font-size: 2.5rem; text-shadow: 0 3px 10px rgba(0,0,0,0.3); font-weight: 700; }
+            .table-card { background: white; border-radius: 24px; padding: 35px; margin: 0 auto 40px; max-width: 1100px; box-shadow: var(--shadow-premium); position: relative; border-top: 8px solid #1e3c72; }
+            .history-header-box { font-size: 1.5rem; font-weight: bold; color: #1e3c72; text-align: center; border: 2.5px solid #94a3b8; background: #e2e8f0; padding: 12px; border-radius: 16px; width: 60%; display: block; margin: 0 auto 30px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+            .profit-tag { position: absolute; top: 15px; left: 15px; background: #e8f5e9; color: #2e7d32; padding: 5px 15px; border-radius: 50px; font-weight: bold; border: 1px solid #2e7d32; font-size: 0.9rem; }
+            .timestamp-tag { position: absolute; top: 15px; right: 60px; color: #64748b; font-size: 0.8rem; }
             .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
             .custom-table th { padding: 18px 10px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
             .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px 0 0 15px; }
             .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); }
             .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
             .th-purple { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); border-radius: 0 15px 15px 0; }
-            .custom-table td { text-align: center; padding: 15px; background: #e2e8f0; border: 2.5px solid #cbd5e1; font-weight: 600; border-radius: 12px; }
-            .btn-view-only { background: #fff; color: #e74c3c; border: 2px solid #eee; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+            .custom-table td { text-align: center; padding: 14px; background: #e2e8f0; border: 2.5px solid #cbd5e1; font-weight: 600; border-radius: 14px; color: #333; }
+            .btn-view-only { background: #fff; color: #e74c3c; border: 2px solid #fff5f5; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         </style>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     `;
-
-    let content = `<html><head>${style}</head><body><h2 class="history-title">📜 ประวัติการคิดยอด</h2>`;
-    
+    let content = `<html><head>${style}</head><body><h2 class="history-title">ADMIN ROCKET PREMIUM (History)</h2>`;
     [...historyData].reverse().forEach(h => {
-        let rows = h.rows.map(r => `<tr><td>${r[0] || '-'}</td><td>${r[1] || '-'}</td><td>${r[2] || '-'}</td><td><div class="btn-view-only"><i class="fas fa-trash-alt"></i></div></td></tr>`).join('');
-        content += `
-            <div class="table-card">
-                <div class="history-meta">
-                    <div><div class="camp-name-display">ค่าย: ${h.title}</div><div class="timestamp"><i class="far fa-clock"></i> ${h.timestamp}</div></div>
-                    <div class="profit-tag">กำไร (10%): ฿${h.profit.toFixed(2)}</div>
-                </div>
-                <table class="custom-table">
-                    <thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>`;
+        let rows = h.rows.map(r => `<tr><td>${r[0]||''}</td><td>${r[1]||''}</td><td>${r[2]||''}</td><td><div class="btn-view-only"><i class="fas fa-trash-alt"></i></div></td></tr>`).join('');
+        content += `<div class="table-card"><div class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</div><div class="timestamp-tag"><i class="far fa-clock"></i> ${h.timestamp}</div><div class="history-header-box">${h.title||'ไม่ระบุชื่อค่าย'}</div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     });
     win.document.write(content + "</body></html>");
 }
 
-// [5] ระบบ Modal ดั้งเดิมครบถ้วน
+// [5] ระบบ Modal รองรับ Enter / Esc
 function showModal(title, msg, type = "alert", cb = null) {
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-msg').innerHTML = msg;
     const actions = document.getElementById('modal-actions');
     actions.innerHTML = "";
-
     if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
-
     if (type === "confirm") {
         const b1 = document.createElement("button"); b1.innerText = "ตกลง (Enter)"; b1.className = "btn-modal btn-confirm";
         b1.onclick = () => { closeModal(); if (cb) cb(); };
@@ -203,11 +185,10 @@ function showModal(title, msg, type = "alert", cb = null) {
         actions.append(b2, b1);
         currentModalKeyHandler = (e) => { if (e.key === "Enter") { e.preventDefault(); b1.click(); } else if (e.key === "Escape") { e.preventDefault(); closeModal(); } };
     } else {
-        const b = document.createElement("button"); b.innerText = "ตกลง (Enter/Esc)"; b.className = "btn-modal btn-cancel"; b.style.background = "#1e3c72"; b.style.color = "white"; b.onclick = closeModal;
+        const b = document.createElement("button"); b.innerText = "ตกลง (Enter/Esc)"; b.className = "btn-modal btn-confirm"; b.onclick = closeModal;
         actions.append(b);
         currentModalKeyHandler = (e) => { if (e.key === "Enter" || e.key === "Escape") { e.preventDefault(); closeModal(); } };
     }
-
     window.addEventListener('keydown', currentModalKeyHandler);
     modal.classList.add('active');
 }
@@ -217,7 +198,7 @@ function closeModal() {
     if (currentModalKeyHandler) { window.removeEventListener('keydown', currentModalKeyHandler); currentModalKeyHandler = null; }
 }
 
-// [6] ฟังก์ชันเสริมดั้งเดิม
+// [6] ฟังก์ชันเสริม
 function updateDashboardStats() {
     const pEl = document.getElementById("total-profit-display");
     if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined,{minimumFractionDigits:2})}`;
@@ -234,73 +215,11 @@ function loadData() {
 
 function clearAllHistory() { showModal("คำเตือน", "ล้างข้อมูลทั้งหมดใช่หรือไม่?", "confirm", () => { localStorage.clear(); location.reload(); }); }
 
-// [7] ระบบจับเวลาพรีเมียมตัวเต็ม (โค้ด 200+ บรรทัดในตัวเดียว)
+// [7] ระบบจับเวลาแบบพรีเมียม (ตัวเต็ม)
 function openStopwatchWindow() {
     const width = 1000, height = 850;
     const left = (window.screen.width / 2) - (width / 2);
     const top = (window.screen.height / 2) - (height / 2);
     const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
-    
-    sw.document.write(`
-        <html>
-        <head>
-            <title>PREMIUM BANGFAI TIMER</title>
-            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-            <style>
-                :root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --primary: #38bdf8; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --border: rgba(255, 255, 255, 0.1); }
-                body { background: var(--bg); background-image: radial-gradient(circle at 50% -20%, #1e293b, #0f172a); color: #f8fafc; font-family: 'Sarabun', sans-serif; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-                .input-box { background: var(--card); backdrop-filter: blur(15px); border: 1px solid var(--border); padding: 10px; border-radius: 20px; display: flex; width: 100%; max-width: 700px; gap: 12px; margin-bottom: 40px; }
-                input { flex: 1; background: transparent; border: none; padding: 15px 25px; color: white; font-size: 1.2rem; outline: none; }
-                .btn-add { background: var(--primary); color: #0f172a; border: none; padding: 0 35px; border-radius: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; transition: 0.3s; }
-                .btn-add:hover { background: white; transform: scale(1.05); }
-                #timer-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 20px; width: 100%; max-width: 1100px; }
-                .timer-card { background: var(--card); border-radius: 24px; padding: 30px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 20px; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-                .time-display { font-family: 'JetBrains Mono'; font-size: 4.5rem; text-align: center; color: var(--success); text-shadow: 0 0 30px rgba(16, 185, 129, 0.4); margin: 10px 0; }
-                .controls { display: flex; gap: 12px; justify-content: center; }
-                .btn-ctrl { flex: 1; height: 55px; border-radius: 15px; border: none; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.2s; gap: 8px; }
-                .btn-start { background: var(--success); color: white; }
-                .btn-stop { background: var(--warning); color: white; }
-                .btn-reset { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid var(--border); }
-                .btn-del { width: 55px; flex: none; background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-            </style>
-        </head>
-        <body>
-            <div class="input-box">
-                <input type="text" id="campInput" placeholder="ใส่ชื่อค่ายบั้งไฟที่นี่...">
-                <button class="btn-add" onclick="addNewTimer()"><i class="fas fa-plus"></i> เพิ่มค่าย</button>
-            </div>
-            <div id="timer-container"></div>
-            <script>
-                function addNewTimer() {
-                    const input = document.getElementById('campInput');
-                    const name = input.value.trim();
-                    if (!name) return;
-                    const card = document.createElement('div');
-                    card.className = 'timer-card';
-                    card.innerHTML = \`<div class="camp-name" style="font-size:1.6rem; font-weight:700">\${name}</div><div class="time-display">0.000</div><div class="controls"><button class="btn-ctrl btn-start" onclick="toggleTimer(this)"><i class="fas fa-play"></i> เริ่ม</button><button class="btn-ctrl btn-reset" onclick="resetTimer(this)"><i class="fas fa-redo"></i> รีเซ็ต</button><button class="btn-ctrl btn-del" onclick="this.closest('.timer-card').remove()"><i class="fas fa-trash-alt"></i></button></div>\`;
-                    card.dataset.running = "false"; card.dataset.elapsed = 0;
-                    document.getElementById('timer-container').prepend(card);
-                    input.value = "";
-                }
-                function toggleTimer(btn) {
-                    const card = btn.closest('.timer-card');
-                    const display = card.querySelector('.time-display');
-                    if (card.dataset.running === "false") {
-                        card.dataset.running = "true"; btn.innerHTML = '<i class="fas fa-pause"></i> หยุด'; btn.className = "btn-ctrl btn-stop";
-                        const startTime = Date.now() - parseFloat(card.dataset.elapsed);
-                        card.timerInterval = setInterval(() => { const currentElapsed = Date.now() - startTime; card.dataset.elapsed = currentElapsed; display.innerText = (currentElapsed / 1000).toFixed(3); }, 10);
-                    } else {
-                        card.dataset.running = "false"; btn.innerHTML = '<i class="fas fa-play"></i> เริ่มต่อ'; btn.className = "btn-ctrl btn-start"; clearInterval(card.timerInterval);
-                    }
-                }
-                function resetTimer(btn) {
-                    const card = btn.closest('.timer-card'); clearInterval(card.timerInterval);
-                    card.dataset.running = "false"; card.dataset.elapsed = 0; card.querySelector('.time-display').innerText = "0.000";
-                    const sBtn = card.querySelector('.btn-ctrl.btn-stop') || card.querySelector('.btn-ctrl.btn-start');
-                    sBtn.innerHTML = '<i class="fas fa-play"></i> เริ่ม'; sBtn.className = "btn-ctrl btn-start";
-                }
-            </script>
-        </body></html>
-    `);
+    sw.document.write(`<html><head><title>PREMIUM TIMER</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>:root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --primary: #38bdf8; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; } body { background: var(--bg); color: #f8fafc; font-family: sans-serif; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; } .input-box { background: var(--card); padding: 10px; border-radius: 20px; display: flex; width: 100%; max-width: 700px; gap: 12px; margin-bottom: 40px; } input { flex: 1; background: transparent; border: none; padding: 15px 25px; color: white; font-size: 1.2rem; outline: none; } .btn-add { background: var(--primary); padding: 0 35px; border-radius: 15px; font-weight: 700; cursor: pointer; } .timer-card { background: var(--card); border-radius: 24px; padding: 30px; margin-bottom: 20px; width: 450px; } .time-display { font-size: 4.5rem; text-align: center; color: var(--success); } .controls { display: flex; gap: 12px; justify-content: center; } .btn-ctrl { flex: 1; height: 55px; border-radius: 15px; border: none; cursor: pointer; }</style></head><body><div class="input-box"><input type="text" id="campInput" placeholder="ใส่ชื่อค่าย..."><button class="btn-add" onclick="addNewTimer()">เพิ่มค่าย</button></div><div id="timer-container"></div><script>function addNewTimer(){const n=document.getElementById('campInput').value.trim();if(!n)return;const c=document.createElement('div');c.className='timer-card';c.innerHTML='<div style="font-size:1.6rem;font-weight:700">'+n+'</div><div class="time-display">0.000</div><div class="controls"><button class="btn-ctrl" style="background:#10b981;color:white" onclick="toggleTimer(this)">เริ่ม</button><button class="btn-ctrl" style="background:rgba(255,255,255,0.05);color:#94a3b8" onclick="resetTimer(this)">รีเซ็ต</button><button class="btn-ctrl" style="background:rgba(239,68,68,0.1);color:#ef4444" onclick="this.closest(\\\'.timer-card\\\').remove()">ลบ</button></div>';c.dataset.running='false';c.dataset.elapsed=0;document.getElementById('timer-container').prepend(c);document.getElementById('campInput').value=''};function toggleTimer(b){const c=b.closest('.timer-card');const d=c.querySelector('.time-display');if(c.dataset.running==='false'){c.dataset.running='true';b.innerText='หยุด';b.style.background='#f59e0b';const s=Date.now()-parseFloat(c.dataset.elapsed);c.iv=setInterval(()=>{const e=Date.now()-s;c.dataset.elapsed=e;d.innerText=(e/1000).toFixed(3)},10)}else{c.dataset.running='false';b.innerText='เริ่มต่อ';b.style.background='#10b981';clearInterval(c.iv)}};function resetTimer(b){const c=b.closest('.timer-card');clearInterval(c.iv);c.dataset.running='false';c.dataset.elapsed=0;c.querySelector('.time-display').innerText='0.000';const s=c.querySelector('.btn-ctrl');s.innerText='เริ่ม';s.style.background='#10b981'}</script></body></html>`);
 }
