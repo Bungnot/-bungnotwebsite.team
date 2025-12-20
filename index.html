@@ -58,19 +58,19 @@
             box-shadow: var(--shadow-premium); position: relative; border-top: 8px solid #1e3c72;
         }
 
-        /* ปรับปรุงช่องกรอกชื่อค่าย ให้เป็นสีเทาบางๆ */
+        /* [ปรับแก้] ช่องกรอกชื่อค่าย: สีเทาเข้มขึ้นและขอบชัด */
         .table-title-input { 
             font-size: 1.5rem; font-weight: bold; color: #1e3c72; 
-            text-align: center; border: 2px solid #cbd5e1; 
-            background: #f1f5f9; /* สีเทาบางๆ */
+            text-align: center; border: 2.5px solid #94a3b8; /* ขอบเข้มขึ้น */
+            background: #e2e8f0; /* เทาชัดเจน */
             padding: 12px; border-radius: 16px; width: 60%; 
             display: block; margin: 0 auto 30px; outline: none; transition: 0.3s;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
         }
         .table-title-input:focus {
             background: #ffffff;
             border-color: #1e3c72;
-            box-shadow: 0 0 0 4px rgba(30, 60, 114, 0.1);
+            box-shadow: 0 0 0 4px rgba(30, 60, 114, 0.2);
         }
 
         .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
@@ -80,26 +80,26 @@
         .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
         .th-purple { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); border-radius: 0 15px 15px 0; }
 
-        /* ปรับปรุงช่องกรอกในตาราง ให้เป็นสีเทาบางๆ */
+        /* [ปรับแก้] ช่องกรอกข้อมูลในตาราง: พื้นเทาเข้มและเน้นขอบ */
         .custom-table input { 
-            width: 100%; padding: 14px; border: 2px solid #e2e8f0; 
+            width: 100%; padding: 14px; border: 2.5px solid #cbd5e1; /* ขอบหนาและเข้มขึ้น */
             border-radius: 14px; 
-            background: #f1f5f9; /* สีเทาบางๆ */
+            background: #e2e8f0; /* สีเทาชัดเจน */
             text-align: center;
             box-sizing: border-box; transition: all 0.2s ease;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
-            font-weight: 500;
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+            font-weight: 600; /* ตัวหนังสือหนาขึ้น */
         }
         .custom-table input:hover {
-            border-color: #cbd5e1;
-            background: #e2e8f0;
+            border-color: #64748b;
+            background: #cbd5e1;
         }
         .custom-table input:focus { 
             background: #ffffff;
             border-color: #2a5298;
             outline: none;
-            box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.15);
-            transform: translateY(-1px);
+            box-shadow: 0 0 0 5px rgba(42, 82, 152, 0.2);
+            transform: translateY(-2px);
         }
 
         .btn-remove-row {
@@ -164,8 +164,8 @@
         </div>
         <div class="info-card">
             <h3><i class="fab fa-line"></i> ส่งข้อความ Line OA</h3>
-            <input type="text" id="lineName" placeholder="ชื่อใน Line OA" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; background:#f1f5f9;">
-            <textarea id="messageToSend" placeholder="ข้อความ..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; font-family:'Sarabun'; background:#f1f5f9;"></textarea>
+            <input type="text" id="lineName" placeholder="ชื่อใน Line OA" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:2.5px solid #cbd5e1; background:#e2e8f0;">
+            <textarea id="messageToSend" placeholder="ข้อความ..." style="width:100%; padding:10px; border-radius:10px; border:2.5px solid #cbd5e1; font-family:'Sarabun'; background:#e2e8f0;"></textarea>
             <button onclick="sendMessageToLine()" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; background:#06c755; color:white; border:none; cursor:pointer; font-weight:bold;">ส่งข้อความ</button>
         </div>
         <div class="info-card">
@@ -371,7 +371,7 @@
 
         function openStopwatchWindow() {
             const sw = window.open("", "_blank", "width=800,height=700");
-            sw.document.write(`<html><head><title>Timer</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>body{background:#1e3c72;color:white;font-family:sans-serif;padding:30px}input{padding:15px;border-radius:10px;border:none;width:70%;background:#f1f5f9;color:#333}.timer-text{font-size:3rem;color:#2ecc71;font-weight:bold}</style></head><body><h2>จับเวลาบั้งไฟ</h2><input type="text" id="cIn" placeholder="ชื่อค่าย..."><button onclick="add()" style="padding:15px;border-radius:10px;background:#2ecc71;border:none;color:white;cursor:pointer;margin-left:10px">เพิ่ม</button><div id="list"></div><script>function add(){const n=document.getElementById('cIn').value;if(!n)return;const d=document.createElement('div');d.style.background='rgba(255,255,255,0.1)';d.style.padding='20px';d.style.margin='10px 0';d.style.borderRadius='15px';d.innerHTML='<b>'+n+'</b> <span class="timer-text" id="t">0.000</span> <button onclick="st(this)" style="padding:10px;background:#2ecc71;border:none;color:white;border-radius:5px">เริ่ม</button> <button onclick="rs(this)" style="padding:10px;background:#f39c12;border:none;color:white;border-radius:5px">รีเซ็ต</button>';document.getElementById('list').appendChild(d);document.getElementById('cIn').value=''};function st(b){const t=b.parentElement.querySelector('#t');if(b.innerText==='เริ่ม'){b.innerText='หยุด';b.style.background='#e74c3c';let s=parseFloat(t.innerText)*1000;let st=Date.now()-s;b.iv=setInterval(()=>{t.innerText=((Date.now()-st)/1000).toFixed(3)},10)}else{b.innerText='เริ่ม';b.style.background='#2ecc71';clearInterval(b.iv)}};function rs(b){const t=b.parentElement.querySelector('#t');const sb=b.parentElement.querySelector('button');clearInterval(sb.iv);sb.innerText='เริ่ม';sb.style.background='#2ecc71';t.innerText='0.000'}<\/script></body></html>`);
+            sw.document.write(`<html><head><title>Timer</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>body{background:#1e3c72;color:white;font-family:sans-serif;padding:30px}input{padding:15px;border-radius:10px;border:none;width:70%;background:#e2e8f0;color:#333;font-weight:bold}.timer-text{font-size:3rem;color:#2ecc71;font-weight:bold}</style></head><body><h2>จับเวลาบั้งไฟ</h2><input type="text" id="cIn" placeholder="ชื่อค่าย..."><button onclick="add()" style="padding:15px;border-radius:10px;background:#2ecc71;border:none;color:white;cursor:pointer;margin-left:10px">เพิ่ม</button><div id="list"></div><script>function add(){const n=document.getElementById('cIn').value;if(!n)return;const d=document.createElement('div');d.style.background='rgba(255,255,255,0.1)';d.style.padding='20px';d.style.margin='10px 0';d.style.borderRadius='15px';d.innerHTML='<b>'+n+'</b> <span class="timer-text" id="t">0.000</span> <button onclick="st(this)" style="padding:10px;background:#2ecc71;border:none;color:white;border-radius:5px">เริ่ม</button> <button onclick="rs(this)" style="padding:10px;background:#f39c12;border:none;color:white;border-radius:5px">รีเซ็ต</button>';document.getElementById('list').appendChild(d);document.getElementById('cIn').value=''};function st(b){const t=b.parentElement.querySelector('#t');if(b.innerText==='เริ่ม'){b.innerText='หยุด';b.style.background='#e74c3c';let s=parseFloat(t.innerText)*1000;let st=Date.now()-s;b.iv=setInterval(()=>{t.innerText=((Date.now()-st)/1000).toFixed(3)},10)}else{b.innerText='เริ่ม';b.style.background='#2ecc71';clearInterval(b.iv)}};function rs(b){const t=b.parentElement.querySelector('#t');const sb=b.parentElement.querySelector('button');clearInterval(sb.iv);sb.innerText='เริ่ม';sb.style.background='#2ecc71';t.innerText='0.000'}<\/script></body></html>`);
         }
 
         function showHistory() {
