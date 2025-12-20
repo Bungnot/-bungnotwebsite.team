@@ -465,7 +465,7 @@ function showHistory() {
     let content = `
     <html>
     <head>
-        <title>ประวัติการคิดยอด</title>
+        <title>ประวัติการคิดยอด PREMIUM</title>
         <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
@@ -479,11 +479,11 @@ function showHistory() {
                 flex-direction: column;
                 align-items: center;
             }
-            .history-title { color: white; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+            .history-title { color: white; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); font-size: 2rem; }
             
             .table-card { 
-                background: white; border-radius: 24px; padding: 30px; margin-bottom: 40px; 
-                box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 900px;
+                background: white; border-radius: 24px; padding: 35px; margin-bottom: 40px; 
+                box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 950px;
                 border-top: 8px solid #1e3c72; position: relative;
             }
             
@@ -491,38 +491,37 @@ function showHistory() {
                 font-size: 1.5rem; font-weight: bold; color: #1e3c72; 
                 text-align: center; border: 2.5px solid #94a3b8;
                 background: #e2e8f0; padding: 12px; border-radius: 16px; 
-                width: 60%; margin: 0 auto 20px;
+                width: 65%; margin: 0 auto 30px;
             }
 
-            .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-            .custom-table th { padding: 15px 10px; color: white; text-align: center; }
-            .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px 0 0 15px; }
-            .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); }
-            .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border-radius: 0 15px 15px 0; }
+            .custom-table { width: 100%; border-collapse: separate; border-spacing: 10px 8px; }
+            .custom-table th { padding: 18px 10px; color: white; text-align: center; font-size: 1.1rem; }
+            .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px; }
+            .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); border-radius: 15px; }
+            .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border-radius: 15px; }
 
-            .custom-table td { padding: 5px; }
             .cell-data { 
                 background: #e2e8f0; border: 2.5px solid #cbd5e1; 
-                padding: 12px; border-radius: 14px; text-align: center; font-weight: 600; color: #333;
+                padding: 14px; border-radius: 14px; text-align: center; font-weight: 600; color: #333;
             }
             
             .footer-info {
                 display: flex; justify-content: space-between; align-items: center;
-                margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1;
+                margin-top: 25px; padding-top: 15px; border-top: 1px dashed #cbd5e1;
             }
-            .profit-tag { color: #27ae60; font-weight: bold; font-size: 1.2rem; }
-            .time-tag { color: #64748b; font-size: 0.85rem; }
+            .profit-tag { color: #27ae60; font-weight: bold; font-size: 1.3rem; }
+            .time-tag { color: #64748b; font-size: 0.9rem; font-weight: 400; }
         </style>
     </head>
     <body>
-        <h2 class="history-title"><i class="fas fa-history"></i> ประวัติการคิดยอด (ที่ปิดบั้งแล้ว)</h2>`;
+        <h2 class="history-title"><i class="fas fa-history"></i> ประวัติการคิดยอด</h2>`;
 
     historyData.forEach(h => {
         let rowsHtml = h.rows.map(r => `
             <tr>
-                <td><div class="cell-data">${r[0] || "-"}</div></td>
-                <td><div class="cell-data">${r[1] || "-"}</div></td>
-                <td><div class="cell-data">${r[2] || "-"}</div></td>
+                <td style="width: 40%;"><div class="cell-data">${r[0] || "-"}</div></td>
+                <td style="width: 20%;"><div class="cell-data">${r[1] || "-"}</div></td>
+                <td style="width: 40%;"><div class="cell-data">${r[2] || "-"}</div></td>
             </tr>`).join('');
 
         content += `
@@ -539,8 +538,8 @@ function showHistory() {
                     <tbody>${rowsHtml}</tbody>
                 </table>
                 <div class="footer-info">
-                    <span class="time-tag"><i class="far fa-clock"></i> ${h.timestamp}</span>
-                    <span class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</span>
+                    <span class="time-tag"><i class="far fa-clock"></i> บันทึกเมื่อ: ${h.timestamp}</span>
+                    <span class="profit-tag">กำไรส่วนแบ่ง (10%): ฿${h.profit.toFixed(2)}</span>
                 </div>
             </div>`;
     });
