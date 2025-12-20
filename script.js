@@ -37,7 +37,7 @@ function saveData() {
     }
 }
 
-// [3] จัดการตารางหน้าหลัก (ดีไซน์ก๊อบปี้หน้าแรกมาทั้งหมด)
+// [3] จัดการตารางหน้าหลัก (หน้าตาตามรูปที่ 3)
 function addTable(title = "", rows = null) {
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -137,39 +137,42 @@ function addRow(table) {
 
 function removeRow(btn) { btn.closest('tr').remove(); saveData(); }
 
-// [4] ระบบแสดงประวัติแบบก๊อบปี้ดีไซน์หน้าหลักมา 100%
+// [4] ระบบแสดงประวัติแบบถอดดีไซน์รูปที่ 3 มาเป๊ะๆ
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติ", "alert");
+    
     let win = window.open("", "History", "width=1200,height=900");
+    
     let style = `
         <style>
-            :root { --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); --shadow-premium: 0 15px 35px rgba(0, 0, 0, 0.1); }
-            body { font-family: 'Sarabun', sans-serif; background: var(--primary-bg); background-attachment: fixed; padding: 40px 20px; margin: 0; }
-            .history-title { text-align: center; color: white; margin-bottom: 30px; font-size: 2.5rem; text-shadow: 0 3px 10px rgba(0,0,0,0.3); font-weight: 700; }
-            .table-card { background: white; border-radius: 24px; padding: 35px; margin: 0 auto 40px; max-width: 1100px; box-shadow: var(--shadow-premium); position: relative; border-top: 8px solid #1e3c72; }
-            .history-header-box { font-size: 1.5rem; font-weight: bold; color: #1e3c72; text-align: center; border: 2.5px solid #94a3b8; background: #e2e8f0; padding: 12px; border-radius: 16px; width: 60%; display: block; margin: 0 auto 30px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
-            .profit-tag { position: absolute; top: 15px; left: 15px; background: #e8f5e9; color: #2e7d32; padding: 5px 15px; border-radius: 50px; font-weight: bold; border: 1px solid #2e7d32; font-size: 0.9rem; }
-            .timestamp-tag { position: absolute; top: 15px; right: 60px; color: #64748b; font-size: 0.8rem; }
-            .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-            .custom-table th { padding: 18px 10px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-            .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px 0 0 15px; }
-            .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); }
-            .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
-            .th-purple { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); border-radius: 0 15px 15px 0; }
-            .custom-table td { text-align: center; padding: 14px; background: #e2e8f0; border: 2.5px solid #cbd5e1; font-weight: 600; border-radius: 14px; color: #333; }
-            .btn-view-only { background: #fff; color: #e74c3c; border: 2px solid #fff5f5; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+            :root { --primary-bg: #1e3c72; }
+            body { font-family: 'Sarabun', sans-serif; background: var(--primary-bg); padding: 40px 20px; margin: 0; }
+            .history-title { text-align: center; color: white; margin-bottom: 30px; font-size: 2.5rem; font-weight: 700; }
+            .table-card { background: white; border-radius: 30px; padding: 40px; margin: 0 auto 40px; max-width: 1000px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
+            .history-header-box { font-size: 1.6rem; font-weight: bold; color: #1e3c72; text-align: center; border: 2px solid #cbd5e1; background: #e2e8f0; padding: 15px; border-radius: 20px; width: 70%; display: block; margin: 0 auto 30px; }
+            .profit-tag { position: absolute; top: 20px; left: 25px; background: #e8f5e9; color: #2e7d32; padding: 5px 20px; border-radius: 50px; font-weight: bold; font-size: 1rem; border: 1px solid #2e7d32; }
+            .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+            .custom-table th { padding: 15px 5px; color: white; font-weight: 600; font-size: 1rem; border: none; }
+            .th-green { background: #2ecc71; border-radius: 15px 0 0 15px; }
+            .th-orange { background: #f39c12; }
+            .th-red { background: #e74c3c; }
+            .th-purple { background: #9b59b6; border-radius: 0 15px 15px 0; }
+            .custom-table td { text-align: center; padding: 12px; background: #e2e8f0; border: none; font-weight: 600; border-radius: 15px; color: #333; }
+            .btn-trash-view { background: white; color: #e74c3c; border: 1px solid #eee; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .timestamp { display: block; text-align: center; color: #64748b; font-size: 0.85rem; margin-top: 15px; }
         </style>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     `;
-    let content = `<html><head>${style}</head><body><h2 class="history-title">ADMIN ROCKET PREMIUM (History)</h2>`;
+
+    let content = `<html><head>${style}</head><body><h2 class="history-title">ประวัติการคิดยอด</h2>`;
     [...historyData].reverse().forEach(h => {
-        let rows = h.rows.map(r => `<tr><td>${r[0]||''}</td><td>${r[1]||''}</td><td>${r[2]||''}</td><td><div class="btn-view-only"><i class="fas fa-trash-alt"></i></div></td></tr>`).join('');
-        content += `<div class="table-card"><div class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</div><div class="timestamp-tag"><i class="far fa-clock"></i> ${h.timestamp}</div><div class="history-header-box">${h.title||'ไม่ระบุชื่อค่าย'}</div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        let rows = h.rows.map(r => `<tr><td style="width: 28%;">${r[0]||''}</td><td style="width: 28%;">${r[1]||''}</td><td style="width: 28%;">${r[2]||''}</td><td style="width: 10%;"><div class="btn-trash-view"><i class="fas fa-trash-alt"></i></div></td></tr>`).join('');
+        content += `<div class="table-card"><div class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</div><div class="history-header-box">${h.title||'ไม่ระบุชื่อค่าย'}</div><table class="custom-table"><thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead><tbody>${rows}</tbody></table><div class="timestamp">วันที่บันทึก: ${h.timestamp}</div></div>`;
     });
     win.document.write(content + "</body></html>");
 }
 
-// [5] ระบบ Modal รองรับ Enter / Esc
+// [5] ระบบ Modal และ UI อื่นๆ ครบถ้วนตามไฟล์เดิม
 function showModal(title, msg, type = "alert", cb = null) {
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = title;
@@ -193,33 +196,15 @@ function showModal(title, msg, type = "alert", cb = null) {
     modal.classList.add('active');
 }
 
-function closeModal() {
-    document.getElementById('custom-modal').classList.remove('active');
-    if (currentModalKeyHandler) { window.removeEventListener('keydown', currentModalKeyHandler); currentModalKeyHandler = null; }
-}
-
-// [6] ฟังก์ชันเสริม
-function updateDashboardStats() {
-    const pEl = document.getElementById("total-profit-display");
-    if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined,{minimumFractionDigits:2})}`;
-}
-
-function loadData() {
-    const raw = localStorage.getItem("savedTables");
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    const container = document.getElementById("tables-container");
-    container.innerHTML = "";
-    data.forEach(t => addTable(t.title, t.rows));
-}
-
+function closeModal() { document.getElementById('custom-modal').classList.remove('active'); if (currentModalKeyHandler) { window.removeEventListener('keydown', currentModalKeyHandler); currentModalKeyHandler = null; } }
+function updateDashboardStats() { const pEl = document.getElementById("total-profit-display"); if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined,{minimumFractionDigits:2})}`; }
+function loadData() { const raw = localStorage.getItem("savedTables"); if (!raw) return; const data = JSON.parse(raw); const container = document.getElementById("tables-container"); container.innerHTML = ""; data.forEach(t => addTable(t.title, t.rows)); }
 function clearAllHistory() { showModal("คำเตือน", "ล้างข้อมูลทั้งหมดใช่หรือไม่?", "confirm", () => { localStorage.clear(); location.reload(); }); }
 
-// [7] ระบบจับเวลาแบบพรีเมียม (ตัวเต็ม)
 function openStopwatchWindow() {
     const width = 1000, height = 850;
     const left = (window.screen.width / 2) - (width / 2);
     const top = (window.screen.height / 2) - (height / 2);
     const sw = window.open("", "_blank", `width=${width},height=${height},left=${left},top=${top}`);
-    sw.document.write(`<html><head><title>PREMIUM TIMER</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>:root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --primary: #38bdf8; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; } body { background: var(--bg); color: #f8fafc; font-family: sans-serif; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; } .input-box { background: var(--card); padding: 10px; border-radius: 20px; display: flex; width: 100%; max-width: 700px; gap: 12px; margin-bottom: 40px; } input { flex: 1; background: transparent; border: none; padding: 15px 25px; color: white; font-size: 1.2rem; outline: none; } .btn-add { background: var(--primary); padding: 0 35px; border-radius: 15px; font-weight: 700; cursor: pointer; } .timer-card { background: var(--card); border-radius: 24px; padding: 30px; margin-bottom: 20px; width: 450px; } .time-display { font-size: 4.5rem; text-align: center; color: var(--success); } .controls { display: flex; gap: 12px; justify-content: center; } .btn-ctrl { flex: 1; height: 55px; border-radius: 15px; border: none; cursor: pointer; }</style></head><body><div class="input-box"><input type="text" id="campInput" placeholder="ใส่ชื่อค่าย..."><button class="btn-add" onclick="addNewTimer()">เพิ่มค่าย</button></div><div id="timer-container"></div><script>function addNewTimer(){const n=document.getElementById('campInput').value.trim();if(!n)return;const c=document.createElement('div');c.className='timer-card';c.innerHTML='<div style="font-size:1.6rem;font-weight:700">'+n+'</div><div class="time-display">0.000</div><div class="controls"><button class="btn-ctrl" style="background:#10b981;color:white" onclick="toggleTimer(this)">เริ่ม</button><button class="btn-ctrl" style="background:rgba(255,255,255,0.05);color:#94a3b8" onclick="resetTimer(this)">รีเซ็ต</button><button class="btn-ctrl" style="background:rgba(239,68,68,0.1);color:#ef4444" onclick="this.closest(\\\'.timer-card\\\').remove()">ลบ</button></div>';c.dataset.running='false';c.dataset.elapsed=0;document.getElementById('timer-container').prepend(c);document.getElementById('campInput').value=''};function toggleTimer(b){const c=b.closest('.timer-card');const d=c.querySelector('.time-display');if(c.dataset.running==='false'){c.dataset.running='true';b.innerText='หยุด';b.style.background='#f59e0b';const s=Date.now()-parseFloat(c.dataset.elapsed);c.iv=setInterval(()=>{const e=Date.now()-s;c.dataset.elapsed=e;d.innerText=(e/1000).toFixed(3)},10)}else{c.dataset.running='false';b.innerText='เริ่มต่อ';b.style.background='#10b981';clearInterval(c.iv)}};function resetTimer(b){const c=b.closest('.timer-card');clearInterval(c.iv);c.dataset.running='false';c.dataset.elapsed=0;c.querySelector('.time-display').innerText='0.000';const s=c.querySelector('.btn-ctrl');s.innerText='เริ่ม';s.style.background='#10b981'}</script></body></html>`);
+    sw.document.write(`<html><head><title>TIMER</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>:root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --primary: #38bdf8; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; } body { background: var(--bg); color: #f8fafc; font-family: sans-serif; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; } .input-box { background: var(--card); padding: 10px; border-radius: 20px; display: flex; width: 100%; max-width: 700px; gap: 12px; margin-bottom: 40px; } input { flex: 1; background: transparent; border: none; padding: 15px 25px; color: white; font-size: 1.2rem; outline: none; } .btn-add { background: var(--primary); padding: 0 35px; border-radius: 15px; font-weight: 700; cursor: pointer; } .timer-card { background: var(--card); border-radius: 24px; padding: 30px; margin-bottom: 20px; width: 450px; } .time-display { font-size: 4.5rem; text-align: center; color: var(--success); } .controls { display: flex; gap: 12px; justify-content: center; }</style></head><body><div class="input-box"><input type="text" id="campInput" placeholder="ชื่อค่าย..."><button class="btn-add" onclick="addNewTimer()">เพิ่มค่าย</button></div><div id="timer-container"></div><script>function addNewTimer(){const n=document.getElementById('campInput').value.trim();if(!n)return;const c=document.createElement('div');c.className='timer-card';c.innerHTML='<div style="font-size:1.6rem;font-weight:700">'+n+'</div><div class="time-display">0.000</div><div class="controls"><button class="btn-ctrl" style="background:#10b981;color:white" onclick="toggleTimer(this)">เริ่ม</button><button class="btn-ctrl" style="background:rgba(255,255,255,0.05);color:#94a3b8" onclick="resetTimer(this)">รีเซ็ต</button><button class="btn-ctrl" style="background:rgba(239,68,68,0.1);color:#ef4444" onclick="this.closest(\\\'.timer-card\\\').remove()">ลบ</button></div>';c.dataset.running='false';c.dataset.elapsed=0;document.getElementById('timer-container').prepend(c);document.getElementById('campInput').value=''};function toggleTimer(b){const c=b.closest('.timer-card');const d=c.querySelector('.time-display');if(c.dataset.running==='false'){c.dataset.running='true';b.innerText='หยุด';const s=Date.now()-parseFloat(c.dataset.elapsed);c.iv=setInterval(()=>{const e=Date.now()-s;c.dataset.elapsed=e;d.innerText=(e/1000).toFixed(3)},10)}else{c.dataset.running='false';b.innerText='เริ่มต่อ';clearInterval(c.iv)}};function resetTimer(b){const c=b.closest('.timer-card');clearInterval(c.iv);c.dataset.running='false';c.dataset.elapsed=0;c.querySelector('.time-display').innerText='0.000';const s=c.querySelector('.btn-ctrl');s.innerText='เริ่ม'}</script></body></html>`);
 }
