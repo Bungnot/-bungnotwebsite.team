@@ -73,26 +73,27 @@ function addTable(title = "", rows = null) {
     }
 
     newTable.innerHTML = `
-    <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
-    <div class="card-header">
-        <input type="text" class="table-title-input" value="${title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()">
-    </div>
-    <table class="custom-table">
-        <thead>
-            <tr>
-                <th class="th-green">รายชื่อคนไล่</th>
-                <th class="th-orange">ราคาเล่น</th>
-                <th class="th-red">รายชื่อคนยั้ง</th>
-                <th class="th-purple">จัดการ</th>
-            </tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-    </table>
-    <div style="text-align: center; margin-top: 20px;">
-        <button class="btn-add-row-custom" onclick="addRow(this.closest('.table-card').querySelector('table'))">
-            <i class="fas fa-plus"></i> เพิ่มแผลที่เล่น
-        </button>
-    </div>`;
+        <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
+        <div class="card-header">
+            <input type="text" class="table-title-input" value="${title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()">
+        </div>
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th class="th-green">รายชื่อคนไล่</th>
+                    <th class="th-orange">ราคาเล่น</th>
+                    <th class="th-red">รายชื่อคนยั้ง</th>
+                    <th class="th-purple">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+        </table>
+        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="margin: 20px auto 0; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32;">+ เพิ่มแผลที่เล่น</button>`;
+    
+    container.appendChild(newTable);
+    saveData();
+    updateDashboardStats();
+}
 
 function addRow(table) {
     const tbody = table.querySelector("tbody");
