@@ -460,7 +460,7 @@ function updateDashboardStats() {
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติ", "alert");
     
-    let newWindow = window.open("", "History", "width=1000,height=850");
+    let newWindow = window.open("", "History", "width=1100,height=900");
     
     let content = `
     <html>
@@ -479,38 +479,44 @@ function showHistory() {
                 flex-direction: column;
                 align-items: center;
             }
-            .history-title { color: white; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); font-size: 2rem; }
+            .history-title { color: white; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); font-size: 2.2rem; }
             
+            /* การ์ดตารางปรับให้เหมือนหน้าหลัก */
             .table-card { 
                 background: white; border-radius: 24px; padding: 35px; margin-bottom: 40px; 
-                box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 950px;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 1000px;
                 border-top: 8px solid #1e3c72; position: relative;
             }
             
+            /* หัวชื่อค่ายแบบตารางหลัก */
             .camp-header {
                 font-size: 1.5rem; font-weight: bold; color: #1e3c72; 
                 text-align: center; border: 2.5px solid #94a3b8;
                 background: #e2e8f0; padding: 12px; border-radius: 16px; 
-                width: 65%; margin: 0 auto 30px;
+                width: 60%; margin: 0 auto 30px;
             }
 
-            .custom-table { width: 100%; border-collapse: separate; border-spacing: 10px 8px; }
-            .custom-table th { padding: 18px 10px; color: white; text-align: center; font-size: 1.1rem; }
-            .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px; }
-            .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); border-radius: 15px; }
-            .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border-radius: 15px; }
+            .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+            .custom-table th { padding: 18px 10px; color: white; text-align: center; font-size: 1.1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+            
+            /* สีหัวตารางแบบรุ้ง */
+            .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px 0 0 15px; }
+            .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); }
+            .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border-radius: 0 15px 15px 0; }
 
+            /* ช่องข้อมูลแบบโค้งมนพื้นหลังเทา (แทนที่ input เดิม) */
             .cell-data { 
                 background: #e2e8f0; border: 2.5px solid #cbd5e1; 
-                padding: 14px; border-radius: 14px; text-align: center; font-weight: 600; color: #333;
+                padding: 14px; border-radius: 14px; text-align: center; 
+                font-weight: 600; color: #333; margin: 0 5px;
             }
             
             .footer-info {
                 display: flex; justify-content: space-between; align-items: center;
-                margin-top: 25px; padding-top: 15px; border-top: 1px dashed #cbd5e1;
+                margin-top: 25px; padding-top: 20px; border-top: 1px dashed #cbd5e1;
             }
-            .profit-tag { color: #27ae60; font-weight: bold; font-size: 1.3rem; }
-            .time-tag { color: #64748b; font-size: 0.9rem; font-weight: 400; }
+            .profit-tag { color: #2ecc71; font-weight: bold; font-size: 1.4rem; }
+            .time-tag { color: #64748b; font-size: 0.95rem; }
         </style>
     </head>
     <body>
@@ -538,8 +544,8 @@ function showHistory() {
                     <tbody>${rowsHtml}</tbody>
                 </table>
                 <div class="footer-info">
-                    <span class="time-tag"><i class="far fa-clock"></i> บันทึกเมื่อ: ${h.timestamp}</span>
-                    <span class="profit-tag">กำไรส่วนแบ่ง (10%): ฿${h.profit.toFixed(2)}</span>
+                    <span class="time-tag"><i class="far fa-clock"></i> เมื่อวันที่: ${h.timestamp}</span>
+                    <span class="profit-tag">กำไรรวม: ฿${h.profit.toFixed(2)}</span>
                 </div>
             </div>`;
     });
