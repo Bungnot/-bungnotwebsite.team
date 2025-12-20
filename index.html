@@ -51,14 +51,14 @@
         .btn-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
         .btn-clear { color: #e74c3c; }
 
-        /* --- Table Styling (Premium) --- */
+        /* --- Table Styling --- */
         #tables-container { max-width: 1300px; margin: 0 auto; }
         .table-card { 
             background: white; border-radius: 24px; padding: 35px; margin-bottom: 40px; 
             box-shadow: var(--shadow-premium); position: relative; border-top: 8px solid #1e3c72;
         }
 
-        /* [แก้ไข] ช่องกรอกชื่อค่าย ให้ชัดขึ้น */
+        /* ปรับปรุงช่องกรอกชื่อค่าย */
         .table-title-input { 
             font-size: 1.5rem; font-weight: bold; color: #1e3c72; 
             text-align: center; border: 2px solid #cbd5e1; background: #f1f5f9; 
@@ -79,12 +79,13 @@
         .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
         .th-purple { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); border-radius: 0 15px 15px 0; }
 
-        /* [แก้ไข] ช่องกรอกในตาราง ให้มองเห็นกรอบชัดเจน */
+        /* ปรับปรุงช่องกรอกข้อมูลในตารางให้เห็นชัดขึ้น */
         .custom-table input { 
             width: 100%; padding: 14px; border: 2px solid #e2e8f0; 
             border-radius: 14px; background: #f8fafc; text-align: center;
-            box-sizing: border-box; transition: all 0.2s;
+            box-sizing: border-box; transition: all 0.2s ease;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+            font-weight: 500;
         }
         .custom-table input:hover {
             border-color: #cbd5e1;
@@ -94,7 +95,7 @@
             background: #ffffff;
             border-color: #2a5298;
             outline: none;
-            box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.1);
+            box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.15);
             transform: translateY(-1px);
         }
 
@@ -200,7 +201,7 @@
         let currentModalKeyHandler = null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            loadData();
+            loadData(); 
             const savedHistory = localStorage.getItem("historyData");
             if (savedHistory) {
                 historyData = JSON.parse(savedHistory);
@@ -212,17 +213,24 @@
         function saveData() {
             const data = [];
             document.querySelectorAll(".table-container").forEach(table => {
-                const title = table.querySelector(".table-title-input").value;
+                const titleInput = table.querySelector(".table-title-input");
+                const title = titleInput ? titleInput.value : "";
                 const rows = [];
                 table.querySelectorAll("tbody tr").forEach(r => {
                     const cells = r.querySelectorAll("input");
-                    if (cells.length >= 3) rows.push([cells[0].value, cells[1].value, cells[2].value]);
+                    if (cells.length >= 3) {
+                        rows.push([cells[0].value, cells[1].value, cells[2].value]);
+                    }
                 });
                 data.push({ title, rows });
             });
             localStorage.setItem("savedTables", JSON.stringify(data));
+            
             const badge = document.getElementById("auto-save-alert");
-            if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 2000); }
+            if(badge) { 
+                badge.style.opacity = "1"; 
+                setTimeout(() => badge.style.opacity = "0", 2000); 
+            }
         }
 
         function addTable(title = "", rows = null) {
@@ -240,17 +248,32 @@
                         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
                     </tr>`).join('');
             } else {
-                rowsHtml = `<tr><td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+                rowsHtml = `
+                    <tr>
+                        <td><input type="text" oninput="saveData()"></td>
+                        <td><input type="text" oninput="saveData()"></td>
+                        <td><input type="text" oninput="saveData()"></td>
+                        <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                    </tr>`;
             }
 
             newTable.innerHTML = `
                 <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
-                <input type="text" class="table-title-input" value="${title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()">
+                <div class="card-header">
+                    <input type="text" class="table-title-input" value="${title}" placeholder="ใส่ชื่อค่ายที่นี่..." oninput="saveData()">
+                </div>
                 <table class="custom-table">
-                    <thead><tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th class="th-green">รายชื่อคนไล่</th>
+                            <th class="th-orange">ราคาเล่น</th>
+                            <th class="th-red">รายชื่อคนยั้ง</th>
+                            <th class="th-purple">จัดการ</th>
+                        </tr>
+                    </thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>
-                <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="margin: 20px auto 0; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32;">+ เพิ่มแผลที่เล่น</button>`;
+                <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="margin: 20px auto 0; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32; width: auto;">+ เพิ่มแผลที่เล่น</button>`;
             
             container.appendChild(newTable);
             saveData();
@@ -260,6 +283,7 @@
         function removeTable(button) {
             const tableContainer = button.closest('.table-container');
             const title = tableContainer.querySelector('.table-title-input').value || "ไม่ระบุชื่อ";
+            
             let profit = 0;
             tableContainer.querySelectorAll("tbody tr").forEach(tr => {
                 const val = tr.querySelectorAll("input")[1].value.replace(/[Oo]/g, '0');
@@ -267,15 +291,17 @@
                 if (match) profit += (parseFloat(match[0]) * 0.10);
             });
 
-            showModal("ยืนยันการปิดยอด", `ค่าย: <b>${title}</b><br>กำไร: ฿${profit.toFixed(2)}`, "confirm", () => {
+            showModal("ยืนยันการปิดยอด", `ค่าย: <b>${title}</b><br>กำไรสุทธิ: <span style="color:green">฿${profit.toFixed(2)}</span>`, "confirm", () => {
                 const rowsData = [];
                 tableContainer.querySelectorAll("tbody tr").forEach(tr => {
                     const cells = tr.querySelectorAll("input");
-                    rowsData.push([cells[0].value, cells[1].value, cells[2].value]);
+                    rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
                 });
+
                 historyData.push({ title, rows: rowsData, profit, timestamp: new Date().toLocaleString("th-TH") });
                 localStorage.setItem("historyData", JSON.stringify(historyData));
                 totalDeletedProfit += profit;
+                
                 tableContainer.remove();
                 saveData();
                 updateDashboardStats();
@@ -293,9 +319,16 @@
         }
 
         function addRow(table) {
+            const tbody = table.querySelector("tbody");
             const tr = document.createElement("tr");
-            tr.innerHTML = `<td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
-            table.querySelector("tbody").appendChild(tr);
+            tr.innerHTML = `
+                <td><input type="text" oninput="saveData()"></td>
+                <td><input type="text" oninput="saveData()"></td>
+                <td><input type="text" oninput="saveData()"></td>
+                <td><button class="btn-remove-row" onclick="removeRow(this)">
+                    <i class="fas fa-trash-alt"></i>
+                </button></td>`;
+            tbody.appendChild(tr);
             saveData();
         }
 
