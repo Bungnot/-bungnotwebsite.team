@@ -459,13 +459,95 @@ function updateDashboardStats() {
 
 function showHistory() {
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติ", "alert");
-    let newWindow = window.open("", "History", "width=900,height=800");
-    let content = `<html><head><title>ประวัติ</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet"><style>body{font-family:'Sarabun';padding:20px;background:#f5f5f5}.card{background:white;padding:20px;border-radius:15px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #eee;text-align:center}th{background:#eee}</style></head><body><h2 style="text-align:center">📜 ประวัติการคิดยอด</h2>`;
+    
+    let newWindow = window.open("", "History", "width=1000,height=850");
+    
+    let content = `
+    <html>
+    <head>
+        <title>ประวัติการคิดยอด</title>
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            body {
+                font-family: 'Sarabun', sans-serif;
+                background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                background-attachment: fixed;
+                padding: 40px 20px;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .history-title { color: white; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+            
+            .table-card { 
+                background: white; border-radius: 24px; padding: 30px; margin-bottom: 40px; 
+                box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 900px;
+                border-top: 8px solid #1e3c72; position: relative;
+            }
+            
+            .camp-header {
+                font-size: 1.5rem; font-weight: bold; color: #1e3c72; 
+                text-align: center; border: 2.5px solid #94a3b8;
+                background: #e2e8f0; padding: 12px; border-radius: 16px; 
+                width: 60%; margin: 0 auto 20px;
+            }
+
+            .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+            .custom-table th { padding: 15px 10px; color: white; text-align: center; }
+            .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px 0 0 15px; }
+            .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); }
+            .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border-radius: 0 15px 15px 0; }
+
+            .custom-table td { padding: 5px; }
+            .cell-data { 
+                background: #e2e8f0; border: 2.5px solid #cbd5e1; 
+                padding: 12px; border-radius: 14px; text-align: center; font-weight: 600; color: #333;
+            }
+            
+            .footer-info {
+                display: flex; justify-content: space-between; align-items: center;
+                margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1;
+            }
+            .profit-tag { color: #27ae60; font-weight: bold; font-size: 1.2rem; }
+            .time-tag { color: #64748b; font-size: 0.85rem; }
+        </style>
+    </head>
+    <body>
+        <h2 class="history-title"><i class="fas fa-history"></i> ประวัติการคิดยอด (ที่ปิดบั้งแล้ว)</h2>`;
+
     historyData.forEach(h => {
-        let rows = h.rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
-        content += `<div class="card"><b>ค่าย: ${h.title}</b><br><small>${h.timestamp}</small><table><thead><tr><th>คนไล่</th><th>ราคา</th><th>คนยั้ง</th></tr></thead><tbody>${rows}</tbody></table><p style="text-align:right;color:green;font-weight:bold">กำไร: ฿${h.profit.toFixed(2)}</p></div>`;
+        let rowsHtml = h.rows.map(r => `
+            <tr>
+                <td><div class="cell-data">${r[0] || "-"}</div></td>
+                <td><div class="cell-data">${r[1] || "-"}</div></td>
+                <td><div class="cell-data">${r[2] || "-"}</div></td>
+            </tr>`).join('');
+
+        content += `
+            <div class="table-card">
+                <div class="camp-header">${h.title}</div>
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th class="th-green">รายชื่อคนไล่</th>
+                            <th class="th-orange">ราคาเล่น</th>
+                            <th class="th-red">รายชื่อคนยั้ง</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+                <div class="footer-info">
+                    <span class="time-tag"><i class="far fa-clock"></i> ${h.timestamp}</span>
+                    <span class="profit-tag">กำไร: ฿${h.profit.toFixed(2)}</span>
+                </div>
+            </div>`;
     });
-    newWindow.document.write(content + "</body></html>");
+
+    content += `</body></html>`;
+    newWindow.document.write(content);
+    newWindow.document.close();
 }
 
 function loadData() {
