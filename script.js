@@ -9,9 +9,14 @@ const sounds = {
 function playSound(soundName) {
     if (sounds[soundName]) {
         const sound = sounds[soundName];
+        sound.pause(); // หยุดของเดิมก่อน (กรณีรัวปุ่ม)
         sound.currentTime = 0;
         sound.volume = 0.5;
-        sound.play().catch(e => console.log("Audio interaction required"));
+        // ใช้ Promise เพื่อดูว่าเล่นได้ไหม
+        const playPromise = sound.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => console.log("Browser บล็อกการเล่นเสียงอัตโนมัติ: ต้องคลิกหน้าจอก่อน 1 ครั้ง"));
+        }
     }
 }
 
@@ -67,6 +72,7 @@ function refreshAllBadges() {
     });
 }
 
+// --- 1. เพิ่มเสียงตอนพิมพ์ (Auto Save) ---
 function saveData() {
     const data = [];
     document.querySelectorAll(".table-container").forEach(table => {
@@ -85,8 +91,12 @@ function saveData() {
     refreshAllBadges();
     updateDashboardStats();
     
+    // แสดง Badge แจ้งเตือน และเล่นเสียงเบาๆ ตอนบันทึก
     const badge = document.getElementById("auto-save-alert");
-    if(badge) { badge.style.opacity = "1"; setTimeout(() => badge.style.opacity = "0", 1500); }
+    if(badge) { 
+        badge.style.opacity = "1"; 
+        setTimeout(() => badge.style.opacity = "0", 1500); 
+    }
 }
 
 function loadData() {
@@ -145,13 +155,15 @@ function addRow(table) {
 
 function removeRow(btn) { playSound('delete'); btn.closest('tr').remove(); saveData(); }
 
+// --- 2. แก้ไขการลบตาราง (เพิ่มเสียง Success เมื่อปิดยอด) ---
 function removeTable(button) {
     const tableContainer = button.closest('.table-container');
     const title = tableContainer.querySelector('.table-title-input').value || "ไม่ระบุชื่อ";
     const calculatedProfit = calculateTableProfit(tableContainer);
 
     showConfirmModal(title, calculatedProfit, (finalProfit) => {
-        playSound('success');
+        // เล่นเสียง Success เมื่อยืนยันปิดยอดสำเร็จ
+        playSound('success'); 
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
             const cells = tr.querySelectorAll("input");
@@ -212,7 +224,7 @@ function updateDashboardStats() {
 
 function showHistory() {
     if (historyData.length === 0) return showSimpleModal("แจ้งเตือน", "ไม่มีประวัติ");
-    
+    playSound('popup'); // เสียงเปิดหน้าต่างประวัติ
     let newWindow = window.open("", "History", "width=1100,height=900");
     
     // ดึง CSS จากหน้าหลักมาใช้เพื่อให้หน้าตาเหมือนกัน 100%
@@ -339,9 +351,9 @@ function showSimpleModal(title, msg) {
 }
 
 function closeModal() { 
+    playSound('click'); // เสียงตอนกดปิด Modal
     document.getElementById('custom-modal').classList.remove('active'); 
     window.removeEventListener('keydown', currentModalKeyHandler);
-    isProcessingModal = false;
 }
 
 function clearAllHistory() { if(confirm("ล้างทั้งหมด?")) { localStorage.clear(); location.reload(); } }
