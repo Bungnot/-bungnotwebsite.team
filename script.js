@@ -1,11 +1,11 @@
 const sounds = {
-    click: new Audio('https://www.epidemicsound.com/sound-effects/tracks/7e20b6a6-df68-4640-94f4-0310a5d91ac1/'),
-    popup: new Audio('https://www.epidemicsound.com/sound-effects/tracks/b0df754b-f6ac-4a6d-916e-6a5da1b63c84/'),
-    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'),
+    click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
+    // แก้ไข 2 ลิงก์ที่เสียเป็น Mixkit ตัวใหม่
+    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'),
+    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/251/251-preview.mp3'),
     
-    // ใช้เสียงจากระบบแจ้งเตือนของ Google โดยตรง (เสถียรและเป็นระบบ)
-    success: new Audio('https://www.epidemicsound.com/sound-effects/tracks/b94bfb4e-a805-4d53-8de6-f603a4e3967b/'), // Placeholder สำหรับตรวจสอบการโหลด
-    delete: new Audio('https://www.epidemicsound.com/sound-effects/tracks/5f4c5217-5464-4831-a45a-987e9d980aff/') 
+    popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'),
+    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3')
 };
 
 // บังคับเปลี่ยน Source เป็นไฟล์เสียง MP3 ที่ใช้ได้จริงแน่นอน
