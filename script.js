@@ -105,9 +105,9 @@ function addTable(title = "", rows = null, isSilent = false) {
 
     const generateRowHtml = (r = ["", "", ""]) => `
         <tr onfocusin="this.classList.add('active-row')" onfocusout="this.classList.remove('active-row')">
-            <td><input type="text" value="${r[0]}" oninput="saveData()" placeholder="รายชื่อคนไล่"></td>
-            <td><input type="text" value="${r[1]}" oninput="saveData()" placeholder="ราคาเล่น" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
-            <td><input type="text" value="${r[2]}" oninput="saveData()" placeholder="รายชื่อคนยั้ง"></td>
+            <td><input type="text" value="${r[0]}" oninput="saveData()" placeholder=""></td>
+            <td><input type="text" value="${r[1]}" oninput="saveData()" placeholder="" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
+            <td><input type="text" value="${r[2]}" oninput="saveData()" placeholder=""></td>
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
