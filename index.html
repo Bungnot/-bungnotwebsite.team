@@ -94,8 +94,8 @@
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); transform: scale(0.9); transition: 0.3s; }
         .modal-overlay.active .modal-box { transform: scale(1); }
-        .modal-actions { margin-top: 30px; display: flex; justify-content: center; gap: 15px; }
-        .btn-modal { padding: 12px 35px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; }
+        .modal-actions { margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .btn-modal { padding: 12px 25px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; min-width: 100px; }
         .btn-confirm { background: #1e3c72; color: white; }
         .btn-cancel { background: #f1f5f9; color: #64748b; }
 
@@ -133,8 +133,7 @@
         <div class="info-card">
             <h3><i class="fas fa-info-circle"></i> วิธีคิดยอด</h3>
             <div style="font-size: 0.85rem; color: #475569;">
-                • เอาชื่อคนไล่ไว้ข้างหน้า <br>
-                • ราคา 280/300 ใส่ 80/00 <br>
+                • ราคา 3 ตัวขึ้นไป ถึงจะเริ่มคำนวณ (เช่น 300, 280) <br>
                 • ถ้า 400+ ใช้ตัวอักษรแทนเลข (เช่น 4OO) <br>
                 • กำไรคิดให้ 10% เมื่อกดปิดบั้ง (X)
             </div>
