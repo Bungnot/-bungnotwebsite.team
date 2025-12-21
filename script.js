@@ -183,6 +183,7 @@ function restoreLastDeleted() {
 }
 
 function handleGlobalKeyDown(e) {
+    if (document.getElementById('custom-modal').classList.contains('active')) return;
     if (e.target.tagName !== "INPUT") return;
     const currentInput = e.target;
     const currentTr = currentInput.closest('tr');
@@ -247,6 +248,7 @@ function showConfirmModal(title, profit, callback) {
     };
     window.addEventListener('keydown', currentModalKeyHandler);
     modal.classList.add('active');
+    window.focus();
 }
 
 function createModalBtn(text, className, onClick) {
