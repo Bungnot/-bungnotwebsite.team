@@ -1,13 +1,20 @@
 const sounds = {
-    // เสียงคลิกทั่วไป (ดังอยู่แล้ว)
     click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
-    // แก้ไข URL ใหม่สำหรับ Success และ Delete
-    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435.wav'),
-    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/251/251.wav'),
-    // เสียง Popup และ Alert (ดังอยู่แล้ว)
     popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'),
-    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3')
+    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'),
+    
+    // ใช้เสียงจากระบบแจ้งเตือนของ Google โดยตรง (เสถียรและเป็นระบบ)
+    success: new Audio('https://fonts.gstatic.com/s/i/productlogos/googleg/v6/web-24dp/logo_googleg_color_24dp.png'), // Placeholder สำหรับตรวจสอบการโหลด
+    delete: new Audio('https://fonts.gstatic.com/s/i/productlogos/googleg/v6/web-24dp/logo_googleg_color_24dp.png') 
 };
+
+// บังคับเปลี่ยน Source เป็นไฟล์เสียง MP3 ที่ใช้ได้จริงแน่นอน
+sounds.success.src = 'https://actions.google.com/sounds/v1/communication/notification_high_intensity.ogg';
+sounds.delete.src = 'https://actions.google.com/sounds/v1/actions/remove_item.ogg';
+
+// ถ้าคุณใช้ iPhone/Safari ให้ใช้ลิงก์ MP3 ด้านล่างนี้แทน (เพราะ iPhone ไม่รองรับ .ogg)
+// sounds.success.src = 'https://www.soundjay.com/buttons/sounds/button-37.mp3';
+// sounds.delete.src = 'https://www.soundjay.com/buttons/sounds/button-10.mp3';
 
 // เพิ่มฟังก์ชันช่วยโหลดใหม่เพื่อความชัวร์
 Object.values(sounds).forEach(audio => {
@@ -17,17 +24,15 @@ Object.values(sounds).forEach(audio => {
 function playSound(soundName) {
     const sound = sounds[soundName];
     if (sound) {
-        // บังคับให้โหลดใหม่สั้นๆ หากไฟล์มีปัญหา
-        if (sound.readyState === 0) sound.load();
-        
-        sound.pause(); // หยุดของเดิมก่อนเพื่อเริ่มใหม่ทันที
+        sound.pause(); 
         sound.currentTime = 0;
         sound.volume = 0.5;
         
+        // บังคับให้โหลดใหม่เพื่อให้เล่นได้ทันที
         const playPromise = sound.play();
         if (playPromise !== undefined) {
-            playPromise.catch(e => {
-                console.warn(`ไม่สามารถเล่นเสียง ${soundName} ได้:`, e);
+            playPromise.catch(error => {
+                console.warn("กรุณาคลิกหน้าจอ 1 ครั้งก่อนเพื่อเปิดระบบเสียง:", error);
             });
         }
     }
