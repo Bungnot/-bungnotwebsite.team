@@ -178,16 +178,16 @@ function removeTable(button) {
     });
 }
 
-// --- แก้บัคกู้คืนเบิ้ล ---
+// --- 4. เพิ่มเสียงตอนกู้คืนข้อมูล ---
 function restoreLastDeleted() {
-    if (isRestoring) return; // ล็อคป้องกันกดซ้ำ
+    if (isRestoring) return;
     if (historyData.length === 0) {
-        playSound('alert');
+        playSound('alert'); // เสียงเตือนถ้าไม่มีข้อมูลให้กู้
         return showSimpleModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน");
     }
 
-    isRestoring = true; // เริ่มกระบวนการ
-    playSound('success');
+    isRestoring = true;
+    playSound('success'); // เสียงเมื่อกู้คืนสำเร็จ
     
     const last = historyData.pop();
     totalDeletedProfit -= last.profit;
@@ -195,8 +195,6 @@ function restoreLastDeleted() {
     
     localStorage.setItem("historyData", JSON.stringify(historyData));
     updateDashboardStats();
-    
-    // ปลดล็อคหลังจาก 500ms
     setTimeout(() => { isRestoring = false; }, 500);
 }
 
