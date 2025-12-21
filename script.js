@@ -3,8 +3,10 @@ const sounds = {
     // แก้ไข 2 ลิงก์ที่เสียเป็น Mixkit ตัวใหม่
     success: new Audio('https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3'),
     delete: new Audio('https://assets.mixkit.co/active_storage/sfx/1489/1489-preview.mp3'),
-    
+
     popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2039/2039-preview.mp3'),
+    
+    clear: new Audio('https://assets.mixkit.co/active_storage/sfx/3118/3118-preview.mp3'),
     alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2047/2047-preview.mp3')
 };
 
@@ -379,7 +381,7 @@ function closeModal() {
     window.removeEventListener('keydown', currentModalKeyHandler);
 }
 
-function clearAllHistory() { if(confirm("ล้างทั้งหมด?")) { localStorage.clear(); location.reload(); } }
+function clearAllHistory() { playSound('clear'); if(confirm("ล้างทั้งหมด?")) { localStorage.clear(); location.reload(); } }
 
 function openStopwatchWindow() {
     const win = window.open("", "_blank", "width=500,height=600");
