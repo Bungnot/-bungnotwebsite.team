@@ -374,7 +374,87 @@ function closeModal() {
 
 function clearAllHistory() { if(confirm("ล้างทั้งหมด?")) { localStorage.clear(); location.reload(); } }
 
-function openStopwatchWindow() { window.open("", "_blank", "width=400,height=400").document.write("Timer Tool..."); }
+function openStopwatchWindow() {
+    const win = window.open("", "_blank", "width=400,height=500");
+    if (!win) {
+        alert("กรุณาอนุญาต Pop-up เพื่อใช้งานตัวจับเวลา");
+        return;
+    }
+
+    const html = `
+    <html>
+    <head>
+        <title>จับเวลา - ADMIN ROCKET</title>
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Sarabun', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #1e293b; color: white; }
+            #timer { font-size: 80px; font-weight: bold; margin-bottom: 20px; color: #2ecc71; text-shadow: 0 0 20px rgba(46, 204, 113, 0.5); }
+            .controls { display: flex; gap: 10px; }
+            button { padding: 15px 30px; font-size: 18px; cursor: pointer; border: none; border-radius: 12px; font-weight: bold; transition: 0.2s; }
+            .btn-start { background: #2ecc71; color: white; }
+            .btn-reset { background: #e74c3c; color: white; }
+            button:active { transform: scale(0.95); }
+        </style>
+    </head>
+    <body>
+        <div id="timer">15:00</div>
+        <div class="controls">
+            <button class="btn-start" onclick="toggleTimer()" id="btnStart">เริ่มจับเวลา</button>
+            <button class="btn-reset" onclick="resetTimer()">รีเซ็ต</button>
+        </div>
+
+        <script>
+            let timeLeft = 15 * 60;
+            let timerId = null;
+
+            function updateDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('timer').innerText = 
+                    \`\${minutes.toString().padStart(2, '0')}:\${seconds.toString().padStart(2, '0')}\`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    document.getElementById('timer').style.color = '#e74c3c';
+                    alert('หมดเวลา!');
+                }
+            }
+
+            function toggleTimer() {
+                const btn = document.getElementById('btnStart');
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                    btn.innerText = 'เริ่มต่อ';
+                    btn.style.background = '#2ecc71';
+                } else {
+                    btn.innerText = 'หยุด';
+                    btn.style.background = '#f39c12';
+                    timerId = setInterval(() => {
+                        if (timeLeft > 0) {
+                            timeLeft--;
+                            updateDisplay();
+                        }
+                    }, 1000);
+                }
+            }
+
+            function resetTimer() {
+                clearInterval(timerId);
+                timerId = null;
+                timeLeft = 15 * 60;
+                updateDisplay();
+                document.getElementById('timer').style.color = '#2ecc71';
+                document.getElementById('btnStart').innerText = 'เริ่มจับเวลา';
+                document.getElementById('btnStart').style.background = '#2ecc71';
+            }
+        </script>
+    </body>
+    </html>`;
+
+    win.document.write(html);
+    win.document.close();
+}
 
 function sendMessageToLine() {
     const name = document.getElementById('lineName').value;
