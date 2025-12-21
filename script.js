@@ -2,13 +2,23 @@
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
 function enterWebsite() {
-    playSound('click'); // ปลดล็อก Audio Context บน Browser
+    // เล่นเสียงคลิกเพื่อปลดล็อกระบบเสียง
+    playSound('click'); 
+    
     const welcome = document.getElementById('welcome-screen');
-    welcome.style.opacity = '0';
-    welcome.style.visibility = 'hidden';
+    const welcomeBox = welcome.querySelector('.welcome-box');
+    
+    // อนิเมชั่นตัวกล่องให้ยุบลงเล็กน้อยก่อนหายไป
+    welcomeBox.style.transform = "scale(0.9)";
+    welcomeBox.style.transition = "transform 0.4s ease";
+    
+    // ค่อยๆ จางหน้าจอ Welcome ทั้งหมดหายไป
+    welcome.classList.add('fade-out-screen');
+    
+    // ลบ Element ทิ้งหลังจากเล่นอนิเมชั่นเสร็จ (0.8 วินาทีตาม CSS)
     setTimeout(() => {
         welcome.remove();
-    }, 600);
+    }, 800);
 }
 
 const sounds = {
