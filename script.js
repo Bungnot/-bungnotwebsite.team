@@ -39,11 +39,17 @@ function calculateTableProfit(tableElement) {
         if (inputs[1]) {
             const rawVal = inputs[1].value;
             const cleanVal = rawVal.replace(/[Oo]/g, '0');
-            const match = cleanVal.match(/\d+/); 
             
-            // แก้ไข: ต้องมีตัวเลข และตัวเลขนั้นต้องยาวตั้งแต่ 3 ตัวอักษรขึ้นไป
-            if (match && match[0].length >= 3) {
-                profit += (parseFloat(match[0]) * 0.10);
+            // แก้ไข: ใช้ /g เพื่อหาตัวเลขทุกกลุ่มในช่องนั้น
+            const matches = cleanVal.match(/\d+/g); 
+            
+            if (matches) {
+                matches.forEach(numStr => {
+                    // ถ้าตัวเลขกลุ่มไหนยาว 3 หลักขึ้นไป ให้นำมาคิดกำไร
+                    if (numStr.length >= 3) {
+                        profit += (parseFloat(numStr) * 0.10);
+                    }
+                });
             }
         }
     });
