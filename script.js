@@ -49,7 +49,6 @@ function saveData() {
     });
     localStorage.setItem("savedTables", JSON.stringify(data));
     
-    // Auto-save badge logic (ไม่มีเสียงเพื่อให้ไม่รำคาญเวลาพิมพ์)
     const badge = document.getElementById("auto-save-alert");
     if(badge) { 
         badge.style.opacity = "1"; 
@@ -63,7 +62,7 @@ function loadData() {
     const data = JSON.parse(raw);
     const container = document.getElementById("tables-container");
     container.innerHTML = "";
-    data.forEach(t => addTable(t.title, t.rows, true)); // true = โหลดเงียบๆ
+    data.forEach(t => addTable(t.title, t.rows, true)); 
 }
 
 // --- Table Actions ---
@@ -138,14 +137,15 @@ function removeTable(button) {
     const tableContainer = button.closest('.table-container');
     const title = tableContainer.querySelector('.table-title-input').value || "ไม่ระบุชื่อ";
     
-    let profit = 0;
+    let calculatedProfit = 0;
     tableContainer.querySelectorAll("tbody tr").forEach(tr => {
         const val = tr.querySelectorAll("input")[1].value.replace(/[Oo]/g, '0');
         const match = val.match(/\d{3,}/);
-        if (match) profit += (parseFloat(match[0]) * 0.10);
+        if (match) calculatedProfit += (parseFloat(match[0]) * 0.10);
     });
 
-    showModal("ยืนยันการปิดยอด", `ค่าย: <b>${title}</b><br>กำไรสุทธิ: <span style="color:green">฿${profit.toFixed(2)}</span>`, "confirm", () => {
+    // เรียก Modal ยืนยันที่มีปุ่ม E
+    showConfirmModal(title, calculatedProfit, (finalProfit) => {
         playSound('success');
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
@@ -153,9 +153,9 @@ function removeTable(button) {
             rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
         });
 
-        historyData.push({ title, rows: rowsData, profit, timestamp: new Date().toLocaleString("th-TH") });
+        historyData.push({ title, rows: rowsData, profit: finalProfit, timestamp: new Date().toLocaleString("th-TH") });
         localStorage.setItem("historyData", JSON.stringify(historyData));
-        totalDeletedProfit += profit;
+        totalDeletedProfit += finalProfit;
         
         tableContainer.remove();
         saveData();
@@ -166,7 +166,7 @@ function removeTable(button) {
 function restoreLastDeleted() {
     if (historyData.length === 0) {
         playSound('alert');
-        return showModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน", "alert");
+        return showSimpleModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน");
     }
     playSound('success');
     const last = historyData.pop();
@@ -174,13 +174,13 @@ function restoreLastDeleted() {
     addTable(last.title, last.rows, true);
     localStorage.setItem("historyData", JSON.stringify(historyData));
     updateDashboardStats();
-    showModal("สำเร็จ", `กู้คืนค่าย <b>${last.title}</b> แล้ว`, "alert");
+    showSimpleModal("สำเร็จ", `กู้คืนค่าย <b>${last.title}</b> แล้ว`);
 }
 
 // --- Windows & UI ---
 function showHistory() {
     playSound('click');
-    if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติ", "alert");
+    if (historyData.length === 0) return showSimpleModal("แจ้งเตือน", "ไม่มีประวัติ");
     
     let newWindow = window.open("", "History", "width=1100,height=900");
     let content = `
@@ -251,39 +251,74 @@ function sendMessageToLine() {
     playSound('click');
     const name = document.getElementById('lineName').value;
     const msg = document.getElementById('messageToSend').value;
-    if(!name || !msg) return showModal("แจ้งเตือน", "กรุณากรอกชื่อและข้อความ", "alert");
+    if(!name || !msg) return showSimpleModal("แจ้งเตือน", "กรุณากรอกชื่อและข้อความ");
     
     const fullMsg = `เรียนคุณ ${name}\n${msg}\n\nตรวจสอบยอดได้ที่แอดมินครับ`;
     window.open(`https://line.me/R/msg/text/?${encodeURIComponent(fullMsg)}`, '_blank');
 }
 
-// --- Utils & Modals ---
-function showModal(title, msg, type = "alert", cb = null) {
+// --- Modals ---
+
+// Modal สำหรับยืนยันปิดยอด (รองรับปุ่ม E)
+function showConfirmModal(title, profit, callback) {
     playSound('popup');
     const modal = document.getElementById('custom-modal');
     const iconBox = document.getElementById('modal-icon');
-    iconBox.innerHTML = type === "confirm" ? '<i class="fas fa-exclamation-circle" style="font-size:3rem; color:#f39c12; margin-bottom:15px; display:block;"></i>' : '<i class="fas fa-check-circle" style="font-size:3rem; color:#2ecc71; margin-bottom:15px; display:block;"></i>';
+    iconBox.innerHTML = '<i class="fas fa-exclamation-circle" style="font-size:3rem; color:#f39c12; margin-bottom:15px; display:block;"></i>';
+    
+    document.getElementById('modal-title').innerText = "ยืนยันการปิดยอด";
+    document.getElementById('modal-msg').innerHTML = `ค่าย: <b>${title}</b><br>กำไรสุทธิ: <span style="color:green">฿${profit.toFixed(2)}</span>`;
+    
+    const actions = document.getElementById('modal-actions');
+    actions.innerHTML = "";
+
+    const btnCancel = document.createElement("button");
+    btnCancel.innerText = "ยกเลิก (Esc)";
+    btnCancel.className = "btn-modal btn-cancel";
+    btnCancel.onclick = closeModal;
+
+    const btnNoProfit = document.createElement("button");
+    btnNoProfit.innerText = "ไม่คิดยอด (E)";
+    btnNoProfit.className = "btn-modal";
+    btnNoProfit.style.background = "#e74c3c";
+    btnNoProfit.style.color = "white";
+    btnNoProfit.onclick = () => { closeModal(); callback(0); };
+
+    const btnConfirm = document.createElement("button");
+    btnConfirm.innerText = "ตกลง (Enter)";
+    btnConfirm.className = "btn-modal btn-confirm";
+    btnConfirm.onclick = () => { closeModal(); callback(profit); };
+
+    actions.append(btnCancel, btnNoProfit, btnConfirm);
+
+    if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
+    currentModalKeyHandler = (e) => {
+        if (e.key === "Enter") btnConfirm.click();
+        else if (e.key.toLowerCase() === "e") btnNoProfit.click();
+        else if (e.key === "Escape") btnCancel.click();
+    };
+    window.addEventListener('keydown', currentModalKeyHandler);
+    modal.classList.add('active');
+}
+
+function showSimpleModal(title, msg) {
+    playSound('popup');
+    const modal = document.getElementById('custom-modal');
+    const iconBox = document.getElementById('modal-icon');
+    iconBox.innerHTML = '<i class="fas fa-check-circle" style="font-size:3rem; color:#2ecc71; margin-bottom:15px; display:block;"></i>';
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-msg').innerHTML = msg;
     const actions = document.getElementById('modal-actions');
     actions.innerHTML = "";
-
-    if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
-
-    if (type === "confirm") {
-        const b1 = document.createElement("button"); b1.innerText = "ตกลง (Enter)"; b1.className = "btn-modal btn-confirm";
-        b1.onclick = () => { closeModal(); if (cb) cb(); };
-        const b2 = document.createElement("button"); b2.innerText = "ยกเลิก (Esc)"; b2.className = "btn-modal btn-cancel";
-        b2.onclick = closeModal;
-        actions.append(b2, b1);
-        currentModalKeyHandler = (e) => { if (e.key === "Enter") b1.click(); else if (e.key === "Escape") closeModal(); };
-    } else {
-        const b = document.createElement("button"); b.innerText = "ตกลง"; b.className = "btn-modal btn-confirm"; b.onclick = closeModal;
-        actions.append(b);
-        currentModalKeyHandler = (e) => { if (e.key === "Enter" || e.key === "Escape") closeModal(); };
-    }
-    window.addEventListener('keydown', currentModalKeyHandler);
+    const b = document.createElement("button"); 
+    b.innerText = "ตกลง"; b.className = "btn-modal btn-confirm"; 
+    b.onclick = closeModal;
+    actions.append(b);
     modal.classList.add('active');
+    
+    if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
+    currentModalKeyHandler = (e) => { if (e.key === "Enter" || e.key === "Escape") closeModal(); };
+    window.addEventListener('keydown', currentModalKeyHandler);
 }
 
 function closeModal() { 
@@ -297,8 +332,8 @@ function updateDashboardStats() {
 
 function clearAllHistory() { 
     playSound('alert');
-    showModal("คำเตือน", "ล้างข้อมูลทั้งหมดรวมถึงกำไรสะสมหรือไม่?", "confirm", () => { 
+    if(confirm("ล้างข้อมูลทั้งหมดรวมถึงกำไรสะสมหรือไม่?")) {
         localStorage.clear(); 
         location.reload(); 
-    }); 
+    }
 }
