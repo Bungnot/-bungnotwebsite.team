@@ -1,3 +1,22 @@
+// --- Source Configuration & Sound Effects ---
+const sounds = {
+    click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
+    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'),
+    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/251/251-preview.mp3'),
+    popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'),
+    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3')
+};
+
+// ฟังก์ชันสำหรับเล่นเสียง
+function playSound(soundName) {
+    if (sounds[soundName]) {
+        const sound = sounds[soundName];
+        sound.currentTime = 0;
+        sound.volume = 0.5;
+        sound.play().catch(e => console.log("Audio interaction required"));
+    }
+}
+
 let historyData = [];
 let totalDeletedProfit = 0;
 let currentModalKeyHandler = null;
@@ -30,7 +49,7 @@ function saveData() {
     });
     localStorage.setItem("savedTables", JSON.stringify(data));
     
-    // Auto-save badge logic
+    // Auto-save badge logic (ไม่มีเสียงเพื่อให้ไม่รำคาญเวลาพิมพ์)
     const badge = document.getElementById("auto-save-alert");
     if(badge) { 
         badge.style.opacity = "1"; 
@@ -44,11 +63,12 @@ function loadData() {
     const data = JSON.parse(raw);
     const container = document.getElementById("tables-container");
     container.innerHTML = "";
-    data.forEach(t => addTable(t.title, t.rows));
+    data.forEach(t => addTable(t.title, t.rows, true)); // true = โหลดเงียบๆ
 }
 
 // --- Table Actions ---
-function addTable(title = "", rows = null) {
+function addTable(title = "", rows = null, isSilent = false) {
+    if(!isSilent) playSound('click');
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
     newTable.classList.add("table-container", "table-card");
@@ -96,6 +116,7 @@ function addTable(title = "", rows = null) {
 }
 
 function addRow(table) {
+    playSound('click');
     const tbody = table.querySelector("tbody");
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -107,7 +128,11 @@ function addRow(table) {
     saveData();
 }
 
-function removeRow(btn) { btn.closest('tr').remove(); saveData(); }
+function removeRow(btn) { 
+    playSound('delete');
+    btn.closest('tr').remove(); 
+    saveData(); 
+}
 
 function removeTable(button) {
     const tableContainer = button.closest('.table-container');
@@ -121,6 +146,7 @@ function removeTable(button) {
     });
 
     showModal("ยืนยันการปิดยอด", `ค่าย: <b>${title}</b><br>กำไรสุทธิ: <span style="color:green">฿${profit.toFixed(2)}</span>`, "confirm", () => {
+        playSound('success');
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
             const cells = tr.querySelectorAll("input");
@@ -138,10 +164,14 @@ function removeTable(button) {
 }
 
 function restoreLastDeleted() {
-    if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน", "alert");
+    if (historyData.length === 0) {
+        playSound('alert');
+        return showModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน", "alert");
+    }
+    playSound('success');
     const last = historyData.pop();
     totalDeletedProfit -= last.profit;
-    addTable(last.title, last.rows);
+    addTable(last.title, last.rows, true);
     localStorage.setItem("historyData", JSON.stringify(historyData));
     updateDashboardStats();
     showModal("สำเร็จ", `กู้คืนค่าย <b>${last.title}</b> แล้ว`, "alert");
@@ -149,10 +179,10 @@ function restoreLastDeleted() {
 
 // --- Windows & UI ---
 function showHistory() {
+    playSound('click');
     if (historyData.length === 0) return showModal("แจ้งเตือน", "ไม่มีประวัติ", "alert");
     
     let newWindow = window.open("", "History", "width=1100,height=900");
-    
     let content = `
     <html>
     <head>
@@ -212,12 +242,24 @@ function showHistory() {
 }
 
 function openStopwatchWindow() {
+    playSound('click');
     const sw = window.open("", "_blank", "width=800,height=700");
     sw.document.write(`<html><head><title>Timer</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>body{background:#1e3c72;color:white;font-family:sans-serif;padding:30px}input{padding:15px;border-radius:10px;border:none;width:70%;background:#e2e8f0;color:#333;font-weight:bold}.timer-text{font-size:3rem;color:#2ecc71;font-weight:bold}</style></head><body><h2>จับเวลาบั้งไฟ</h2><input type="text" id="cIn" placeholder="ชื่อค่าย..."><button onclick="add()" style="padding:15px;border-radius:10px;background:#2ecc71;border:none;color:white;cursor:pointer;margin-left:10px">เพิ่ม</button><div id="list"></div><script>function add(){const n=document.getElementById('cIn').value;if(!n)return;const d=document.createElement('div');d.style.background='rgba(255,255,255,0.1)';d.style.padding='20px';d.style.margin='10px 0';d.style.borderRadius='15px';d.innerHTML='<b>'+n+'</b> <span class="timer-text" id="t">0.000</span> <button onclick="st(this)" style="padding:10px;background:#2ecc71;border:none;color:white;border-radius:5px">เริ่ม</button> <button onclick="rs(this)" style="padding:10px;background:#f39c12;border:none;color:white;border-radius:5px">รีเซ็ต</button>';document.getElementById('list').appendChild(d);document.getElementById('cIn').value=''};function st(b){const t=b.parentElement.querySelector('#t');if(b.innerText==='เริ่ม'){b.innerText='หยุด';b.style.background='#e74c3c';let s=parseFloat(t.innerText)*1000;let st=Date.now()-s;b.iv=setInterval(()=>{t.innerText=((Date.now()-st)/1000).toFixed(3)},10)}else{b.innerText='เริ่ม';b.style.background='#2ecc71';clearInterval(b.iv)}};function rs(b){const t=b.parentElement.querySelector('#t');const sb=b.parentElement.querySelector('button');clearInterval(sb.iv);sb.innerText='เริ่ม';sb.style.background='#2ecc71';t.innerText='0.000'}<\/script></body></html>`);
 }
 
+function sendMessageToLine() {
+    playSound('click');
+    const name = document.getElementById('lineName').value;
+    const msg = document.getElementById('messageToSend').value;
+    if(!name || !msg) return showModal("แจ้งเตือน", "กรุณากรอกชื่อและข้อความ", "alert");
+    
+    const fullMsg = `เรียนคุณ ${name}\n${msg}\n\nตรวจสอบยอดได้ที่แอดมินครับ`;
+    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(fullMsg)}`, '_blank');
+}
+
 // --- Utils & Modals ---
 function showModal(title, msg, type = "alert", cb = null) {
+    playSound('popup');
     const modal = document.getElementById('custom-modal');
     const iconBox = document.getElementById('modal-icon');
     iconBox.innerHTML = type === "confirm" ? '<i class="fas fa-exclamation-circle" style="font-size:3rem; color:#f39c12; margin-bottom:15px; display:block;"></i>' : '<i class="fas fa-check-circle" style="font-size:3rem; color:#2ecc71; margin-bottom:15px; display:block;"></i>';
@@ -244,11 +286,19 @@ function showModal(title, msg, type = "alert", cb = null) {
     modal.classList.add('active');
 }
 
-function closeModal() { document.getElementById('custom-modal').classList.remove('active'); }
+function closeModal() { 
+    document.getElementById('custom-modal').classList.remove('active'); 
+}
 
 function updateDashboardStats() {
     const pEl = document.getElementById("total-profit-display");
     if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined,{minimumFractionDigits:2})}`;
 }
 
-function clearAllHistory() { showModal("คำเตือน", "ล้างข้อมูลทั้งหมด?", "confirm", () => { localStorage.clear(); location.reload(); }); }
+function clearAllHistory() { 
+    playSound('alert');
+    showModal("คำเตือน", "ล้างข้อมูลทั้งหมดรวมถึงกำไรสะสมหรือไม่?", "confirm", () => { 
+        localStorage.clear(); 
+        location.reload(); 
+    }); 
+}
