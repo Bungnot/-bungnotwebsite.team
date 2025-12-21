@@ -171,7 +171,11 @@ function addRow(table) {
     saveData();
 }
 
-function removeRow(btn) { playSound('delete'); btn.closest('tr').remove(); saveData(); }
+function removeRow(btn) { 
+    playSound('delete'); // <--- มั่นใจว่ามีบรรทัดนี้
+    btn.closest('tr').remove(); 
+    saveData(); 
+}
 
 // --- 2. แก้ไขการลบตาราง (เพิ่มเสียง Success เมื่อปิดยอด) ---
 function removeTable(button) {
