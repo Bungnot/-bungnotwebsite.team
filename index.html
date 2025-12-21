@@ -42,7 +42,9 @@
             display: flex; align-items: center; gap: 8px; font-size: 0.95rem;
         }
         .btn-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+        .btn-clear { color: #e74c3c; }
 
+        #tables-container { max-width: 1300px; margin: 0 auto; }
         .table-card { 
             background: white; border-radius: 24px; padding: 35px; margin-bottom: 40px; 
             box-shadow: var(--shadow-premium); position: relative; border-top: 8px solid #1e3c72;
@@ -64,24 +66,27 @@
 
         .custom-table input { 
             width: 100%; padding: 14px; border: 2.5px solid #cbd5e1; border-radius: 14px; 
-            background: #e2e8f0; text-align: center; box-sizing: border-box; transition: 0.2s; font-weight: 600;
+            background: #e2e8f0; text-align: center; box-sizing: border-box; transition: 0.2s;
+            font-weight: 600;
         }
 
-        .btn-remove-row { background: #fff; color: #e74c3c; border: 2px solid #fff5f5; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto; }
-        .btn-close-table { position: absolute; top: 15px; right: 15px; background: #f8fafc; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
+        .btn-remove-row { background: #fff; color: #e74c3c; border: 2px solid #fff5f5; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin: 0 auto; display: block; }
+        .btn-remove-row:hover { background: #e74c3c; color: white; transform: scale(1.1); }
+        .btn-close-table { position: absolute; top: 15px; right: 15px; background: #f8fafc; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: 0.3s; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; transform: scale(0.9); transition: 0.3s; }
+        .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); transform: scale(0.9); transition: 0.3s; }
         .modal-overlay.active .modal-box { transform: scale(1); }
-        .modal-actions { margin-top: 30px; display: flex; justify-content: center; gap: 15px; }
+        .modal-actions { margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
         .btn-modal { padding: 12px 25px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; }
 
-        #auto-save-alert { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 30px; border-radius: 50px; opacity: 0; transition: 0.5s; z-index: 10000; pointer-events: none; }
+        #auto-save-alert { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 30px; border-radius: 50px; opacity: 0; transition: 0.5s; z-index: 10000; font-size: 0.9rem; pointer-events: none; }
         .profit-display { font-size: 1.8rem; font-weight: bold; color: #1e3c72; }
     </style>
 </head>
 <body>
+
     <div id="auto-save-alert">✅ บันทึกข้อมูลแล้ว</div>
 
     <div class="header-container">
@@ -96,22 +101,32 @@
         <div class="info-card">
             <h3><i class="fas fa-wallet"></i> ยอดกำไรรวม</h3>
             <div id="total-profit-display" class="profit-display">฿0.00</div>
-            <p style="color: #64748b; font-size: 0.8rem;">*กดลูกศรลงที่แถวสุดท้ายเพื่อเพิ่มแผล</p>
+            <p style="color: #64748b; font-size: 0.9rem;">*กำไร 10% (เฉพาะราคา 3 หลักขึ้นไป)</p>
         </div>
         
         <div class="info-card">
             <h3><i class="fab fa-line"></i> ส่งข้อความ Line OA</h3>
-            <input type="text" id="lineName" placeholder="ชื่อลูกค้า" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:2.5px solid #cbd5e1; background:#e2e8f0;">
-            <textarea id="messageToSend" placeholder="ข้อความ..." style="width:100%; padding:10px; border-radius:10px; border:2.5px solid #cbd5e1; background:#e2e8f0;"></textarea>
+            <input type="text" id="lineName" placeholder="ชื่อใน Line OA" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:2.5px solid #cbd5e1; background:#e2e8f0;">
+            <textarea id="messageToSend" placeholder="ข้อความ..." style="width:100%; padding:10px; border-radius:10px; border:2.5px solid #cbd5e1; font-family:'Sarabun'; background:#e2e8f0;"></textarea>
             <button onclick="sendMessageToLine()" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; background:#06c755; color:white; border:none; cursor:pointer; font-weight:bold;">ส่งข้อความ</button>
+        </div>
+
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> วิธีคิดยอด</h3>
+            <div style="font-size: 0.85rem; color: #475569;">
+                • ราคา 3 ตัวขึ้นไป (เช่น 300, 280) ถึงจะคิดกำไร <br>
+                • หากราคา 2 หลัก (เช่น 20, 80) จะไม่ถูกนำมาคำนวณ <br>
+                • กำไรคิดให้ 10% เมื่อกดปิดบั้ง (X)
+            </div>
         </div>
     </div>
 
     <div class="action-bar">
         <button class="btn-main" onclick="addTable()"><i class="fas fa-rocket"></i> เพิ่มบั้งใหม่</button>
-        <button class="btn-main" onclick="restoreLastDeleted()"><i class="fas fa-undo"></i> กู้คืน</button>
-        <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติ</button>
-        <button class="btn-main" onclick="clearAllHistory()" style="color: #e74c3c;"><i class="fas fa-trash-alt"></i> ล้างข้อมูล</button>
+        <button class="btn-main" onclick="restoreLastDeleted()"><i class="fas fa-undo"></i> กู้คืนประวัติ</button>
+        <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติการคิดยอด</button>
+        <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลาบั้งไฟ</button>
+        <button class="btn-main btn-clear" onclick="clearAllHistory()"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
     </div>
 
     <div id="tables-container"></div>
@@ -119,7 +134,7 @@
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
             <h2 id="modal-title" style="margin-bottom: 15px; color: #1e293b;"></h2>
-            <div id="modal-msg" style="color: #475569; margin-bottom: 10px;"></div>
+            <div id="modal-msg" style="color: #475569; margin-bottom: 10px; line-height: 1.6;"></div>
             <div id="modal-actions" class="modal-actions"></div>
         </div>
     </div>
