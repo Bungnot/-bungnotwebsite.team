@@ -209,7 +209,10 @@ function restoreLastDeleted() {
     }
 
     isRestoring = true;
-    playSound('success'); // เสียงเมื่อกู้คืนสำเร็จ
+    
+    // --- แก้ไขบรรทัดด้านล่างนี้ ---
+    playSound('alert'); // เปลี่ยนจาก playSound('success') เป็น 'alert'
+    // --------------------------
     
     const last = historyData.pop();
     totalDeletedProfit -= last.profit;
