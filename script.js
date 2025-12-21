@@ -206,13 +206,80 @@ function updateDashboardStats() {
 
 function showHistory() {
     if (historyData.length === 0) return showSimpleModal("แจ้งเตือน", "ไม่มีประวัติ");
-    let newWindow = window.open("", "History", "width=900,height=800");
-    let content = `<html><head><title>ประวัติ</title><style>body{font-family:sans-serif; padding:20px; background:#f0f2f5;} .card{background:white; padding:20px; margin-bottom:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}</style></head><body><h2>ประวัติการปิดยอด</h2>`;
+    
+    let newWindow = window.open("", "History", "width=1100,height=900");
+    
+    // ดึง CSS จากหน้าหลักมาใช้เพื่อให้หน้าตาเหมือนกัน 100%
+    let content = `
+    <html>
+    <head>
+        <title>ประวัติการปิดยอด - ADMIN ROCKET</title>
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 40px; color: #333; margin: 0; }
+            .history-title { color: white; text-align: center; margin-bottom: 30px; font-size: 2rem; }
+            .table-card { 
+                background: white; border-radius: 24px; padding: 25px; margin-bottom: 50px; 
+                box-shadow: 0 15px 35px rgba(0,0,0,0.2); border-top: 8px solid #1e3c72; position: relative;
+            }
+            .history-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+            .timestamp { color: #64748b; font-size: 0.9rem; }
+            .profit-badge { background: #2ecc71; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+            
+            .table-title-display { font-size: 1.4rem; font-weight: bold; color: #1e3c72; text-align: center; background: #e2e8f0; padding: 10px; border-radius: 12px; margin-bottom: 20px; }
+            .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; }
+            .custom-table th { padding: 12px; color: white; }
+            .th-green { background: #2ecc71; border-radius: 10px 0 0 10px; }
+            .th-orange { background: #f39c12; }
+            .th-red { background: #e74c3c; }
+            .th-purple { background: #9b59b6; border-radius: 0 10px 10px 0; }
+            .custom-table td { padding: 10px; text-align: center; background: #f8fafc; border: 1px solid #eee; border-radius: 8px; font-weight: 600; }
+            @media print { .no-print { display: none; } }
+        </style>
+    </head>
+    <body>
+        <div class="no-print" style="text-align:right; margin-bottom:20px;">
+            <button onclick="window.print()" style="padding:10px 20px; border-radius:10px; cursor:pointer; background:white; font-weight:bold;"><i class="fas fa-print"></i> พิมพ์ประวัติ</button>
+        </div>
+        <h2 class="history-title">ประวัติการคิดยอดทั้งหมด</h2>`;
+
     historyData.slice().reverse().forEach(h => {
-        content += `<div class="card"><b>${h.title}</b> (${h.timestamp})<br>กำไร: ฿${h.profit.toFixed(2)}</div>`;
+        let rowsHtml = h.rows.map(r => `
+            <tr>
+                <td>${r[0] || '-'}</td>
+                <td style="color:#2e7d32;">${r[1] || '0'}</td>
+                <td>${r[2] || '-'}</td>
+                <td style="color:#94a3b8;"><i class="fas fa-check-circle"></i></td>
+            </tr>
+        `).join('');
+
+        content += `
+        <div class="table-card">
+            <div class="history-meta">
+                <span class="timestamp"><i class="far fa-clock"></i> ปิดยอดเมื่อ: ${h.timestamp}</span>
+                <span class="profit-badge">กำไร: ฿${h.profit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            </div>
+            <div class="table-title-display">${h.title || 'ไม่ระบุชื่อค่าย'}</div>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th class="th-green">คนไล่</th>
+                        <th class="th-orange">ราคา</th>
+                        <th class="th-red">คนยั้ง</th>
+                        <th class="th-purple">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                </tbody>
+            </table>
+        </div>`;
     });
+
     content += `</body></html>`;
     newWindow.document.write(content);
+    newWindow.document.close();
 }
 
 function showConfirmModal(title, profit, callback) {
