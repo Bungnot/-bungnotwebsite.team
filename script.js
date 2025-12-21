@@ -22,31 +22,26 @@ let currentModalKeyHandler = null;
 
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. โหลดประวัติกำไรสะสมก่อน
     const savedHistory = localStorage.getItem("historyData");
     if (savedHistory) {
         historyData = JSON.parse(savedHistory);
         totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
     }
     
-    // 2. โหลดตารางที่ค้างไว้
     loadData(); 
-    
-    // 3. ตั้งค่าระบบเลื่อนบรรทัดด้วยลูกศร
     document.addEventListener('keydown', handleGlobalKeyDown);
 });
 
-// --- Calculation Core ---
+// --- Calculation Core (ตรรกะ: นับเฉพาะตัวเลข 3 หลักขึ้นไป) ---
 function calculateTableProfit(tableElement) {
     let profit = 0;
     tableElement.querySelectorAll("tbody tr").forEach(tr => {
         const inputs = tr.querySelectorAll("input");
         if (inputs[1]) {
-            // ล้างค่า O/o เป็น 0 และดึงเฉพาะตัวเลข
-            const val = inputs[1].value.replace(/[Oo]/g, '0');
-            const match = val.match(/\d+/); 
-            if (match) {
-                profit += (parseFloat(match[0]) * 0.10);
+            const val = inputs[1].value.trim();
+            // เช็คว่าเป็นตัวเลขล้วน และ มีความยาวตั้งแต่ 3 ตัวอักษรขึ้นไป
+            if (/^\d+$/.test(val) && val.length >= 3) {
+                profit += (parseFloat(val) * 0.10);
             }
         }
     });
@@ -58,7 +53,8 @@ function refreshAllBadges() {
         const profit = calculateTableProfit(table);
         const badge = table.querySelector(".profit-badge-live");
         if (badge) {
-            badge.innerText = `฿${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            badge.innerText = `กำไรสะสม: ฿${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            // เปลี่ยนสีตามจำนวนเงิน (ถ้ามีกำไรเป็นสีเขียว ถ้า 0 เป็นสีเทา)
             badge.style.background = profit > 0 ? "#2ecc71" : "#94a3b8";
         }
     });
@@ -81,7 +77,6 @@ function saveData() {
     });
     localStorage.setItem("savedTables", JSON.stringify(data));
     
-    // อัปเดตยอด Badge ในการ์ดและ Dashboard
     refreshAllBadges();
     updateDashboardStats();
     
@@ -110,34 +105,34 @@ function addTable(title = "", rows = null, isSilent = false) {
 
     const generateRowHtml = (r = ["", "", ""]) => `
         <tr onfocusin="this.classList.add('active-row')" onfocusout="this.classList.remove('active-row')">
-            <td><input type="text" value="${r[0]}" oninput="saveData()" placeholder="..."></td>
-            <td><input type="text" value="${r[1]}" oninput="saveData()" placeholder="0" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
-            <td><input type="text" value="${r[2]}" oninput="saveData()" placeholder="..."></td>
+            <td><input type="text" value="${r[0]}" oninput="saveData()" placeholder="รายชื่อคนไล่"></td>
+            <td><input type="text" value="${r[1]}" oninput="saveData()" placeholder="ราคาเล่น" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
+            <td><input type="text" value="${r[2]}" oninput="saveData()" placeholder="รายชื่อคนยั้ง"></td>
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
     let rowsHtml = rows ? rows.map(r => generateRowHtml(r)).join('') : generateRowHtml();
 
     newTable.innerHTML = `
-        <div class="card-header-wrapper" style="display:flex; justify-content:space-between; align-items:center; padding:10px 15px 0;">
-            <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:bold;">฿0.00</span>
-            <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
+        <div class="card-header-wrapper" style="display:flex; justify-content:space-between; align-items:center; padding:5px 10px;">
+            <span class="profit-badge-live" style="color:white; padding:6px 15px; border-radius:20px; font-size:0.9rem; font-weight:bold; transition: 0.3s;">กำไรสะสม: ฿0.00</span>
+            <button class="btn-close-table" onclick="removeTable(this)" style="position:static; margin:0;"><i class="fas fa-times"></i></button>
         </div>
         <div class="card-header">
-            <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()">
+            <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย/สนาม..." oninput="saveData()">
         </div>
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th class="th-green">คนไล่</th>
-                    <th class="th-orange">ราคา</th>
-                    <th class="th-red">คนยั้ง</th>
-                    <th class="th-purple">ลบ</th>
+                    <th class="th-green">รายชื่อคนไล่</th>
+                    <th class="th-orange">ราคาเล่น</th>
+                    <th class="th-red">รายชื่อคนยั้ง</th>
+                    <th class="th-purple">จัดการ</th>
                 </tr>
             </thead>
             <tbody>${rowsHtml}</tbody>
         </table>
-        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="margin: 20px auto 0; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32; width:90%; display:block; border-radius:10px; cursor:pointer; padding:10px;">+ เพิ่มแผลที่เล่น</button>`;
+        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="margin: 20px auto 0; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32; width:90%; display:block; border-radius:10px; cursor:pointer; padding:10px;">+ เพิ่มรายการ</button>`;
     
     container.appendChild(newTable);
     saveData();
@@ -147,12 +142,10 @@ function addRow(table) {
     playSound('click');
     const tbody = table.querySelector("tbody");
     const tr = document.createElement("tr");
-    tr.setAttribute("onfocusin", "this.classList.add('active-row')");
-    tr.setAttribute("onfocusout", "this.classList.remove('active-row')");
     tr.innerHTML = `
-        <td><input type="text" oninput="saveData()" placeholder="..."></td>
-        <td><input type="text" oninput="saveData()" placeholder="0" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
-        <td><input type="text" oninput="saveData()" placeholder="..."></td>
+        <td><input type="text" oninput="saveData()" placeholder="รายชื่อคนไล่"></td>
+        <td><input type="text" oninput="saveData()" placeholder="ราคาเล่น" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
+        <td><input type="text" oninput="saveData()" placeholder="รายชื่อคนยั้ง"></td>
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
     tbody.appendChild(tr);
     saveData();
@@ -210,7 +203,6 @@ function restoreLastDeleted() {
 // --- Keyboard Navigation ---
 function handleGlobalKeyDown(e) {
     if (e.target.tagName !== "INPUT") return;
-    
     const currentInput = e.target;
     const currentTd = currentInput.parentElement;
     const currentTr = currentTd.parentElement;
@@ -219,25 +211,17 @@ function handleGlobalKeyDown(e) {
 
     if (e.key === "ArrowDown") {
         const nextTr = currentTr.nextElementSibling;
-        if (nextTr) {
-            e.preventDefault();
-            nextTr.querySelectorAll("input")[colIndex]?.focus();
-        }
+        if (nextTr) { e.preventDefault(); nextTr.querySelectorAll("input")[colIndex]?.focus(); }
     } else if (e.key === "ArrowUp") {
         const prevTr = currentTr.previousElementSibling;
-        if (prevTr) {
-            e.preventDefault();
-            prevTr.querySelectorAll("input")[colIndex]?.focus();
-        }
+        if (prevTr) { e.preventDefault(); prevTr.querySelectorAll("input")[colIndex]?.focus(); }
     }
 }
 
 // --- Windows & UI ---
 function updateDashboardStats() {
     const pEl = document.getElementById("total-profit-display");
-    if(pEl) {
-        pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-    }
+    if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 }
 
 function showHistory() {
@@ -252,28 +236,28 @@ function showHistory() {
         <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
-            body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); background-attachment: fixed; padding: 40px 20px; margin: 0; display: flex; flex-direction: column; align-items: center; }
-            .history-title { color: white; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); font-size: 2.2rem; }
-            .table-card { background: white; border-radius: 24px; padding: 35px; margin-bottom: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 1000px; border-top: 8px solid #1e3c72; position: relative; }
-            .camp-header { font-size: 1.5rem; font-weight: bold; color: #1e3c72; text-align: center; border: 2.5px solid #94a3b8; background: #e2e8f0; padding: 12px; border-radius: 16px; width: 60%; margin: 0 auto 30px; }
+            body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); background-attachment: fixed; padding: 40px 20px; margin: 0; }
+            .history-title { color: white; text-align: center; margin-bottom: 30px; font-size: 2.2rem; }
+            .table-card { background: white; border-radius: 24px; padding: 30px; margin: 0 auto 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 1000px; border-top: 8px solid #1e3c72; }
+            .camp-header { font-size: 1.5rem; font-weight: bold; color: #1e3c72; text-align: center; background: #e2e8f0; padding: 12px; border-radius: 16px; width: 60%; margin: 0 auto 30px; }
             .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-            .custom-table th { padding: 18px 10px; color: white; text-align: center; font-size: 1.1rem; }
-            .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px 0 0 15px; }
-            .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); }
-            .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border-radius: 0 15px 15px 0; }
-            .cell-data { background: #e2e8f0; border: 2.5px solid #cbd5e1; padding: 14px; border-radius: 14px; text-align: center; font-weight: 600; color: #333; }
+            .custom-table th { padding: 15px; color: white; text-align: center; }
+            .th-green { background: #2ecc71; border-radius: 15px 0 0 15px; }
+            .th-orange { background: #f39c12; }
+            .th-red { background: #e74c3c; border-radius: 0 15px 15px 0; }
+            .cell-data { background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 12px; border-radius: 10px; text-align: center; font-weight: 600; }
             .profit-tag { color: #2ecc71; font-weight: bold; font-size: 1.4rem; }
         </style>
     </head>
     <body>
         <h2 class="history-title"><i class="fas fa-history"></i> ประวัติการคิดยอด</h2>`;
 
-    historyData.forEach(h => {
+    historyData.slice().reverse().forEach(h => {
         let rowsHtml = h.rows.map(r => `
             <tr>
-                <td style="width: 40%;"><div class="cell-data">${r[0] || "-"}</div></td>
-                <td style="width: 20%;"><div class="cell-data">${r[1] || "-"}</div></td>
-                <td style="width: 40%;"><div class="cell-data">${r[2] || "-"}</div></td>
+                <td><div class="cell-data">${r[0] || "-"}</div></td>
+                <td><div class="cell-data">${r[1] || "-"}</div></td>
+                <td><div class="cell-data">${r[2] || "-"}</div></td>
             </tr>`).join('');
 
         content += `
@@ -283,9 +267,9 @@ function showHistory() {
                     <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th></tr></thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>
-                <div style="display:flex; justify-content:space-between; margin-top:20px;">
-                    <span style="color:#64748b;">${h.timestamp}</span>
-                    <span class="profit-tag">กำไรรวม: ฿${h.profit.toFixed(2)}</span>
+                <div style="display:flex; justify-content:space-between; margin-top:20px; align-items:center;">
+                    <span style="color:#64748b;">วันเวลา: ${h.timestamp}</span>
+                    <span class="profit-tag">กำไร 10%: ฿${h.profit.toFixed(2)}</span>
                 </div>
             </div>`;
     });
@@ -347,7 +331,6 @@ function closeModal() {
 }
 
 function clearAllHistory() { 
-    playSound('alert');
     if(confirm("ล้างข้อมูลทั้งหมดรวมถึงกำไรสะสมหรือไม่?")) {
         localStorage.clear(); 
         location.reload(); 
