@@ -1,11 +1,11 @@
 const sounds = {
-    click: new Audio('https://www.soundjay.com/buttons/sounds/button-19.mp3'),
+    click: new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3'),
     // แก้ไข 2 ลิงก์ที่เสียเป็น Mixkit ตัวใหม่
-    success: new Audio('https://www.soundjay.com/buttons/sounds/button-43.mp3'),
-    delete: new Audio('https://www.soundjay.com/buttons/sounds/button-46.mp3'),
+    success: new Audio('https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3'),
+    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/1489/1489-preview.mp3'),
     
-    popup: new Audio('https://www.soundjay.com/buttons/sounds/button-09a.mp3'),
-    alert: new Audio('https://www.soundjay.com/buttons/sounds/button-33a.mp3')
+    popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2039/2039-preview.mp3'),
+    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2047/2047-preview.mp3')
 };
 
 // บังคับเปลี่ยน Source เป็นไฟล์เสียง MP3 ที่ใช้ได้จริงแน่นอน
