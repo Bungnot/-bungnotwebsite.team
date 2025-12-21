@@ -183,7 +183,6 @@ function restoreLastDeleted() {
 }
 
 function handleGlobalKeyDown(e) {
-    if (document.getElementById('custom-modal').classList.contains('active')) return;
     if (e.target.tagName !== "INPUT") return;
     const currentInput = e.target;
     const currentTr = currentInput.closest('tr');
@@ -235,7 +234,7 @@ function showConfirmModal(title, profit, callback) {
     };
 
     const btnCancel = createModalBtn("ยกเลิก (Esc)", "btn-cancel", () => closeModal());
-    const btnNo = createModalBtn("ไม่คิดยอดเมาส์คลิ๊ก", "btn-confirm", () => handleAction(0));
+    const btnNo = createModalBtn("ไม่คิดยอด (E)", "btn-confirm", () => handleAction(0));
     btnNo.style.background = "#e74c3c"; btnNo.style.color = "white";
     const btnOk = createModalBtn("ตกลง (Enter)", "btn-confirm", () => handleAction(profit));
 
@@ -248,7 +247,6 @@ function showConfirmModal(title, profit, callback) {
     };
     window.addEventListener('keydown', currentModalKeyHandler);
     modal.classList.add('active');
-    window.focus();
 }
 
 function createModalBtn(text, className, onClick) {
