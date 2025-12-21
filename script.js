@@ -1,16 +1,19 @@
+// ระบบเสียงอัปเกรดใหม่ (เสียงดังฟังชัด)
 const sounds = {
-    click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
-    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'),
-    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/251/251-preview.mp3'),
-    popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'),
-    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3')
+    click: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_50244f3316.mp3'), // เสียงคลิกนุ่มๆ
+    success: new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_0625c1539c.mp3'), // เสียงสำเร็จ
+    delete: new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_c330c6792e.mp3'), // เสียงลบ/ปิด
+    trash: new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_1450284898.mp3'), // เสียงล้างถังขยะ
+    alert: new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_13f3900350.mp3'), // เสียงเตือน
+    popup: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_fe08287310.mp3')  // เสียงหน้าต่างเด้ง
 };
 
 function playSound(soundName) {
     if (sounds[soundName]) {
         const sound = sounds[soundName];
-        sound.currentTime = 0;
-        sound.volume = 0.5;
+        sound.pause(); 
+        sound.currentTime = 0; 
+        sound.volume = 0.6; // ปรับระดับความดัง (0.0 ถึง 1.0)
         sound.play().catch(e => console.log("Audio interaction required"));
     }
 }
@@ -205,6 +208,7 @@ function updateDashboardStats() {
 }
 
 function showHistory() {
+    playSound('click');
     if (historyData.length === 0) return showSimpleModal("แจ้งเตือน", "ไม่มีประวัติ");
     
     let newWindow = window.open("", "History", "width=1100,height=900");
@@ -332,15 +336,17 @@ function showSimpleModal(title, msg) {
     modal.classList.add('active');
 }
 
+// เพิ่มเสียงให้ปุ่มยกเลิกใน Modal
 function closeModal() { 
     document.getElementById('custom-modal').classList.remove('active'); 
     window.removeEventListener('keydown', currentModalKeyHandler);
     isProcessingModal = false;
+    playSound('click'); // สามารถเปิดใช้งานได้หากต้องการให้ดังตอนปิดหน้าต่าง
 }
 
-function clearAllHistory() { if(confirm("ล้างทั้งหมด?")) { localStorage.clear(); location.reload(); } }
+function clearAllHistory() { playSound('trash');  if(confirm("ล้างทั้งหมด?")) { localStorage.clear(); location.reload(); } }
 
-function openStopwatchWindow() { window.open("", "_blank", "width=400,height=400").document.write("Timer Tool..."); }
+function openStopwatchWindow() { playSound('click'); window.open("", "_blank", "width=400,height=400").document.write("Timer Tool..."); }
 
 function sendMessageToLine() {
     const name = document.getElementById('lineName').value;
