@@ -466,6 +466,14 @@ function openStopwatchWindow() {
 
                 controls.startTimer = function() {
                     const btn = card.querySelector('.btn-start');
+
+                    // --- เพิ่มการเล่นเสียงที่นี่ ---
+                    // เนื่องจากเป็นหน้าต่างใหม่ (New Window) ต้องเรียกใช้ Audio โดยตรง
+                    const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
+                    clickSound.volume = 0.5;
+                    clickSound.play();
+                    // ------------------------
+                    
                     if (intervalId) {
                         clearInterval(intervalId);
                         intervalId = null;
