@@ -381,7 +381,30 @@ function closeModal() {
     window.removeEventListener('keydown', currentModalKeyHandler);
 }
 
-function clearAllHistory() { playSound('clear'); if(confirm("ล้างทั้งหมด?")) { localStorage.clear(); location.reload(); } }
+// แก้ไขฟังก์ชันล้างข้อมูลให้ใช้ Modal สวยๆ
+function clearAllHistory() {
+    // 1. เล่นเสียงเตือนก่อน (Alert)
+    playSound('alert');
+
+    // 2. เรียกใช้ Custom Modal ที่สร้างไว้แล้ว
+    showConfirmModal("ยืนยันการล้างข้อมูล", 0, (confirmed) => {
+        // ในที่นี้เราไม่ได้ใช้ค่า profit แต่ใช้เช็คว่ามีการตอบตกลงไหม
+        // ถ้าผู้ใช้กด 'ตกลง' หรือ 'ไม่คิดยอด' (ที่ส่งค่ามา) ให้ทำการล้างข้อมูล
+        
+        localStorage.clear();
+        
+        // เล่นเสียงแจ้งเตือนความสำเร็จก่อนรีโหลด
+        playSound('success');
+        
+        setTimeout(() => {
+            location.reload();
+        }, 500);
+    });
+
+    // ปรับแต่งข้อความใน Modal ให้เหมาะกับการล้างข้อมูล
+    document.getElementById('modal-msg').innerHTML = 
+        `<span style="color:#e74c3c; font-weight:bold;">คำเตือน!</span><br>ข้อมูลตารางและประวัติทั้งหมดจะถูกลบถาวร`;
+}
 
 function openStopwatchWindow() {
     const win = window.open("", "_blank", "width=500,height=600");
