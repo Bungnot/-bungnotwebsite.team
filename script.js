@@ -1,3 +1,16 @@
+/**
+ * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
+ */
+function enterWebsite() {
+    playSound('click'); // ปลดล็อก Audio Context บน Browser
+    const welcome = document.getElementById('welcome-screen');
+    welcome.style.opacity = '0';
+    welcome.style.visibility = 'hidden';
+    setTimeout(() => {
+        welcome.remove();
+    }, 600);
+}
+
 const sounds = {
     click: new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3'),
     // แก้ไข 2 ลิงก์ที่เสียเป็น Mixkit ตัวใหม่
@@ -493,11 +506,9 @@ function openStopwatchWindow() {
                     const btn = card.querySelector('.btn-start');
 
                     // --- เพิ่มการเล่นเสียงที่นี่ ---
-                    // เนื่องจากเป็นหน้าต่างใหม่ (New Window) ต้องเรียกใช้ Audio โดยตรง
                     const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
                     clickSound.volume = 0.5;
                     clickSound.play();
-                    // ------------------------
                     
                     if (intervalId) {
                         clearInterval(intervalId);
@@ -532,7 +543,6 @@ function openStopwatchWindow() {
                 container.appendChild(card);
             }
 
-            // สร้างอันแรกให้เลยอัตโนมัติ
             window.onload = createNewTimer;
         </script>
     </body>
