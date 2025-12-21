@@ -28,7 +28,7 @@ function playSound(soundName) {
     if (sound) {
         sound.pause(); 
         sound.currentTime = 0;
-        sound.volume = 0.5;
+        sound.volume = 0.2;
         
         // บังคับให้โหลดใหม่เพื่อให้เล่นได้ทันที
         const playPromise = sound.play();
