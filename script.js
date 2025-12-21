@@ -1,21 +1,34 @@
 const sounds = {
+    // เสียงคลิกทั่วไป (ดังอยู่แล้ว)
     click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
-    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'),
-    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/251/251-preview.mp3'),
+    // แก้ไข URL ใหม่สำหรับ Success และ Delete
+    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435.wav'),
+    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/251/251.wav'),
+    // เสียง Popup และ Alert (ดังอยู่แล้ว)
     popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'),
     alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3')
 };
 
+// เพิ่มฟังก์ชันช่วยโหลดใหม่เพื่อความชัวร์
+Object.values(sounds).forEach(audio => {
+    audio.load(); 
+});
+
 function playSound(soundName) {
-    if (sounds[soundName]) {
-        const sound = sounds[soundName];
-        sound.pause(); // หยุดของเดิมก่อน (กรณีรัวปุ่ม)
+    const sound = sounds[soundName];
+    if (sound) {
+        // บังคับให้โหลดใหม่สั้นๆ หากไฟล์มีปัญหา
+        if (sound.readyState === 0) sound.load();
+        
+        sound.pause(); // หยุดของเดิมก่อนเพื่อเริ่มใหม่ทันที
         sound.currentTime = 0;
         sound.volume = 0.5;
-        // ใช้ Promise เพื่อดูว่าเล่นได้ไหม
+        
         const playPromise = sound.play();
         if (playPromise !== undefined) {
-            playPromise.catch(e => console.log("Browser บล็อกการเล่นเสียงอัตโนมัติ: ต้องคลิกหน้าจอก่อน 1 ครั้ง"));
+            playPromise.catch(e => {
+                console.warn(`ไม่สามารถเล่นเสียง ${soundName} ได้:`, e);
+            });
         }
     }
 }
