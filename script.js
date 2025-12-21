@@ -19,20 +19,16 @@ function playSound(soundName) {
 let historyData = [];
 let totalDeletedProfit = 0;
 let currentModalKeyHandler = null;
+let isProcessingModal = false; // ตัวแปรป้องกันการกด Enter/E เบิ้ล
 
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. โหลดประวัติกำไรสะสมก่อน
     const savedHistory = localStorage.getItem("historyData");
     if (savedHistory) {
         historyData = JSON.parse(savedHistory);
         totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
     }
-    
-    // 2. โหลดตารางที่ค้างไว้
     loadData(); 
-    
-    // 3. ตั้งค่าระบบเลื่อนบรรทัดด้วยลูกศร
     document.addEventListener('keydown', handleGlobalKeyDown);
 });
 
@@ -42,10 +38,13 @@ function calculateTableProfit(tableElement) {
     tableElement.querySelectorAll("tbody tr").forEach(tr => {
         const inputs = tr.querySelectorAll("input");
         if (inputs[1]) {
-            // ล้างค่า O/o เป็น 0 และดึงเฉพาะตัวเลข
-            const val = inputs[1].value.replace(/[Oo]/g, '0');
-            const match = val.match(/\d+/); 
-            if (match) {
+            const rawVal = inputs[1].value;
+            // ล้างค่า O/o เป็น 0
+            const cleanVal = rawVal.replace(/[Oo]/g, '0');
+            const match = cleanVal.match(/\d+/); 
+            
+            // เงื่อนไข: ต้องเป็นตัวเลข และมีจำนวน 3 ตัวขึ้นไปถึงจะคำนวณ
+            if (match && match[0].length >= 3) {
                 profit += (parseFloat(match[0]) * 0.10);
             }
         }
@@ -81,7 +80,6 @@ function saveData() {
     });
     localStorage.setItem("savedTables", JSON.stringify(data));
     
-    // อัปเดตยอด Badge ในการ์ดและ Dashboard
     refreshAllBadges();
     updateDashboardStats();
     
@@ -147,8 +145,6 @@ function addRow(table) {
     playSound('click');
     const tbody = table.querySelector("tbody");
     const tr = document.createElement("tr");
-    tr.setAttribute("onfocusin", "this.classList.add('active-row')");
-    tr.setAttribute("onfocusout", "this.classList.remove('active-row')");
     tr.innerHTML = `
         <td><input type="text" oninput="saveData()" placeholder="..."></td>
         <td><input type="text" oninput="saveData()" placeholder="0" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
@@ -210,7 +206,6 @@ function restoreLastDeleted() {
 // --- Keyboard Navigation ---
 function handleGlobalKeyDown(e) {
     if (e.target.tagName !== "INPUT") return;
-    
     const currentInput = e.target;
     const currentTd = currentInput.parentElement;
     const currentTr = currentTd.parentElement;
@@ -268,7 +263,7 @@ function showHistory() {
     <body>
         <h2 class="history-title"><i class="fas fa-history"></i> ประวัติการคิดยอด</h2>`;
 
-    historyData.forEach(h => {
+    historyData.slice().reverse().forEach(h => {
         let rowsHtml = h.rows.map(r => `
             <tr>
                 <td style="width: 40%;"><div class="cell-data">${r[0] || "-"}</div></td>
@@ -296,6 +291,9 @@ function showHistory() {
 
 // --- Modals ---
 function showConfirmModal(title, profit, callback) {
+    if (isProcessingModal) return; // ถ้ากำลังเปิด Modal อยู่ ไม่ให้ซ้อน
+    isProcessingModal = false; 
+
     playSound('popup');
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = "ยืนยันการปิดยอด";
@@ -304,18 +302,28 @@ function showConfirmModal(title, profit, callback) {
     const actions = document.getElementById('modal-actions');
     actions.innerHTML = "";
 
+    const handleAction = (val) => {
+        if (isProcessingModal) return;
+        isProcessingModal = true; // ล็อคทันทีที่กดครั้งแรก
+        closeModal();
+        callback(val);
+        setTimeout(() => { isProcessingModal = false; }, 500); // ปลดล็อคหลังจากผ่านไปครึ่งวิ
+    };
+
     const btnCancel = createModalBtn("ยกเลิก (Esc)", "btn-cancel", () => closeModal());
-    const btnNoProfit = createModalBtn("ไม่คิดยอด (E)", "btn-danger", () => { closeModal(); callback(0); });
+    
+    const btnNoProfit = createModalBtn("ไม่คิดยอด (E)", "btn-danger", () => handleAction(0));
     btnNoProfit.style.background = "#e74c3c"; btnNoProfit.style.color = "white";
-    const btnConfirm = createModalBtn("ตกลง (Enter)", "btn-confirm", () => { closeModal(); callback(profit); });
+    
+    const btnConfirm = createModalBtn("ตกลง (Enter)", "btn-confirm", () => handleAction(profit));
 
     actions.append(btnCancel, btnNoProfit, btnConfirm);
 
     if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
     currentModalKeyHandler = (e) => {
-        if (e.key === "Enter") btnConfirm.click();
-        else if (e.key.toLowerCase() === "e") btnNoProfit.click();
-        else if (e.key === "Escape") btnCancel.click();
+        if (e.key === "Enter") { e.preventDefault(); btnConfirm.click(); }
+        else if (e.key.toLowerCase() === "e") { e.preventDefault(); btnNoProfit.click(); }
+        else if (e.key === "Escape") { e.preventDefault(); btnCancel.click(); }
     };
     window.addEventListener('keydown', currentModalKeyHandler);
     modal.classList.add('active');
@@ -344,6 +352,7 @@ function showSimpleModal(title, msg) {
 function closeModal() { 
     document.getElementById('custom-modal').classList.remove('active'); 
     if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
+    isProcessingModal = false;
 }
 
 function clearAllHistory() { 
