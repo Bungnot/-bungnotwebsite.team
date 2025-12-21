@@ -1,4 +1,26 @@
-// --- Source Configuration & Sound Effects ---
+// --- 1. การตั้งค่าสไตล์ (Inject CSS) ---
+const style = document.createElement('style');
+style.textContent = `
+    .table-card { position: relative; padding-top: 45px !important; }
+    .profit-badge-live {
+        position: absolute; top: -15px; right: 25px;
+        background: #2ecc71; color: white; padding: 6px 18px;
+        border-radius: 50px; font-size: 14px; font-weight: bold;
+        box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); z-index: 100;
+        display: none;
+    }
+    .active-row td { background-color: #f0f7ff !important; }
+    .active-row input { background: white !important; border-color: #1e3c72 !important; }
+    .btn-main-add {
+        background: #e8f5e9; color: #2e7d32; border: 2px dashed #2e7d32;
+        padding: 10px 30px; border-radius: 50px; cursor: pointer;
+        font-weight: bold; margin: 20px auto 0; display: block; transition: 0.3s;
+    }
+    .btn-main-add:hover { background: #2e7d32; color: white; }
+`;
+document.head.appendChild(style);
+
+// --- 2. ตัวแปรและระบบเสียง ---
 const sounds = {
     click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
     success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'),
@@ -7,279 +29,47 @@ const sounds = {
     alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3')
 };
 
-function playSound(soundName) {
-    if (sounds[soundName]) {
-        const sound = sounds[soundName];
-        sound.currentTime = 0;
-        sound.volume = 0.5;
-        sound.play().catch(e => console.log("Audio interaction required"));
-    }
-}
-
-let historyData = [];
-let totalDeletedProfit = 0;
+let historyData = JSON.parse(localStorage.getItem("historyData") || "[]");
+let totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
 let currentModalKeyHandler = null;
+let isProcessingModal = false; // ป้องกันการคำนวณซ้ำ
 
-// --- Initialization ---
+// --- 3. เริ่มต้นระบบ ---
 document.addEventListener("DOMContentLoaded", () => {
-    const savedHistory = localStorage.getItem("historyData");
-    if (savedHistory) {
-        historyData = JSON.parse(savedHistory);
-        totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
-    }
-    
-    loadData(); 
+    loadData();
+    updateDashboardStats();
     document.addEventListener('keydown', handleGlobalKeyDown);
 });
 
-// --- Calculation Core (ตรรกะ: นับเฉพาะตัวเลข 3 หลักขึ้นไป) ---
+// --- 4. การคำนวณกำไร Real-time (10% จากเลข 3 หลักขึ้นไป) ---
 function calculateTableProfit(tableElement) {
     let profit = 0;
     tableElement.querySelectorAll("tbody tr").forEach(tr => {
-        const inputs = tr.querySelectorAll("input");
-        if (inputs[1]) {
-            const val = inputs[1].value.trim();
-            // เช็คว่าเป็นตัวเลขล้วน และ มีความยาวตั้งแต่ 3 ตัวอักษรขึ้นไป
-            if (/^\d+$/.test(val) && val.length >= 3) {
-                profit += (parseFloat(val) * 0.10);
-            }
+        const priceInput = tr.querySelectorAll("input")[1]; 
+        if (priceInput) {
+            const val = priceInput.value.replace(/[Oo]/g, '0');
+            const match = val.match(/\d{3,}/);
+            if (match) { profit += (parseFloat(match[0]) * 0.10); }
         }
     });
     return profit;
 }
 
 function refreshAllBadges() {
-    document.querySelectorAll(".table-container").forEach(table => {
+    document.querySelectorAll(".table-card").forEach(table => {
         const profit = calculateTableProfit(table);
         const badge = table.querySelector(".profit-badge-live");
         if (badge) {
-            badge.innerText = `กำไรสะสม: ฿${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            // เปลี่ยนสีตามจำนวนเงิน (ถ้ามีกำไรเป็นสีเขียว ถ้า 0 เป็นสีเทา)
-            badge.style.background = profit > 0 ? "#2ecc71" : "#94a3b8";
+            badge.innerText = `กำไรสะสม: ฿${profit.toFixed(2)}`;
+            badge.style.display = profit > 0 ? "block" : "none";
         }
     });
 }
 
-// --- Data Management ---
-function saveData() {
-    const data = [];
-    document.querySelectorAll(".table-container").forEach(table => {
-        const titleInput = table.querySelector(".table-title-input");
-        const title = titleInput ? titleInput.value : "";
-        const rows = [];
-        table.querySelectorAll("tbody tr").forEach(r => {
-            const cells = r.querySelectorAll("input");
-            if (cells.length >= 3) {
-                rows.push([cells[0].value, cells[1].value, cells[2].value]);
-            }
-        });
-        data.push({ title, rows });
-    });
-    localStorage.setItem("savedTables", JSON.stringify(data));
-    
-    refreshAllBadges();
-    updateDashboardStats();
-    
-    const autoSaveBadge = document.getElementById("auto-save-alert");
-    if(autoSaveBadge) { 
-        autoSaveBadge.style.opacity = "1"; 
-        setTimeout(() => autoSaveBadge.style.opacity = "0", 1500); 
-    }
-}
-
-function loadData() {
-    const raw = localStorage.getItem("savedTables");
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    const container = document.getElementById("tables-container");
-    container.innerHTML = "";
-    data.forEach(t => addTable(t.title, t.rows, true));
-}
-
-// --- Table Actions ---
-function addTable(title = "", rows = null, isSilent = false) {
-    if(!isSilent) playSound('click');
-    const container = document.getElementById("tables-container");
-    const newTable = document.createElement("div");
-    newTable.classList.add("table-container", "table-card");
-
-    const generateRowHtml = (r = ["", "", ""]) => `
-        <tr onfocusin="this.classList.add('active-row')" onfocusout="this.classList.remove('active-row')">
-            <td><input type="text" value="${r[0]}" oninput="saveData()" placeholder=""></td>
-            <td><input type="text" value="${r[1]}" oninput="saveData()" placeholder="" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
-            <td><input type="text" value="${r[2]}" oninput="saveData()" placeholder=""></td>
-            <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
-        </tr>`;
-
-    let rowsHtml = rows ? rows.map(r => generateRowHtml(r)).join('') : generateRowHtml();
-
-    newTable.innerHTML = `
-        <div class="card-header-wrapper" style="display:flex; justify-content:space-between; align-items:center; padding:5px 10px;">
-            <span class="profit-badge-live" style="color:white; padding:6px 15px; border-radius:20px; font-size:0.9rem; font-weight:bold; transition: 0.3s;">กำไรสะสม: ฿0.00</span>
-            <button class="btn-close-table" onclick="removeTable(this)" style="position:static; margin:0;"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="card-header">
-            <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย/สนาม..." oninput="saveData()">
-        </div>
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th class="th-green">รายชื่อคนไล่</th>
-                    <th class="th-orange">ราคาเล่น</th>
-                    <th class="th-red">รายชื่อคนยั้ง</th>
-                    <th class="th-purple">จัดการ</th>
-                </tr>
-            </thead>
-            <tbody>${rowsHtml}</tbody>
-        </table>
-        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="margin: 20px auto 0; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32; width:90%; display:block; border-radius:10px; cursor:pointer; padding:10px;">+ เพิ่มรายการ</button>`;
-    
-    container.appendChild(newTable);
-    saveData();
-}
-
-function addRow(table) {
-    playSound('click');
-    const tbody = table.querySelector("tbody");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-        <td><input type="text" oninput="saveData()" placeholder="รายชื่อคนไล่"></td>
-        <td><input type="text" oninput="saveData()" placeholder="ราคาเล่น" style="text-align:center; font-weight:bold; color:#2e7d32;"></td>
-        <td><input type="text" oninput="saveData()" placeholder="รายชื่อคนยั้ง"></td>
-        <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
-    tbody.appendChild(tr);
-    saveData();
-}
-
-function removeRow(btn) { 
-    playSound('delete');
-    btn.closest('tr').remove(); 
-    saveData(); 
-}
-
-function removeTable(button) {
-    const tableContainer = button.closest('.table-container');
-    const title = tableContainer.querySelector('.table-title-input').value || "ไม่ระบุชื่อ";
-    const calculatedProfit = calculateTableProfit(tableContainer);
-
-    showConfirmModal(title, calculatedProfit, (finalProfit) => {
-        playSound('success');
-        const rowsData = [];
-        tableContainer.querySelectorAll("tbody tr").forEach(tr => {
-            const cells = tr.querySelectorAll("input");
-            rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
-        });
-
-        historyData.push({ 
-            title, 
-            rows: rowsData, 
-            profit: finalProfit, 
-            timestamp: new Date().toLocaleString("th-TH") 
-        });
-        
-        localStorage.setItem("historyData", JSON.stringify(historyData));
-        totalDeletedProfit += finalProfit;
-        
-        tableContainer.remove();
-        saveData();
-        updateDashboardStats();
-    });
-}
-
-function restoreLastDeleted() {
-    if (historyData.length === 0) {
-        playSound('alert');
-        return showSimpleModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน");
-    }
-    playSound('success');
-    const last = historyData.pop();
-    totalDeletedProfit -= last.profit;
-    addTable(last.title, last.rows, true);
-    localStorage.setItem("historyData", JSON.stringify(historyData));
-    updateDashboardStats();
-    showSimpleModal("สำเร็จ", `กู้คืนค่าย <b>${last.title}</b> แล้ว`);
-}
-
-// --- Keyboard Navigation ---
-function handleGlobalKeyDown(e) {
-    if (e.target.tagName !== "INPUT") return;
-    const currentInput = e.target;
-    const currentTd = currentInput.parentElement;
-    const currentTr = currentTd.parentElement;
-    const inputsInRow = Array.from(currentTr.querySelectorAll("input"));
-    const colIndex = inputsInRow.indexOf(currentInput);
-
-    if (e.key === "ArrowDown") {
-        const nextTr = currentTr.nextElementSibling;
-        if (nextTr) { e.preventDefault(); nextTr.querySelectorAll("input")[colIndex]?.focus(); }
-    } else if (e.key === "ArrowUp") {
-        const prevTr = currentTr.previousElementSibling;
-        if (prevTr) { e.preventDefault(); prevTr.querySelectorAll("input")[colIndex]?.focus(); }
-    }
-}
-
-// --- Windows & UI ---
-function updateDashboardStats() {
-    const pEl = document.getElementById("total-profit-display");
-    if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-}
-
-function showHistory() {
-    playSound('click');
-    if (historyData.length === 0) return showSimpleModal("แจ้งเตือน", "ไม่มีประวัติ");
-    
-    let newWindow = window.open("", "History", "width=1100,height=900");
-    let content = `
-    <html>
-    <head>
-        <title>ประวัติการคิดยอด PREMIUM</title>
-        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
-            body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); background-attachment: fixed; padding: 40px 20px; margin: 0; }
-            .history-title { color: white; text-align: center; margin-bottom: 30px; font-size: 2.2rem; }
-            .table-card { background: white; border-radius: 24px; padding: 30px; margin: 0 auto 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 1000px; border-top: 8px solid #1e3c72; }
-            .camp-header { font-size: 1.5rem; font-weight: bold; color: #1e3c72; text-align: center; background: #e2e8f0; padding: 12px; border-radius: 16px; width: 60%; margin: 0 auto 30px; }
-            .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-            .custom-table th { padding: 15px; color: white; text-align: center; }
-            .th-green { background: #2ecc71; border-radius: 15px 0 0 15px; }
-            .th-orange { background: #f39c12; }
-            .th-red { background: #e74c3c; border-radius: 0 15px 15px 0; }
-            .cell-data { background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 12px; border-radius: 10px; text-align: center; font-weight: 600; }
-            .profit-tag { color: #2ecc71; font-weight: bold; font-size: 1.4rem; }
-        </style>
-    </head>
-    <body>
-        <h2 class="history-title"><i class="fas fa-history"></i> ประวัติการคิดยอด</h2>`;
-
-    historyData.slice().reverse().forEach(h => {
-        let rowsHtml = h.rows.map(r => `
-            <tr>
-                <td><div class="cell-data">${r[0] || "-"}</div></td>
-                <td><div class="cell-data">${r[1] || "-"}</div></td>
-                <td><div class="cell-data">${r[2] || "-"}</div></td>
-            </tr>`).join('');
-
-        content += `
-            <div class="table-card">
-                <div class="camp-header">${h.title}</div>
-                <table class="custom-table">
-                    <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th></tr></thead>
-                    <tbody>${rowsHtml}</tbody>
-                </table>
-                <div style="display:flex; justify-content:space-between; margin-top:20px; align-items:center;">
-                    <span style="color:#64748b;">วันเวลา: ${h.timestamp}</span>
-                    <span class="profit-tag">กำไร 10%: ฿${h.profit.toFixed(2)}</span>
-                </div>
-            </div>`;
-    });
-    content += `</body></html>`;
-    newWindow.document.write(content);
-    newWindow.document.close();
-}
-
-// --- Modals ---
+// --- 5. จัดการ Modal (แก้ไขบัคปุ่ม E และการกด Enter ซ้ำ) ---
 function showConfirmModal(title, profit, callback) {
+    if (isProcessingModal) return; 
+    
     playSound('popup');
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = "ยืนยันการปิดยอด";
@@ -288,21 +78,38 @@ function showConfirmModal(title, profit, callback) {
     const actions = document.getElementById('modal-actions');
     actions.innerHTML = "";
 
-    const btnCancel = createModalBtn("ยกเลิก (Esc)", "btn-cancel", () => closeModal());
-    const btnNoProfit = createModalBtn("ไม่คิดยอด (E)", "btn-danger", () => { closeModal(); callback(0); });
-    btnNoProfit.style.background = "#e74c3c"; btnNoProfit.style.color = "white";
-    const btnConfirm = createModalBtn("ตกลง (Enter)", "btn-confirm", () => { closeModal(); callback(profit); });
+    const btnCancel = createModalBtn("ยกเลิก (Esc)", "btn-cancel", closeModal);
+    const btnNoProfit = createModalBtn("ไม่คิดยอด (E)", "btn-danger", () => handleModalAction(0, callback));
+    const btnConfirm = createModalBtn("ตกลง (Enter)", "btn-confirm", () => handleModalAction(profit, callback));
 
+    btnNoProfit.style.background = "#ef4444"; btnNoProfit.style.color = "white";
     actions.append(btnCancel, btnNoProfit, btnConfirm);
 
     if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
     currentModalKeyHandler = (e) => {
-        if (e.key === "Enter") btnConfirm.click();
-        else if (e.key.toLowerCase() === "e") btnNoProfit.click();
-        else if (e.key === "Escape") btnCancel.click();
+        const key = e.key.toLowerCase();
+        if (key === "enter") { e.preventDefault(); btnConfirm.click(); }
+        else if (key === "e") { e.preventDefault(); btnNoProfit.click(); }
+        else if (key === "escape") { e.preventDefault(); btnCancel.click(); }
     };
     window.addEventListener('keydown', currentModalKeyHandler);
     modal.classList.add('active');
+}
+
+function handleModalAction(profit, callback) {
+    if (isProcessingModal) return;
+    isProcessingModal = true; 
+    closeModal();
+    callback(profit);
+    setTimeout(() => { isProcessingModal = false; }, 500); 
+}
+
+function closeModal() {
+    document.getElementById('custom-modal').classList.remove('active');
+    if (currentModalKeyHandler) {
+        window.removeEventListener('keydown', currentModalKeyHandler);
+        currentModalKeyHandler = null;
+    }
 }
 
 function createModalBtn(text, className, onClick) {
@@ -313,41 +120,138 @@ function createModalBtn(text, className, onClick) {
     return btn;
 }
 
-function showSimpleModal(title, msg) {
-    playSound('popup');
-    const modal = document.getElementById('custom-modal');
-    document.getElementById('modal-title').innerText = title;
-    document.getElementById('modal-msg').innerHTML = msg;
-    const actions = document.getElementById('modal-actions');
-    actions.innerHTML = "";
-    const b = createModalBtn("ตกลง", "btn-confirm", closeModal);
-    actions.append(b);
-    modal.classList.add('active');
+// --- 6. ฟังก์ชันจัดการตารางและข้อมูล ---
+function addTable(title = "", rows = null, isSilent = false) {
+    if(!isSilent) playSound('click');
+    const container = document.getElementById("tables-container");
+    const newTable = document.createElement("div");
+    newTable.classList.add("table-card");
+
+    const rowBuilder = (r = ["", "", ""]) => `
+        <tr onfocusin="this.classList.add('active-row')" onfocusout="this.classList.remove('active-row')">
+            <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
+            <td><input type="text" value="${r[1]}" oninput="saveData()" style="font-weight:bold; color:#2e7d32;"></td>
+            <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
+            <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+        </tr>`;
+
+    newTable.innerHTML = `
+        <span class="profit-badge-live">กำไรสะสม: ฿0.00</span>
+        <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
+        <input type="text" class="table-title-input" value="${title}" placeholder="ใส่ชื่อค่าย..." oninput="saveData()">
+        <table class="custom-table">
+            <thead>
+                <tr><th class="th-green">รายชื่อคนไล่</th><th class="th-orange">ราคาเล่น</th><th class="th-red">รายชื่อคนยั้ง</th><th class="th-purple">จัดการ</th></tr>
+            </thead>
+            <tbody>${rows ? rows.map(r => rowBuilder(r)).join('') : rowBuilder()}</tbody>
+        </table>
+        <button class="btn-main-add" onclick="addRow(this.previousElementSibling)">+ เพิ่มรายการ</button>`;
+    
+    container.appendChild(newTable);
+    saveData();
 }
 
-function closeModal() { 
-    document.getElementById('custom-modal').classList.remove('active'); 
-    if (currentModalKeyHandler) window.removeEventListener('keydown', currentModalKeyHandler);
-}
-
-function clearAllHistory() { 
-    if(confirm("ล้างข้อมูลทั้งหมดรวมถึงกำไรสะสมหรือไม่?")) {
-        localStorage.clear(); 
-        location.reload(); 
-    }
-}
-
-// --- Extra Tools ---
-function openStopwatchWindow() {
+function addRow(table) {
     playSound('click');
-    const sw = window.open("", "_blank", "width=800,height=700");
-    sw.document.write(`<html><head><title>Timer</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>body{background:#1e3c72;color:white;font-family:sans-serif;padding:30px}input{padding:15px;border-radius:10px;border:none;width:70%;background:#e2e8f0;color:#333;font-weight:bold}.timer-text{font-size:3rem;color:#2ecc71;font-weight:bold}</style></head><body><h2>จับเวลาบั้งไฟ</h2><input type="text" id="cIn" placeholder="ชื่อค่าย..."><button onclick="add()" style="padding:15px;border-radius:10px;background:#2ecc71;border:none;color:white;cursor:pointer;margin-left:10px">เพิ่ม</button><div id="list"></div><script>function add(){const n=document.getElementById('cIn').value;if(!n)return;const d=document.createElement('div');d.style.background='rgba(255,255,255,0.1)';d.style.padding='20px';d.style.margin='10px 0';d.style.borderRadius='15px';d.innerHTML='<b>'+n+'</b> <span class="timer-text" id="t">0.000</span> <button onclick="st(this)" style="padding:10px;background:#2ecc71;border:none;color:white;border-radius:5px">เริ่ม</button> <button onclick="rs(this)" style="padding:10px;background:#f39c12;border:none;color:white;border-radius:5px">รีเซ็ต</button>';document.getElementById('list').appendChild(d);document.getElementById('cIn').value=''};function st(b){const t=b.parentElement.querySelector('#t');if(b.innerText==='เริ่ม'){b.innerText='หยุด';b.style.background='#e74c3c';let s=parseFloat(t.innerText)*1000;let st=Date.now()-s;b.iv=setInterval(()=>{t.innerText=((Date.now()-st)/1000).toFixed(3)},10)}else{b.innerText='เริ่ม';b.style.background='#2ecc71';clearInterval(b.iv)}};function rs(b){const t=b.parentElement.querySelector('#t');const sb=b.parentElement.querySelector('button');clearInterval(sb.iv);sb.innerText='เริ่ม';sb.style.background='#2ecc71';t.innerText='0.000'}<\/script></body></html>`);
+    const tbody = table.querySelector("tbody");
+    const tr = document.createElement("tr");
+    tr.setAttribute("onfocusin", "this.classList.add('active-row')");
+    tr.setAttribute("onfocusout", "this.classList.remove('active-row')");
+    tr.innerHTML = `<td><input type="text" oninput="saveData()"></td><td><input type="text" oninput="saveData()" style="font-weight:bold; color:#2e7d32;"></td><td><input type="text" oninput="saveData()"></td><td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
+    tbody.appendChild(tr);
+    saveData();
+}
+
+function removeRow(btn) { playSound('delete'); btn.closest('tr').remove(); saveData(); }
+
+function removeTable(button) {
+    const tableContainer = button.closest('.table-card');
+    const title = tableContainer.querySelector('.table-title-input').value || "ไม่ระบุชื่อ";
+    const profit = calculateTableProfit(tableContainer);
+
+    showConfirmModal(title, profit, (finalProfit) => {
+        playSound('success');
+        const rowsData = [];
+        tableContainer.querySelectorAll("tbody tr").forEach(tr => {
+            const cells = tr.querySelectorAll("input");
+            rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
+        });
+
+        historyData.push({ title, rows: rowsData, profit: finalProfit, timestamp: new Date().toLocaleString("th-TH") });
+        localStorage.setItem("historyData", JSON.stringify(historyData));
+        totalDeletedProfit += finalProfit;
+        
+        tableContainer.remove();
+        saveData();
+        updateDashboardStats();
+    });
+}
+
+// --- 7. ฟังก์ชันเสริม (Save, Load, History, Line) ---
+function saveData() {
+    const data = [];
+    document.querySelectorAll(".table-card").forEach(table => {
+        const title = table.querySelector(".table-title-input").value;
+        const rows = [];
+        table.querySelectorAll("tbody tr").forEach(tr => {
+            const cells = r.querySelectorAll("input");
+            if (cells.length >= 3) rows.push([cells[0].value, cells[1].value, cells[2].value]);
+        });
+        data.push({ title, rows });
+    });
+    localStorage.setItem("savedTables", JSON.stringify(data));
+    refreshAllBadges();
+}
+
+function loadData() {
+    const raw = localStorage.getItem("savedTables");
+    if (raw) JSON.parse(raw).forEach(t => addTable(t.title, t.rows, true));
+}
+
+function updateDashboardStats() {
+    const pEl = document.getElementById("total-profit-display");
+    if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+}
+
+function handleGlobalKeyDown(e) {
+    if (e.target.tagName !== "INPUT" || document.getElementById('custom-modal').classList.contains('active')) return;
+    const currentInput = e.target;
+    const currentTr = currentInput.closest('tr');
+    const colIndex = Array.from(currentTr.querySelectorAll("input")).indexOf(currentInput);
+    if (e.key === "ArrowDown") { e.preventDefault(); currentTr.nextElementSibling?.querySelectorAll("input")[colIndex]?.focus(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); currentTr.previousElementSibling?.querySelectorAll("input")[colIndex]?.focus(); }
+}
+
+function restoreLastDeleted() {
+    if (historyData.length === 0) return playSound('alert');
+    playSound('success');
+    const last = historyData.pop();
+    totalDeletedProfit -= last.profit;
+    addTable(last.title, last.rows, true);
+    localStorage.setItem("historyData", JSON.stringify(historyData));
+    updateDashboardStats();
 }
 
 function sendMessageToLine() {
     const name = document.getElementById('lineName').value;
     const msg = document.getElementById('messageToSend').value;
-    if(!name || !msg) return showSimpleModal("แจ้งเตือน", "กรุณากรอกชื่อและข้อความ");
-    const fullMsg = `เรียนคุณ ${name}\n${msg}\n\nตรวจสอบยอดได้ที่แอดมินครับ`;
-    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(fullMsg)}`, '_blank');
+    if(!name || !msg) return alert("กรุณากรอกข้อมูล");
+    window.open(`https://line.me/R/msg/text/?${encodeURIComponent("เรียนคุณ " + name + "\\n" + msg + "\\n\\nตรวจสอบยอดได้ที่แอดมินครับ")}`, '_blank');
+}
+
+function playSound(name) { if (sounds[name]) { sounds[name].currentTime = 0; sounds[name].play().catch(() => {}); } }
+
+function clearAllHistory() { if(confirm("ล้างข้อมูลทั้งหมด?")) { localStorage.clear(); location.reload(); } }
+
+function showHistory() {
+    if (historyData.length === 0) return alert("ไม่มีประวัติ");
+    let win = window.open("", "History", "width=800,height=600");
+    let html = "<html><head><title>ประวัติ</title></head><body><h2>ประวัติกำไร</h2><ul>";
+    historyData.forEach(h => html += `<li>${h.title} - กำไร: ฿${h.profit.toFixed(2)} (${h.timestamp})</li>`);
+    html += "</ul></body></html>";
+    win.document.write(html);
+}
+
+function openStopwatchWindow() {
+    window.open("", "_blank", "width=400,height=300").document.write("<html><body><h2>Timer</h2><p>ฟังก์ชันจับเวลา...</p></body></html>");
 }
