@@ -27,15 +27,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener('keydown', handleKeyboardNav);
 });
 
-// --- 3. Premium Calculation Logic (หัวใจสำคัญ: 2 หลักขึ้นไป) ---
+// --- 3. Logic การคำนวณ (นับเฉพาะเลข 3 หลักขึ้นไป) ---
 function updateLiveProfit(tableElement) {
     let profit = 0;
     tableElement.querySelectorAll(".price-input").forEach(input => {
-        const val = input.value.replace(/[Oo]/g, '0'); // รองรับ 4OO เป็น 400
+        const val = input.value.replace(/[Oo]/g, '0'); // แปลง O เป็น 0
         const matches = val.match(/\d+/g); // ดึงกลุ่มตัวเลข
         if (matches) {
             matches.forEach(m => {
-                if (m.length >= 2) { // นับเฉพาะเลข 2 หลักขึ้นไป
+                // เงื่อนไข: นับเฉพาะตัวเลขที่มีความยาว 3 หลักขึ้นไป
+                if (m.length >= 3) { 
                     profit += (parseFloat(m) * 0.10);
                 }
             });
@@ -50,7 +51,7 @@ function updateLiveProfit(tableElement) {
     }
 }
 
-// --- 4. Core Actions ---
+// --- 4. Table Actions ---
 function addTable(title = "", rows = null, isSilent = false) {
     if(!isSilent) playSound('click');
     const container = document.getElementById("tables-container");
@@ -112,7 +113,8 @@ function removeTable(button) {
         const match = val.match(/\d+/g); 
         if (match) {
             match.forEach(m => {
-                if (m.length >= 2) calculatedProfit += (parseFloat(m) * 0.10);
+                // เงื่อนไขเดียวกับด้านบน: 3 หลักขึ้นไป
+                if (m.length >= 3) calculatedProfit += (parseFloat(m) * 0.10);
             });
         }
     });
@@ -187,12 +189,12 @@ function updateDashboardStats() {
     if(pEl) pEl.innerText = `฿${totalDeletedProfit.toLocaleString(undefined,{minimumFractionDigits:2})}`;
 }
 
-// --- 7. Modals & Windows ---
+// --- 7. Modals & Helpers ---
 function showConfirmModal(title, profit, callback) {
     playSound('popup');
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = "ยืนยันการปิดยอด";
-    document.getElementById('modal-msg').innerHTML = `ค่าย: <b>${title}</b><br>กำไร (นับเฉพาะเลข 2 หลัก+): <span style="color:#2ecc71; font-size:1.5rem;">฿${profit.toFixed(2)}</span>`;
+    document.getElementById('modal-msg').innerHTML = `ค่าย: <b>${title}</b><br>กำไร (นับเฉพาะเลข 3 หลักขึ้นไป): <span style="color:#2ecc71; font-size:1.5rem;">฿${profit.toFixed(2)}</span>`;
     
     const actions = document.getElementById('modal-actions');
     actions.innerHTML = "";
@@ -211,7 +213,6 @@ function createModalBtn(text, cls, onClick) {
 }
 function closeModal() { document.getElementById('custom-modal').classList.remove('active'); }
 
-// (ฟังก์ชันอื่นๆ เช่น showHistory, sendMessageToLine, openStopwatchWindow ฯลฯ ใช้โค้ดเดิมได้เลยครับ)
 function addRow(table) { playSound('click'); const tbody = table.querySelector("tbody"); const tr = document.createElement("tr"); tr.innerHTML = createRowHtml(); tbody.appendChild(tr); saveData(); }
 function removeRow(btn) { playSound('delete'); const row = btn.closest('tr'); const container = row.closest('.table-container'); row.remove(); if(container) updateLiveProfit(container); saveData(); }
 function restoreLastDeleted() { if (historyData.length === 0) return alert("ไม่มีข้อมูล"); const last = historyData.pop(); totalDeletedProfit -= last.profit; addTable(last.title, last.rows, true); localStorage.setItem("historyData", JSON.stringify(historyData)); updateDashboardStats(); }
