@@ -384,7 +384,7 @@ function closeModal() {
 // แก้ไขฟังก์ชันล้างข้อมูลให้ใช้ Modal สวยๆ
 function clearAllHistory() {
     // 1. เล่นเสียงเตือนก่อน (Alert)
-    playSound('alert');
+    playSound('clear');
 
     // 2. เรียกใช้ Custom Modal ที่สร้างไว้แล้ว
     showConfirmModal("ยืนยันการล้างข้อมูล", 0, (confirmed) => {
