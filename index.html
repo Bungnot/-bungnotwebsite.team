@@ -26,113 +26,6 @@
             color: #333;
         }
 
-        /* --- Welcome Screen Styles (New & Animated) --- */
-        #welcome-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            z-index: 99999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
-        }
-
-        .welcome-box {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            padding: 50px 40px;
-            border-radius: 40px;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-            max-width: 450px;
-            width: 90%;
-            border: 1px solid rgba(255,255,255,0.4);
-            transform: translateY(0);
-            animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-
-        @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(40px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo-wrapper { margin-bottom: 30px; }
-        .floating-logo {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            border: 6px solid #1e3c72;
-            box-shadow: 0 15px 35px rgba(30, 60, 114, 0.3);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-        }
-
-        .welcome-title {
-            color: #1e3c72;
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: 1px;
-        }
-
-        .welcome-subtitle {
-            color: #64748b;
-            font-size: 1.1rem;
-            margin: 10px 0 35px 0;
-            line-height: 1.6;
-        }
-
-        .btn-enter-web {
-            position: relative;
-            background: #1e3c72;
-            color: white;
-            border: none;
-            padding: 20px 45px;
-            border-radius: 50px;
-            font-size: 1.4rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            overflow: hidden;
-        }
-
-        .btn-enter-web:hover {
-            background: #2a5298;
-            transform: scale(1.03);
-        }
-
-        /* Pulse Animation */
-        .pulse-effect::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            border-radius: 50px;
-            border: 2px solid #1e3c72;
-            animation: pulse-ring 2s infinite;
-        }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.25); opacity: 0; }
-        }
-
         /* --- Original Page Styles --- */
         .header-container { text-align: center; margin-bottom: 30px; color: white; }
         .profile-group img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin: 0 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
@@ -193,19 +86,6 @@
     </style>
 </head>
 <body>
-
-    <div id="welcome-screen">
-        <div class="welcome-box">
-            <div class="logo-wrapper">
-                <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Rocket Logo" class="floating-logo">
-            </div>
-            <h1 class="welcome-title">ยินดีต้อนรับ</h1>
-            <p class="welcome-subtitle">ระบบจัดการ ADMIN ROCKET PREMIUM<br><strong>(Pro Version)</strong></p>
-            <button class="btn-enter-web pulse-effect" onclick="enterWebsite()">
-                เข้าเว็บตอนนี้ <i class="fas fa-rocket"></i>
-            </button>
-        </div>
-    </div>
 
     <div id="auto-save-alert">✅ บันทึกข้อมูลแล้ว</div>
 
