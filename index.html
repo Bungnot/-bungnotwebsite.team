@@ -4,16 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg">
-    <title>ADMIN ROCKET PREMIUM (Pro Version)</title>
+    <title>ADMIN ROCKET PREMIUM (Christmas Edition)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --primary-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            /* Christmas Theme Colors */
+            --primary-bg: radial-gradient(circle at center, #1a472a 0%, #071a0e 100%);
+            --accent-red: #c0392b;
+            --accent-green: #27ae60;
+            --accent-gold: #d4af37;
             --glass-bg: rgba(255, 255, 255, 0.95);
-            --shadow-premium: 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+            --shadow-premium: 0 15px 35px rgba(0, 0, 0, 0.3);
         }
 
         body {
@@ -24,238 +28,163 @@
             margin: 0;
             padding: 20px;
             color: #333;
+            overflow-x: hidden;
         }
 
-        /* --- Welcome Screen Styles (New & Animated) --- */
-        #welcome-screen {
+        /* --- Snowfall Animation --- */
+        .snow-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            user-select: none;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0.3; }
+        }
+
+        /* --- Welcome Screen --- */
+        #welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0f4c3a 0%, #c0392b 100%);
             z-index: 99999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.8s, visibility 0.8s;
         }
-
         .welcome-box {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            padding: 50px 40px;
-            border-radius: 40px;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-            max-width: 450px;
-            width: 90%;
-            border: 1px solid rgba(255,255,255,0.4);
-            transform: translateY(0);
-            animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            background: var(--glass-bg);
+            padding: 50px; border-radius: 40px; text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5); border: 5px solid var(--accent-gold);
+            max-width: 450px; width: 90%;
         }
-
-        @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(40px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo-wrapper { margin-bottom: 30px; }
         .floating-logo {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            border: 6px solid #1e3c72;
-            box-shadow: 0 15px 35px rgba(30, 60, 114, 0.3);
+            width: 140px; height: 140px; border-radius: 50%;
+            border: 6px solid var(--accent-red);
             animation: float 3s ease-in-out infinite;
         }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-        }
-
-        .welcome-title {
-            color: #1e3c72;
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: 1px;
-        }
-
-        .welcome-subtitle {
-            color: #64748b;
-            font-size: 1.1rem;
-            margin: 10px 0 35px 0;
-            line-height: 1.6;
-        }
-
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        
         .btn-enter-web {
-            position: relative;
-            background: #1e3c72;
-            color: white;
-            border: none;
-            padding: 20px 45px;
-            border-radius: 50px;
-            font-size: 1.4rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            overflow: hidden;
+            background: var(--accent-red); color: white; border: none;
+            padding: 20px 45px; border-radius: 50px; font-size: 1.4rem;
+            font-weight: 700; cursor: pointer; width: 100%;
         }
 
-        .btn-enter-web:hover {
-            background: #2a5298;
-            transform: scale(1.03);
-        }
+        /* --- UI Elements --- */
+        .header-container { text-align: center; margin-bottom: 30px; color: white; position: relative; z-index: 2; }
+        .profile-group img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent-gold); margin: 0 5px; }
+        
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1300px; margin: 0 auto 30px; position: relative; z-index: 2; }
+        .info-card { background: var(--glass-bg); border-radius: 20px; padding: 25px; border-left: 8px solid var(--accent-red); }
+        .info-card h3 { color: var(--accent-green); margin-top: 0; display: flex; align-items: center; gap: 10px; }
 
-        /* Pulse Animation */
-        .pulse-effect::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            border-radius: 50px;
-            border: 2px solid #1e3c72;
-            animation: pulse-ring 2s infinite;
-        }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.25); opacity: 0; }
-        }
-
-        /* --- Original Page Styles --- */
-        .header-container { text-align: center; margin-bottom: 30px; color: white; }
-        .profile-group img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin: 0 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        h2 { font-weight: 700; font-size: 2.5rem; margin: 15px 0; text-shadow: 0 3px 10px rgba(0,0,0,0.3); }
-
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1300px; margin: 0 auto 30px; }
-        .info-card { background: var(--glass-bg); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-premium); border: 1px solid rgba(255,255,255,0.5); }
-        .info-card h3 { margin-top: 0; color: #1e3c72; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-
-        .action-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; }
+        .action-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; position: relative; z-index: 2; }
         .btn-main { 
-            background: white; color: #1e3c72; border: none; padding: 12px 25px; 
-            border-radius: 50px; cursor: pointer; font-weight: 700; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: 0.3s; 
-            display: flex; align-items: center; gap: 8px; font-size: 0.95rem;
+            background: white; color: #1a472a; border: 2px solid var(--accent-gold); padding: 12px 25px; 
+            border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s;
         }
-        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        .btn-clear { color: #e74c3c; }
+        .btn-main:hover { transform: translateY(-3px); background: var(--accent-gold); color: white; }
 
-        #tables-container { max-width: 1300px; margin: 0 auto; }
+        #tables-container { max-width: 1300px; margin: 0 auto; position: relative; z-index: 2; }
         .table-card { 
             background: white; border-radius: 24px; padding: 35px; margin-bottom: 40px; 
-            box-shadow: var(--shadow-premium); position: relative; border-top: 8px solid #1e3c72;
+            box-shadow: var(--shadow-premium); border-top: 8px solid var(--accent-red);
         }
 
         .table-title-input { 
-            font-size: 1.5rem; font-weight: bold; color: #1e3c72; 
-            text-align: center; border: 2.5px solid #94a3b8;
-            background: #e2e8f0; padding: 12px; border-radius: 16px; width: 60%; 
-            display: block; margin: 0 auto 30px; outline: none; transition: 0.3s;
+            font-size: 1.5rem; font-weight: bold; color: var(--accent-red); 
+            text-align: center; border: 2.5px solid #cbd5e1; background: #f8fafc;
+            padding: 12px; border-radius: 16px; width: 60%; display: block; margin: 0 auto 30px;
         }
 
-        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .custom-table th { padding: 18px 10px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .th-green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-radius: 15px 0 0 15px; }
-        .th-orange { background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%); }
-        .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
-        .th-purple { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); border-radius: 0 15px 15px 0; }
+        .custom-table th { padding: 18px 10px; color: white; }
+        .th-green { background: var(--accent-green); border-radius: 15px 0 0 15px; }
+        .th-orange { background: var(--accent-gold); }
+        .th-red { background: var(--accent-red); }
+        .th-purple { background: #555; border-radius: 0 15px 15px 0; }
 
-        .custom-table input { 
-            width: 100%; padding: 14px; border: 2.5px solid #cbd5e1; border-radius: 14px; 
-            background: #e2e8f0; text-align: center; box-sizing: border-box; transition: 0.2s;
-            font-weight: 600;
-        }
-
-        .btn-remove-row { background: #fff; color: #e74c3c; border: 2px solid #fff5f5; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin: 0 auto; display: block; }
-        .btn-remove-row:hover { background: #e74c3c; color: white; transform: scale(1.1); }
-        .btn-close-table { position: absolute; top: 15px; right: 15px; background: #f8fafc; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: 0.3s; }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; visibility: hidden; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); transform: scale(0.9); transition: 0.3s; }
-        .modal-overlay.active .modal-box { transform: scale(1); }
-        .modal-actions { margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-        .btn-modal { padding: 12px 25px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; }
-
-        #auto-save-alert { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 30px; border-radius: 50px; opacity: 0; transition: 0.5s; z-index: 10000; font-size: 0.9rem; pointer-events: none; }
+        .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; border: 4px solid var(--accent-red); }
     </style>
 </head>
 <body>
 
+    <div class="snow-container" id="snow-container"></div>
+
     <div id="welcome-screen">
         <div class="welcome-box">
             <div class="logo-wrapper">
-                <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Rocket Logo" class="floating-logo">
+                <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Logo" class="floating-logo">
             </div>
-            <h1 class="welcome-title">ยินดีต้อนรับ</h1>
-            <p class="welcome-subtitle">ระบบจัดการ ADMIN ROCKET PREMIUM<br><strong>(Pro Version)</strong></p>
-            <button class="btn-enter-web pulse-effect" onclick="enterWebsite()">
-                เข้าเว็บตอนนี้ <i class="fas fa-rocket"></i>
+            <h1 style="color:var(--accent-red)">Merry Christmas!</h1>
+            <p>ระบบจัดการ ADMIN ROCKET PREMIUM<br><strong>Holiday Edition</strong></p>
+            <button class="btn-enter-web" onclick="enterWebsite()">
+                เข้าสู่ระบบ <i class="fas fa-gift"></i>
             </button>
         </div>
     </div>
 
-    <div id="auto-save-alert">✅ บันทึกข้อมูลแล้ว</div>
+    <div id="auto-save-alert" style="position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:var(--accent-green); color:white; padding:12px 30px; border-radius:50px; opacity:0; z-index:10000;">✅ บันทึกแล้ว</div>
 
     <div class="header-container">
         <div class="profile-group">
             <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Admin">
             <img src="https://img5.pic.in.th/file/secure-sv1/unnamed-7263f4c44a1f2a1a7.jpg" alt="Admin">
         </div>
-        <h2>ADMIN ROCKET PREMIUM</h2>
+        <h2><i class="fas fa-tree"></i> ADMIN ROCKET PREMIUM</h2>
     </div>
 
     <div class="dashboard-grid">
         <div class="info-card">
-            <h3><i class="fas fa-wallet"></i> ยอดกำไรรวม</h3>
-            <div id="total-profit-display" style="font-size: 1.8rem; font-weight: bold; color: #1e3c72;">฿0.00</div>
-            <p style="color: #64748b; font-size: 0.9rem;">*กำไร 10% (คิดให้เองเมื่อ X)</p>
+            <h3><i class="fas fa-coins"></i> ยอดกำไรรวม</h3>
+            <div id="total-profit-display" style="font-size: 1.8rem; font-weight: bold; color: var(--accent-red);">฿0.00</div>
+            <p style="color: #64748b; font-size: 0.8rem;">*กำไร 10% คิดอัตโนมัติ (ราคา 3 หลักขึ้นไป)</p>
         </div>
         
         <div class="info-card">
-            <h3><i class="fab fa-line"></i> ส่งข้อความ Line OA</h3>
-            <input type="text" id="lineName" placeholder="ชื่อใน Line OA" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:2.5px solid #cbd5e1; background:#e2e8f0;">
-            <textarea id="messageToSend" placeholder="ข้อความ..." style="width:100%; padding:10px; border-radius:10px; border:2.5px solid #cbd5e1; font-family:'Sarabun'; background:#e2e8f0;"></textarea>
-            <button onclick="sendMessageToLine()" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; background:#06c755; color:white; border:none; cursor:pointer; font-weight:bold;">ส่งข้อความ</button>
+            <h3><i class="fab fa-line"></i> ส่ง Line OA</h3>
+            <input type="text" id="lineName" placeholder="ชื่อลูกค้า" style="width:100%; padding:8px; margin-bottom:5px; border-radius:8px; border:1px solid #ddd;">
+            <textarea id="messageToSend" placeholder="ข้อความ..." style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;"></textarea>
+            <button onclick="sendMessageToLine()" style="width:100%; padding:10px; margin-top:5px; border-radius:8px; background:#06c755; color:white; border:none; cursor:pointer;">ส่งข้อความ</button>
         </div>
 
         <div class="info-card">
-            <h3><i class="fas fa-info-circle"></i> วิธีคิดยอด</h3>
-            <div style="font-size: 0.85rem; color: #475569;">
-                • ราคา 3 ตัวขึ้นไป ถึงจะคิดกำไร <br>
-                • หากราคา 2 หลัก จะไม่ถูกนำมาคำนวณ <br>
-                • กำไรคิดให้ 10% เมื่อกดปิดบั้ง (X)
+            <h3><i class="fas fa-snowflake"></i> เมนูพิเศษ</h3>
+            <div style="font-size: 0.85rem;">
+                คริสต์มาสนี้ ขอให้ยอดปังๆ!<br>
+                • ระบบคำนวณกำไร 10%<br>
+                • ระบบบันทึกอัตโนมัติ
             </div>
         </div>
     </div>
 
     <div class="action-bar">
-        <button class="btn-main" onclick="addTable()"><i class="fas fa-rocket"></i> เพิ่มบั้งใหม่</button>
-        <button class="btn-main" onclick="restoreLastDeleted()"><i class="fas fa-undo"></i> กู้คืนประวัติ</button>
-        <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติการคิดยอด</button>
-        <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลาบั้งไฟ</button>
-        <button class="btn-main btn-clear" onclick="clearAllHistory()"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
+        <button class="btn-main" onclick="addTable()"><i class="fas fa-plus"></i> เพิ่มบั้งใหม่</button>
+        <button class="btn-main" onclick="restoreLastDeleted()"><i class="fas fa-undo"></i> กู้คืน</button>
+        <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติ</button>
+        <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลา</button>
+        <button class="btn-main" style="color:var(--accent-red)" onclick="clearAllHistory()"><i class="fas fa-trash"></i> ล้างข้อมูล</button>
     </div>
 
     <div id="tables-container"></div>
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="modal-title" style="margin-bottom: 15px; color: #1e293b;"></h2>
-            <div id="modal-msg" style="color: #475569; margin-bottom: 10px; line-height: 1.6;"></div>
-            <div id="modal-actions" class="modal-actions"></div>
+            <h2 id="modal-title"></h2>
+            <div id="modal-msg"></div>
+            <div id="modal-actions" style="margin-top:20px; display:flex; justify-content:center; gap:10px;"></div>
         </div>
     </div>
 
