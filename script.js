@@ -21,6 +21,27 @@ function enterWebsite() {
     }, 800);
 }
 
+// เพิ่มฟังก์ชันสร้างหิมะในหน้า Welcome
+document.addEventListener("DOMContentLoaded", () => {
+    const welcome = document.getElementById('welcome-screen');
+    for (let i = 0; i < 50; i++) {
+        let flake = document.createElement('div');
+        flake.innerHTML = "❄";
+        flake.style.position = "absolute";
+        flake.style.color = "white";
+        flake.style.opacity = Math.random();
+        flake.style.left = Math.random() * 100 + "vw";
+        flake.style.top = "-5vh";
+        flake.style.fontSize = (Math.random() * 20 + 10) + "px";
+        flake.style.transition = `top ${Math.random() * 5 + 5}s linear`;
+        welcome.appendChild(flake);
+        
+        setTimeout(() => {
+            flake.style.top = "105vh";
+        }, 100);
+    }
+});
+
 const sounds = {
     click: new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3'),
     // แก้ไข 2 ลิงก์ที่เสียเป็น Mixkit ตัวใหม่
