@@ -22,23 +22,36 @@ function enterWebsite() {
 }
 
 // เพิ่มฟังก์ชันสร้างหิมะในหน้า Welcome
+// แก้ไขฟังก์ชันสร้างหิมะใน script.js
 document.addEventListener("DOMContentLoaded", () => {
-    const welcome = document.getElementById('welcome-screen');
+    // สร้างหิมะไปที่ body เลยเพื่อให้ตกตลอดเวลา
+    const container = document.body; 
     for (let i = 0; i < 50; i++) {
         let flake = document.createElement('div');
         flake.innerHTML = "❄";
-        flake.style.position = "absolute";
+        flake.style.position = "fixed"; // เปลี่ยนเป็น fixed เพื่อให้ตกค้างหน้าจอ
         flake.style.color = "white";
         flake.style.opacity = Math.random();
         flake.style.left = Math.random() * 100 + "vw";
         flake.style.top = "-5vh";
         flake.style.fontSize = (Math.random() * 20 + 10) + "px";
-        flake.style.transition = `top ${Math.random() * 5 + 5}s linear`;
-        welcome.appendChild(flake);
+        flake.style.zIndex = "1"; // ให้อยู่ด้านหลัง Element อื่นๆ
+        flake.style.pointerEvents = "none"; // ป้องกันหิมะบังปุ่มกด
         
-        setTimeout(() => {
-            flake.style.top = "105vh";
-        }, 100);
+        // ฟังก์ชันทำให้หิมะวนกลับไปตกใหม่
+        const fall = () => {
+            const duration = Math.random() * 5000 + 5000;
+            flake.animate([
+                { top: "-5vh" },
+                { top: "105vh" }
+            ], {
+                duration: duration,
+                iterations: Infinity
+            });
+        };
+        
+        container.appendChild(flake);
+        fall();
     }
 });
 
