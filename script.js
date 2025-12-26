@@ -430,7 +430,7 @@ function clearAllHistory() {
 }
 
 function openStopwatchWindow() {
-    const win = window.open("", "_blank", "width=500,height=600");
+    const win = window.open("", "_blank", "width=550,height=700");
     if (!win) {
         alert("กรุณาอนุญาต Pop-up เพื่อใช้งานตัวจับเวลา");
         return;
@@ -439,53 +439,65 @@ function openStopwatchWindow() {
     const html = `
     <html>
     <head>
-        <title>ระบบจับเวลาหลายค่าย - ADMIN ROCKET</title>
+        <title>ระบบจับเวลา PRO - ADMIN ROCKET</title>
         <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             body { font-family: 'Sarabun', sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; }
             .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
             .timer-card { 
-                background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; 
-                display: flex; align-items: center; justify-content: space-between; border: 1px solid #334155;
+                background: #1e293b; border-radius: 16px; padding: 20px; margin-bottom: 15px; 
+                display: flex; flex-direction: column; border: 1px solid #334155;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             }
-            .camp-info { flex: 1; }
+            .camp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
             .camp-name-input { 
-                background: transparent; border: none; border-bottom: 1px solid #475569; 
-                color: #2ecc71; font-size: 1.1rem; font-weight: bold; width: 90%; outline: none;
+                background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+                color: #2ecc71; font-size: 1.1rem; font-weight: bold; width: 60%; padding: 8px 12px; outline: none;
             }
             .timer-display { 
-                font-family: monospace; font-size: 2.2rem; color: #f8fafc; margin: 0 20px; min-width: 80px; text-align: center;
+                font-family: 'Courier New', monospace; font-size: 3.5rem; color: #f8fafc; 
+                text-align: center; margin: 10px 0; font-weight: bold; letter-spacing: 2px;
+                text-shadow: 0 0 20px rgba(255,255,255,0.1);
             }
-            .controls { display: flex; gap: 8px; }
+            .controls { display: flex; gap: 10px; justify-content: center; }
             button { 
-                border: none; border-radius: 8px; cursor: pointer; font-weight: bold; 
-                transition: 0.2s; padding: 10px 15px;
+                border: none; border-radius: 10px; cursor: pointer; font-weight: bold; 
+                transition: all 0.2s; padding: 12px 20px; display: flex; align-items: center; gap: 8px;
             }
-            .btn-start { background: #2ecc71; color: white; }
-            .btn-pause { background: #f39c12; color: white; }
-            .btn-reset { background: #64748b; color: white; }
-            .btn-delete { background: #e74c3c; color: white; margin-left: 5px; }
+            .btn-start { background: #2ecc71; color: white; flex: 2; justify-content: center; }
+            .btn-pause { background: #f39c12; color: white; flex: 2; justify-content: center; }
+            .btn-reset { background: #64748b; color: white; flex: 1; justify-content: center; }
+            .btn-delete { background: #e74c3c; color: white; padding: 10px; }
             .btn-add { 
-                width: 100%; background: #3b82f6; color: white; font-size: 1rem; padding: 15px;
-                margin-top: 10px; border: 2px dashed #60a5fa;
+                width: 100%; background: transparent; color: #3b82f6; font-size: 1.1rem; padding: 15px;
+                margin-top: 10px; border: 2px dashed #3b82f6; border-radius: 16px;
             }
-            button:hover { opacity: 0.8; transform: translateY(-1px); }
+            button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+            button:active { transform: translateY(0); }
         </style>
     </head>
     <body>
         <div class="header">
-            <h2><i class="fas fa-stopwatch"></i> ตัวจับเวลารายค่าย</h2>
+            <h2><i class="fas fa-stopwatch"></i> จับเวลารายค่าย</h2>
         </div>
         
         <div id="timers-container"></div>
         
         <button class="btn-add" onclick="createNewTimer()">
-            <i class="fas fa-plus"></i> เพิ่มค่ายใหม่
+            <i class="fas fa-plus-circle"></i> เพิ่มค่ายใหม่
         </button>
 
         <script>
             let timerCount = 0;
+
+            function formatTime(ms) {
+                let totalSeconds = Math.floor(ms / 1000);
+                let minutes = Math.floor(totalSeconds / 60);
+                let seconds = totalSeconds % 60;
+                let tenths = Math.floor((ms % 1000) / 100);
+                return \`\${minutes.toString().padStart(2, '0')}:\${seconds.toString().padStart(2, '0')}.\${tenths}\`;
+            }
 
             function createNewTimer() {
                 timerCount++;
@@ -494,60 +506,69 @@ function openStopwatchWindow() {
                 card.className = 'timer-card';
                 card.id = 'timer-card-' + timerCount;
                 
-                let seconds = 0;
+                let startTime = 0;
+                let elapsedTime = 0;
                 let intervalId = null;
 
                 card.innerHTML = \`
-                    <div class="camp-info">
+                    <div class="camp-row">
                         <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
+                        <button class="btn-delete" onclick="this.parentElement.parentElement.deleteCard()"><i class="fas fa-trash-alt"></i></button>
                     </div>
-                    <div class="timer-display" id="display-\${timerCount}">0</div>
+                    <div class="timer-display">00:00.0</div>
                     <div class="controls">
-                        <button class="btn-start" onclick="this.parentElement.startTimer()">เริ่ม</button>
-                        <button class="btn-reset" onclick="this.parentElement.resetTimer()">รีเซ็ต</button>
-                        <button class="btn-delete" onclick="this.parentElement.deleteCard()"><i class="fas fa-trash"></i></button>
+                        <button class="btn-start"><i class="fas fa-play"></i> เริ่ม</button>
+                        <button class="btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
                     </div>
                 \`;
 
-                const controls = card.querySelector('.controls');
                 const display = card.querySelector('.timer-display');
+                const btnStart = card.querySelector('.btn-start');
+                const btnReset = card.querySelector('.btn-reset');
 
-                controls.startTimer = function() {
-                    const btn = card.querySelector('.btn-start');
+                const updateDisplay = () => {
+                    const now = Date.now();
+                    const currentTotal = elapsedTime + (startTime ? (now - startTime) : 0);
+                    display.innerText = formatTime(currentTotal);
+                };
 
-                    // --- เพิ่มการเล่นเสียงที่นี่ ---
+                btnStart.onclick = function() {
                     const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
-                    clickSound.volume = 0.5;
+                    clickSound.volume = 0.3;
                     clickSound.play();
-                    
+
                     if (intervalId) {
+                        // Pause
+                        elapsedTime += Date.now() - startTime;
                         clearInterval(intervalId);
                         intervalId = null;
-                        btn.innerText = 'เริ่มต่อ';
-                        btn.className = 'btn-start';
+                        startTime = 0;
+                        btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่มต่อ';
+                        btnStart.className = 'btn-start';
                     } else {
-                        btn.innerText = 'หยุด';
-                        btn.className = 'btn-pause';
-                        intervalId = setInterval(() => {
-                            seconds++;
-                            display.innerText = seconds;
-                        }, 1000);
+                        // Start/Resume
+                        startTime = Date.now();
+                        intervalId = setInterval(updateDisplay, 100); // อัปเดตทุก 0.1 วินาที
+                        btnStart.innerHTML = '<i class="fas fa-pause"></i> หยุด';
+                        btnStart.className = 'btn-pause';
                     }
                 };
 
-                controls.resetTimer = function() {
+                btnReset.onclick = function() {
                     clearInterval(intervalId);
                     intervalId = null;
-                    seconds = 0;
-                    display.innerText = "0";
-                    const btn = card.querySelector('.btn-start');
-                    btn.innerText = 'เริ่ม';
-                    btn.className = 'btn-start';
+                    startTime = 0;
+                    elapsedTime = 0;
+                    display.innerText = "00:00.0";
+                    btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
+                    btnStart.className = 'btn-start';
                 };
 
-                controls.deleteCard = function() {
-                    clearInterval(intervalId);
-                    card.remove();
+                card.deleteCard = function() {
+                    if(confirm('ลบตัวจับเวลานี้?')) {
+                        clearInterval(intervalId);
+                        card.remove();
+                    }
                 };
 
                 container.appendChild(card);
