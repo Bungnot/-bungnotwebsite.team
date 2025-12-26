@@ -604,10 +604,3 @@ function openStopwatchWindow() {
     win.document.write(html);
     win.document.close();
 }
-
-function sendMessageToLine() {
-    const name = document.getElementById('lineName').value;
-    const msg = document.getElementById('messageToSend').value;
-    if(!name || !msg) return;
-    window.open(`https://line.me/R/msg/text/?${encodeURIComponent('คุณ '+name+'\n'+msg)}`, '_blank');
-}
