@@ -439,47 +439,47 @@ function openStopwatchWindow() {
     const html = `
     <html>
     <head>
-        <title>ระบบจับเวลา PRO - ADMIN ROCKET</title>
+        <title>วินาทีระบบ - ADMIN ROCKET</title>
         <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
-            body { font-family: 'Sarabun', sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; }
-            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
+            body { font-family: 'Sarabun', sans-serif; background: #020617; color: white; padding: 20px; margin: 0; }
+            .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
             .timer-card { 
-                background: #1e293b; border-radius: 16px; padding: 20px; margin-bottom: 15px; 
-                display: flex; flex-direction: column; border: 1px solid #334155;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                background: #0f172a; border-radius: 20px; padding: 25px; margin-bottom: 20px; 
+                border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                transition: transform 0.2s;
             }
-            .camp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+            .camp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
             .camp-name-input { 
-                background: #0f172a; border: 1px solid #334155; border-radius: 8px;
-                color: #2ecc71; font-size: 1.1rem; font-weight: bold; width: 60%; padding: 8px 12px; outline: none;
+                background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+                color: #4ade80; font-size: 1.2rem; font-weight: bold; width: 70%; padding: 10px 15px; outline: none;
             }
             .timer-display { 
-                font-family: 'Courier New', monospace; font-size: 3.5rem; color: #f8fafc; 
-                text-align: center; margin: 10px 0; font-weight: bold; letter-spacing: 2px;
-                text-shadow: 0 0 20px rgba(255,255,255,0.1);
+                font-family: 'Consolas', monospace; font-size: 5rem; color: #f8fafc; 
+                text-align: center; margin: 15px 0; font-weight: 800;
+                text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
             }
-            .controls { display: flex; gap: 10px; justify-content: center; }
+            .unit-label { font-size: 1.5rem; color: #64748b; margin-left: 10px; }
+            .controls { display: flex; gap: 12px; justify-content: center; }
             button { 
-                border: none; border-radius: 10px; cursor: pointer; font-weight: bold; 
-                transition: all 0.2s; padding: 12px 20px; display: flex; align-items: center; gap: 8px;
+                border: none; border-radius: 12px; cursor: pointer; font-weight: bold; 
+                transition: all 0.2s; padding: 15px 25px; font-size: 1.1rem;
             }
-            .btn-start { background: #2ecc71; color: white; flex: 2; justify-content: center; }
-            .btn-pause { background: #f39c12; color: white; flex: 2; justify-content: center; }
-            .btn-reset { background: #64748b; color: white; flex: 1; justify-content: center; }
-            .btn-delete { background: #e74c3c; color: white; padding: 10px; }
+            .btn-start { background: #22c55e; color: white; flex: 2; }
+            .btn-pause { background: #f59e0b; color: white; flex: 2; }
+            .btn-reset { background: #475569; color: white; flex: 1; }
+            .btn-delete { background: #ef4444; color: white; padding: 10px 15px; }
             .btn-add { 
-                width: 100%; background: transparent; color: #3b82f6; font-size: 1.1rem; padding: 15px;
-                margin-top: 10px; border: 2px dashed #3b82f6; border-radius: 16px;
+                width: 100%; background: #1e293b; color: #3b82f6; font-size: 1.2rem; padding: 18px;
+                margin-top: 10px; border: 2px dashed #3b82f6; border-radius: 20px;
             }
-            button:hover { transform: translateY(-2px); filter: brightness(1.1); }
-            button:active { transform: translateY(0); }
+            button:hover { filter: brightness(1.2); transform: scale(1.02); }
         </style>
     </head>
     <body>
         <div class="header">
-            <h2><i class="fas fa-stopwatch"></i> จับเวลารายค่าย</h2>
+            <h2 style="color: #3b82f6;"><i class="fas fa-stopwatch"></i> จับเวลา (วินาที)</h2>
         </div>
         
         <div id="timers-container"></div>
@@ -491,20 +491,11 @@ function openStopwatchWindow() {
         <script>
             let timerCount = 0;
 
-            function formatTime(ms) {
-                let totalSeconds = Math.floor(ms / 1000);
-                let minutes = Math.floor(totalSeconds / 60);
-                let seconds = totalSeconds % 60;
-                let tenths = Math.floor((ms % 1000) / 100);
-                return \`\${minutes.toString().padStart(2, '0')}:\${seconds.toString().padStart(2, '0')}.\${tenths}\`;
-            }
-
             function createNewTimer() {
                 timerCount++;
                 const container = document.getElementById('timers-container');
                 const card = document.createElement('div');
                 card.className = 'timer-card';
-                card.id = 'timer-card-' + timerCount;
                 
                 let startTime = 0;
                 let elapsedTime = 0;
@@ -513,12 +504,12 @@ function openStopwatchWindow() {
                 card.innerHTML = \`
                     <div class="camp-row">
                         <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
-                        <button class="btn-delete" onclick="this.parentElement.parentElement.deleteCard()"><i class="fas fa-trash-alt"></i></button>
+                        <button class="btn-delete" onclick="this.parentElement.parentElement.deleteCard()"><i class="fas fa-trash"></i></button>
                     </div>
-                    <div class="timer-display">00:00.0</div>
+                    <div class="timer-display">0.00<span class="unit-label">วินาที</span></div>
                     <div class="controls">
-                        <button class="btn-start"><i class="fas fa-play"></i> เริ่ม</button>
-                        <button class="btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
+                        <button class="btn-start">เริ่ม</button>
+                        <button class="btn-reset">รีเซ็ต</button>
                     </div>
                 \`;
 
@@ -526,30 +517,27 @@ function openStopwatchWindow() {
                 const btnStart = card.querySelector('.btn-start');
                 const btnReset = card.querySelector('.btn-reset');
 
-                const updateDisplay = () => {
+                function update() {
                     const now = Date.now();
-                    const currentTotal = elapsedTime + (startTime ? (now - startTime) : 0);
-                    display.innerText = formatTime(currentTotal);
-                };
+                    const diff = elapsedTime + (now - startTime);
+                    // คำนวณเป็นวินาทีพร้อมทศนิยม 2 ตำแหน่ง
+                    const seconds = (diff / 1000).toFixed(2);
+                    display.innerHTML = \`\${seconds}<span class="unit-label">วินาที</span>\`;
+                }
 
                 btnStart.onclick = function() {
-                    const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
-                    clickSound.volume = 0.3;
-                    clickSound.play();
-
                     if (intervalId) {
                         // Pause
                         elapsedTime += Date.now() - startTime;
                         clearInterval(intervalId);
                         intervalId = null;
-                        startTime = 0;
-                        btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่มต่อ';
+                        btnStart.innerText = 'เริ่มต่อ';
                         btnStart.className = 'btn-start';
                     } else {
-                        // Start/Resume
+                        // Start
                         startTime = Date.now();
-                        intervalId = setInterval(updateDisplay, 100); // อัปเดตทุก 0.1 วินาที
-                        btnStart.innerHTML = '<i class="fas fa-pause"></i> หยุด';
+                        intervalId = setInterval(update, 10); // อัปเดตทุก 10ms เพื่อความลื่นไหล
+                        btnStart.innerText = 'หยุด';
                         btnStart.className = 'btn-pause';
                     }
                 };
@@ -557,18 +545,16 @@ function openStopwatchWindow() {
                 btnReset.onclick = function() {
                     clearInterval(intervalId);
                     intervalId = null;
-                    startTime = 0;
                     elapsedTime = 0;
-                    display.innerText = "00:00.0";
-                    btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
+                    startTime = 0;
+                    display.innerHTML = \`0.00<span class="unit-label">วินาที</span>\`;
+                    btnStart.innerText = 'เริ่ม';
                     btnStart.className = 'btn-start';
                 };
 
                 card.deleteCard = function() {
-                    if(confirm('ลบตัวจับเวลานี้?')) {
-                        clearInterval(intervalId);
-                        card.remove();
-                    }
+                    clearInterval(intervalId);
+                    card.remove();
                 };
 
                 container.appendChild(card);
@@ -577,7 +563,7 @@ function openStopwatchWindow() {
             window.onload = createNewTimer;
         </script>
     </body>
-    </html>`;
+    </html>\`;
 
     win.document.write(html);
     win.document.close();
