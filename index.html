@@ -9,16 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <style>
+<style>
     :root {
-        /* Christmas Palette */
-        --primary-bg: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        /* Christmas Color Palette */
+        --primary-bg: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); /* ท้องฟ้าฤดูหนาว */
         --glass-bg: rgba(255, 255, 255, 0.95);
         --shadow-premium: 0 15px 35px rgba(0, 0, 0, 0.3);
         --christmas-red: #c0392b;
         --christmas-green: #1b5e20;
         --gold-accent: #d4af37;
-        --snow-white: #f8fafc;
     }
 
     body {
@@ -32,7 +31,7 @@
         overflow-x: hidden;
     }
 
-    /* --- Snow Animation Effect --- */
+    /* --- เอฟเฟกต์หิมะตก (Snow Animation) --- */
     body::before {
         content: "";
         position: fixed;
@@ -43,7 +42,7 @@
             url('https://www.transparenttextures.com/patterns/snow.png'),
             radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 1%),
             radial-gradient(circle at 70% 50%, rgba(255,255,255,0.1) 0%, transparent 1.2%);
-        animation: snow-fall 20s linear infinite;
+        animation: snow-fall 25s linear infinite;
     }
 
     @keyframes snow-fall {
@@ -51,19 +50,15 @@
         100% { background-position: 500px 1000px; }
     }
 
-    /* --- Welcome Screen (Christmas Edition) --- */
+    /* --- Welcome Screen (ธีมคริสต์มาส) --- */
     #welcome-screen {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 0; left: 0; width: 100%; height: 100%;
         background: radial-gradient(circle, #c0392b 0%, #8e0000 100%);
         z-index: 99999;
         display: flex;
         justify-content: center;
         align-items: center;
-        overflow: hidden;
         transition: opacity 0.8s ease;
     }
 
@@ -80,13 +75,8 @@
         position: relative;
     }
 
-    .welcome-title {
-        color: var(--christmas-red);
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin: 0;
-    }
-
+    .welcome-title { color: var(--christmas-red); font-size: 2.2rem; font-weight: 700; }
+    
     .btn-enter-web {
         background: var(--christmas-green);
         color: white;
@@ -98,76 +88,86 @@
         cursor: pointer;
         transition: all 0.3s ease;
         width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
     }
 
     .btn-enter-web:hover {
         background: #144616;
-        transform: scale(1.05);
         box-shadow: 0 0 20px var(--gold-accent);
+        transform: scale(1.03);
     }
 
-    /* --- Dashboard & Cards --- */
-    .header-container { text-align: center; margin-bottom: 30px; color: white; position: relative; z-index: 2; }
-    .profile-group img { 
-        width: 80px; height: 80px; border-radius: 50%; 
-        border: 3px solid var(--gold-accent); 
-        margin: 0 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
-    }
-
+    /* --- Dashboard & Info Cards --- */
+    .header-container h2 { color: white; text-shadow: 0 3px 10px rgba(0,0,0,0.5); }
+    
     .info-card { 
         background: var(--glass-bg); 
-        border-radius: 20px; padding: 25px; 
-        box-shadow: var(--shadow-premium); 
-        border-left: 5px solid var(--christmas-red);
+        border-radius: 20px; 
+        border-left: 6px solid var(--christmas-red);
+        box-shadow: var(--shadow-premium);
     }
-    .info-card h3 { color: var(--christmas-red); display: flex; align-items: center; gap: 10px; }
 
-    /* --- Action Buttons --- */
+    .info-card h3 { color: var(--christmas-red); }
+
+    /* --- ปุ่มเมนู (Action Bar) --- */
     .btn-main { 
-        background: white; color: var(--christmas-green); border: 2px solid var(--christmas-green);
-        padding: 12px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; 
-        transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        background: white; 
+        color: var(--christmas-green); 
+        border: 2px solid var(--christmas-green);
+        font-weight: 700;
+        border-radius: 50px;
     }
+    
     .btn-main:hover { 
-        background: var(--christmas-green); color: white;
-        transform: translateY(-3px); 
+        background: var(--christmas-green); 
+        color: white; 
+        border-color: var(--gold-accent);
     }
+
     .btn-clear { color: #e74c3c; border-color: #e74c3c; }
 
-    /* --- Table Design --- */
+    /* --- การ์ดตารางยอด (Table Card) --- */
     .table-card { 
-        background: white; border-radius: 24px; padding: 35px; margin-bottom: 40px; 
-        box-shadow: var(--shadow-premium); border-top: 8px solid var(--christmas-red);
+        background: white; 
+        border-radius: 24px; 
+        border-top: 10px solid var(--christmas-red);
+        box-shadow: var(--shadow-premium);
     }
 
     .table-title-input { 
-        font-size: 1.5rem; font-weight: bold; color: var(--christmas-red); 
-        text-align: center; border: 2px solid var(--gold-accent);
-        background: #fffcf0; padding: 12px; border-radius: 16px; width: 60%; 
-        display: block; margin: 0 auto 30px;
+        background: #fffcf0; 
+        border: 2.5px solid var(--gold-accent); 
+        color: var(--christmas-red);
     }
 
-    .th-green { background: linear-gradient(180deg, #2ecc71 0%, #1b5e20 100%); border-radius: 15px 0 0 15px; }
+    /* --- หัวตาราง (Table Headers) --- */
+    .th-green { background: linear-gradient(180deg, #27ae60 0%, #1b5e20 100%); }
     .th-orange { background: linear-gradient(180deg, #f39c12 0%, #d4af37 100%); }
     .th-red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
-    .th-purple { background: linear-gradient(180deg, #9b59b6 0%, #6d213c 100%); border-radius: 0 15px 15px 0; }
+    .th-purple { background: linear-gradient(180deg, #9b59b6 0%, #6d213c 100%); }
 
-    /* --- Custom Modal --- */
-    .modal-box { 
+    /* --- Input ในตาราง --- */
+    .custom-table input {
+        border: 2px solid #e2e8f0;
+        background: #f8fafc;
+    }
+    
+    .custom-table input:focus {
+        border-color: var(--christmas-green);
+        background: white;
+    }
+
+    /* --- ปรับแต่ง Modal --- */
+    .modal-box {
         border-top: 10px solid var(--christmas-red);
         border-radius: 30px;
     }
+    
     .btn-confirm { background: var(--christmas-green); color: white; }
 
-    /* --- Logo Animation --- */
+    /* โลโก้ลอยได้ */
     .floating-logo {
-        width: 140px; height: 140px; border-radius: 50%;
-        border: 6px solid var(--gold-accent);
         animation: float 3s ease-in-out infinite;
+        border: 5px solid var(--gold-accent);
     }
 
     @keyframes float {
@@ -175,10 +175,7 @@
         50% { transform: translateY(-15px) rotate(5deg); }
     }
 
-    #auto-save-alert { 
-        background: var(--christmas-green); 
-        border: 1px solid var(--gold-accent);
-    }
+    #auto-save-alert { background: var(--christmas-green); border: 1px solid var(--gold-accent); }
 </style>
 </head>
 <body>
@@ -251,4 +248,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
