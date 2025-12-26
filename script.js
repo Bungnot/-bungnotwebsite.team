@@ -464,7 +464,7 @@ function clearAllHistory() {
 }
 
 function openStopwatchWindow() {
-    const win = window.open("", "_blank", "width=550,height=800");
+    const win = window.open("", "_blank", "width=550,height=700");
     if (!win) {
         alert("กรุณาอนุญาต Pop-up เพื่อใช้งานตัวจับเวลา");
         return;
@@ -473,49 +473,28 @@ function openStopwatchWindow() {
     const html = `
     <html>
     <head>
-        <title>ระบบจับเวลาวินาที + นาฬิกา - ADMIN ROCKET</title>
+        <title>ระบบจับเวลา PRO - ADMIN ROCKET</title>
         <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             body { font-family: 'Sarabun', sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; }
             .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
-            
             .timer-card { 
                 background: #1e293b; border-radius: 16px; padding: 20px; margin-bottom: 15px; 
                 display: flex; flex-direction: column; border: 1px solid #334155;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                position: relative; overflow: hidden;
             }
-
-            /* ส่วนของนาฬิกาหมุน */
-            .clock-container {
-                display: flex; justify-content: center; align-items: center; margin: 15px 0;
-            }
-            .analog-clock {
-                width: 80px; height: 80px; border: 3px solid #334155; border-radius: 50%;
-                position: relative; background: #0f172a;
-            }
-            .analog-clock::after { /* จุดกึ่งกลาง */
-                content: ''; position: absolute; width: 6px; height: 6px; 
-                background: #2ecc71; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            }
-            .hand {
-                position: absolute; bottom: 50%; left: 50%; transform-origin: bottom;
-                background: #2ecc71; border-radius: 4px; transition: transform 0.1s linear;
-            }
-            .second-hand { width: 2px; height: 35px; } /* เข็มวินาที */
-
             .camp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
             .camp-name-input { 
                 background: #0f172a; border: 1px solid #334155; border-radius: 8px;
                 color: #2ecc71; font-size: 1.1rem; font-weight: bold; width: 60%; padding: 8px 12px; outline: none;
             }
             .timer-display { 
-                font-family: 'Courier New', monospace; font-size: 2.8rem; color: #f8fafc; 
-                text-align: center; font-weight: bold; letter-spacing: 1px;
-                text-shadow: 0 0 15px rgba(46, 204, 113, 0.2);
+                font-family: 'Courier New', monospace; font-size: 3.5rem; color: #f8fafc; 
+                text-align: center; margin: 10px 0; font-weight: bold; letter-spacing: 2px;
+                text-shadow: 0 0 20px rgba(255,255,255,0.1);
             }
-            .controls { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+            .controls { display: flex; gap: 10px; justify-content: center; }
             button { 
                 border: none; border-radius: 10px; cursor: pointer; font-weight: bold; 
                 transition: all 0.2s; padding: 12px 20px; display: flex; align-items: center; gap: 8px;
@@ -528,19 +507,31 @@ function openStopwatchWindow() {
                 width: 100%; background: transparent; color: #3b82f6; font-size: 1.1rem; padding: 15px;
                 margin-top: 10px; border: 2px dashed #3b82f6; border-radius: 16px;
             }
+            button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+            button:active { transform: translateY(0); }
         </style>
     </head>
     <body>
         <div class="header">
-            <h2><i class="fas fa-history"></i> จับเวลาพร้อมนาฬิกา</h2>
+            <h2><i class="fas fa-stopwatch"></i> จับเวลารายค่าย</h2>
         </div>
+        
         <div id="timers-container"></div>
+        
         <button class="btn-add" onclick="createNewTimer()">
             <i class="fas fa-plus-circle"></i> เพิ่มค่ายใหม่
         </button>
 
         <script>
             let timerCount = 0;
+
+            function formatTime(ms) {
+                let totalSeconds = Math.floor(ms / 1000);
+                let minutes = Math.floor(totalSeconds / 60);
+                let seconds = totalSeconds % 60;
+                let tenths = Math.floor((ms % 1000) / 100);
+                return \`\${minutes.toString().padStart(2, '0')}:\${seconds.toString().padStart(2, '0')}.\${tenths}\`;
+            }
 
             function createNewTimer() {
                 timerCount++;
@@ -555,18 +546,10 @@ function openStopwatchWindow() {
 
                 card.innerHTML = \`
                     <div class="camp-row">
-                        <input type="text" class="camp-name-input" placeholder="ชื่อค่าย...">
+                        <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
                         <button class="btn-delete" onclick="this.parentElement.parentElement.deleteCard()"><i class="fas fa-trash-alt"></i></button>
                     </div>
-                    
-                    <div class="clock-container">
-                        <div class="analog-clock">
-                            <div class="hand second-hand"></div>
-                        </div>
-                    </div>
-
-                    <div class="timer-display">0.0 s</div>
-                    
+                    <div class="timer-display">00:00.0</div>
                     <div class="controls">
                         <button class="btn-start"><i class="fas fa-play"></i> เริ่ม</button>
                         <button class="btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
@@ -576,27 +559,20 @@ function openStopwatchWindow() {
                 const display = card.querySelector('.timer-display');
                 const btnStart = card.querySelector('.btn-start');
                 const btnReset = card.querySelector('.btn-reset');
-                const secondHand = card.querySelector('.second-hand');
 
                 const updateDisplay = () => {
                     const now = Date.now();
-                    const currentTotalMs = elapsedTime + (startTime ? (now - startTime) : 0);
-                    const totalSeconds = currentTotalMs / 1000;
-                    
-                    // อัปเดตตัวเลข
-                    display.innerText = totalSeconds.toFixed(1) + " s";
-                    
-                    // อัปเดตเข็มนาฬิกา (1 รอบ = 60 วินาที = 360 องศา)
-                    const degrees = (totalSeconds % 60) * 6; 
-                    secondHand.style.transform = "translateX(-50%) rotate(" + degrees + "deg)";
+                    const currentTotal = elapsedTime + (startTime ? (now - startTime) : 0);
+                    display.innerText = formatTime(currentTotal);
                 };
 
                 btnStart.onclick = function() {
                     const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
-                    clickSound.volume = 0.2;
+                    clickSound.volume = 0.3;
                     clickSound.play();
 
                     if (intervalId) {
+                        // Pause
                         elapsedTime += Date.now() - startTime;
                         clearInterval(intervalId);
                         intervalId = null;
@@ -604,8 +580,9 @@ function openStopwatchWindow() {
                         btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่มต่อ';
                         btnStart.className = 'btn-start';
                     } else {
+                        // Start/Resume
                         startTime = Date.now();
-                        intervalId = setInterval(updateDisplay, 100); 
+                        intervalId = setInterval(updateDisplay, 100); // อัปเดตทุก 0.1 วินาที
                         btnStart.innerHTML = '<i class="fas fa-pause"></i> หยุด';
                         btnStart.className = 'btn-pause';
                     }
@@ -616,8 +593,7 @@ function openStopwatchWindow() {
                     intervalId = null;
                     startTime = 0;
                     elapsedTime = 0;
-                    display.innerText = "0.0 s";
-                    secondHand.style.transform = "translateX(-50%) rotate(0deg)";
+                    display.innerText = "00:00.0";
                     btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
                     btnStart.className = 'btn-start';
                 };
@@ -628,12 +604,14 @@ function openStopwatchWindow() {
                         card.remove();
                     }
                 };
+
                 container.appendChild(card);
             }
+
             window.onload = createNewTimer;
         </script>
     </body>
-    </html>\`;
+    </html>`;
 
     win.document.write(html);
     win.document.close();
