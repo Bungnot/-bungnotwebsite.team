@@ -9,15 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<style>
+    <style>
         :root {
-            /* Christmas Luxury Palette */
-            --primary-bg: linear-gradient(135deg, #0f1b2a 0%, #1a3a32 50%, #4a0e0e 100%);
+            /* Christmas Luxury Pro Palette */
+            --primary-bg: radial-gradient(circle at center, #1a3a32 0%, #0f1b2a 50%, #2d0a0a 100%);
             --glass-bg: rgba(255, 255, 255, 0.95);
-            --christmas-red: #b3000c;
-            --christmas-green: #14452f;
-            --gold-gradient: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            --shadow-premium: 0 15px 35px rgba(0, 0, 0, 0.3);
+            --christmas-red: #d42426;
+            --christmas-green: #0a4d34;
+            --gold-gradient: linear-gradient(135deg, #ffdf91 0%, #b38728 50%, #ffdf91 100%);
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.4);
+            --gold-glow: 0 0 15px rgba(179, 135, 40, 0.5);
         }
 
         body {
@@ -28,6 +29,7 @@
             margin: 0;
             padding: 20px;
             color: #333;
+            overflow-x: hidden;
         }
 
         /* --- Animations (ครบถ้วนตามเดิม) --- */
@@ -50,6 +52,31 @@
             to { background-position: 200% center; }
         }
 
+        /* --- Animation กวางเรนเดียร์ --- */
+        @keyframes run-reindeer {
+            0% { left: -150px; }
+            100% { left: 110vw; }
+        }
+        @keyframes jump {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+
+        /* --- Reindeer Container --- */
+        .reindeer-container {
+            position: fixed;
+            bottom: 15%;
+            left: -150px;
+            z-index: 1;
+            pointer-events: none;
+            animation: run-reindeer 18s linear infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 223, 145, 0.5));
+        }
+        .reindeer-body {
+            animation: jump 0.6s ease-in-out infinite alternate;
+            display: inline-block;
+        }
+
         /* --- Welcome Screen Styles --- */
         #welcome-screen {
             position: fixed;
@@ -68,14 +95,14 @@
 
         .welcome-box {
             background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
             padding: 50px 40px;
             border-radius: 40px;
             text-align: center;
-            box-shadow: 0 0 50px rgba(191, 149, 63, 0.3);
+            box-shadow: var(--shadow-premium);
             max-width: 450px;
             width: 90%;
-            border: 3px solid #bf953f; /* ขอบสีทอง */
+            border: 4px solid #bf953f; /* ขอบสีทอง */
             transform: translateY(0);
             animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
@@ -108,7 +135,7 @@
         .btn-enter-web {
             position: relative;
             background: linear-gradient(to right, #14452f, #1a3a32);
-            color: #fcf6ba; /* ตัวอักษรสีทองสว่าง */
+            color: #fff9e6;
             border: 2px solid #bf953f;
             padding: 20px 45px;
             border-radius: 50px;
@@ -122,11 +149,12 @@
             justify-content: center;
             gap: 12px;
             overflow: hidden;
+            box-shadow: var(--gold-glow);
         }
 
         .btn-enter-web:hover {
             transform: scale(1.03);
-            box-shadow: 0 0 20px rgba(191, 149, 63, 0.5);
+            box-shadow: 0 0 30px rgba(191, 149, 63, 0.8);
         }
 
         .pulse-effect::after {
@@ -142,7 +170,7 @@
         }
 
         /* --- Original Page Styles ปรับแต่งธีมใหม่ --- */
-        .header-container { text-align: center; margin-bottom: 30px; color: white; }
+        .header-container { text-align: center; margin-bottom: 30px; color: white; position: relative; z-index: 5;}
         .profile-group img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #bf953f; margin: 0 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         h2 { 
             font-weight: 700; 
@@ -154,7 +182,7 @@
             filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
         }
 
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1300px; margin: 0 auto 30px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1300px; margin: 0 auto 30px; position: relative; z-index: 5;}
         .info-card { 
             background: var(--glass-bg); 
             border-radius: 20px; 
@@ -164,7 +192,7 @@
         }
         .info-card h3 { margin-top: 0; color: var(--christmas-green); border-bottom: 2px solid #d4af37; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
 
-        .action-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; }
+        .action-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; position: relative; z-index: 5;}
         .btn-main { 
             background: white; 
             color: var(--christmas-red); 
@@ -180,7 +208,7 @@
         .btn-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(191, 149, 63, 0.3); background: var(--christmas-red); color: white; }
         .btn-clear { color: #e74c3c; }
 
-        #tables-container { max-width: 1300px; margin: 0 auto; }
+        #tables-container { max-width: 1300px; margin: 0 auto; position: relative; z-index: 5;}
         .table-card { 
             background: white; 
             border-radius: 24px; 
@@ -188,20 +216,20 @@
             margin-bottom: 40px; 
             box-shadow: var(--shadow-premium); 
             position: relative; 
-            border-top: 8px solid var(--christmas-red);
+            border-top: 10px solid var(--christmas-red);
         }
 
         .table-title-input { 
             font-size: 1.5rem; font-weight: bold; color: var(--christmas-red); 
-            text-align: center; border: 2.5px solid #d4af37;
-            background: #fdf2f2; padding: 12px; border-radius: 16px; width: 60%; 
+            text-align: center; border: 3px solid #d4af37;
+            background: #fffcf5; padding: 12px; border-radius: 16px; width: 60%; 
             display: block; margin: 0 auto 30px; outline: none; transition: 0.3s;
         }
 
         .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
         .custom-table th { padding: 18px 10px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .th-green { background: linear-gradient(180deg, #14452f 0%, #0a2519 100%); border-radius: 15px 0 0 15px; }
-        .th-orange { background: var(--gold-gradient); color: #4a3400 !important; }
+        .th-orange { background: var(--gold-gradient); color: #4a3400 !important; font-weight: bold;}
         .th-red { background: linear-gradient(180deg, #b3000c 0%, #7a0008 100%); }
         .th-purple { background: #2d3436; border-radius: 0 15px 15px 0; }
 
@@ -215,15 +243,16 @@
         .btn-remove-row:hover { background: #e74c3c; color: white; transform: scale(1.1); }
         .btn-close-table { position: absolute; top: 15px; right: 15px; background: #f8fafc; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: 0.3s; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); transform: scale(0.9); transition: 0.3s; border: 2px solid #bf953f; }
+        .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); transform: scale(0.9); transition: 0.3s; border: 4px solid #bf953f; }
         .modal-overlay.active .modal-box { transform: scale(1); }
         .modal-actions { margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
         .btn-modal { padding: 12px 25px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; }
 
         #auto-save-alert { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 30px; border-radius: 50px; opacity: 0; transition: 0.5s; z-index: 10000; font-size: 0.9rem; pointer-events: none; }
 
+        footer div { border: 2px solid #bf953f !important; background: rgba(20, 69, 47, 0.4) !important; position: relative; z-index: 5;}
         footer span {
             background: var(--gold-gradient);
             background-size: 200% auto;
@@ -242,10 +271,17 @@
                 <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Rocket Logo" class="floating-logo">
             </div>
             <h1 class="welcome-title">ยินดีต้อนรับ</h1>
-            <p class="welcome-subtitle">ระบบจัดการ ADMIN ROCKET PREMIUM<br><strong>(Pro Version)</strong></p>
+            <p class="welcome-subtitle">ระบบจัดการ ADMIN ROCKET PREMIUM<br><strong>(Christmas Edition)</strong></p>
             <button class="btn-enter-web pulse-effect" onclick="enterWebsite()">
                 เข้าเว็บตอนนี้ <i class="fas fa-rocket"></i>
             </button>
+        </div>
+    </div>
+
+    <div class="reindeer-container">
+        <div class="reindeer-body">
+            <span style="font-size: 55px;">🦌</span>
+            <span style="font-size: 30px; margin-left: -20px;">🛷</span>
         </div>
     </div>
 
@@ -262,7 +298,7 @@
     <div class="dashboard-grid">
         <div class="info-card">
             <h3><i class="fas fa-wallet"></i> ยอดกำไรรวม</h3>
-            <div id="total-profit-display" style="font-size: 1.8rem; font-weight: bold; color: #1e3c72;">฿0.00</div>
+            <div id="total-profit-display" style="font-size: 1.8rem; font-weight: bold; color: var(--christmas-red);">฿0.00</div>
             <p style="color: #64748b; font-size: 0.9rem;">*กำไร 10% (คิดให้เองเมื่อ X)</p>
         </div>
         
@@ -295,7 +331,7 @@
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="modal-title" style="margin-bottom: 15px; color: #1e293b;"></h2>
+            <h2 id="modal-title" style="margin-bottom: 15px;"></h2>
             <div id="modal-msg" style="color: #475569; margin-bottom: 10px; line-height: 1.6;"></div>
             <div id="modal-actions" class="modal-actions"></div>
         </div>
@@ -303,14 +339,11 @@
 
     <footer style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
         <div style="background: rgba(0,0,0,0.2); display: inline-block; padding: 10px 25px; border-radius: 50px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);">
-            <i class="fas fa-code" style="margin-right: 8px; color: #2ecc71;"></i> 
-            Developed by <span style="font-weight: bold; color: white; letter-spacing: 1px;">Bungnot_DeveloperAI</span>
+            <i class="fas fa-code" style="margin-right: 8px; color: #ffdf91;"></i> 
+            Developed by <span>Bungnot_DeveloperAI</span>
         </div>
     </footer>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
