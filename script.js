@@ -21,29 +21,31 @@ function enterWebsite() {
     }, 800);
 }
 
-// เพิ่มฟังก์ชันสร้างหิมะในหน้า Welcome
-// แก้ไขฟังก์ชันสร้างหิมะใน script.js
+// แก้ไขส่วนสร้างหิมะใน script.js
 document.addEventListener("DOMContentLoaded", () => {
-    // สร้างหิมะไปที่ body เลยเพื่อให้ตกตลอดเวลา
     const container = document.body; 
-    for (let i = 0; i < 50; i++) {
+    const snowflakeSymbols = ["❄", "❅", "❆", "✨"];
+    
+    for (let i = 0; i < 60; i++) {
         let flake = document.createElement('div');
-        flake.innerHTML = "❄";
-        flake.style.position = "fixed"; // เปลี่ยนเป็น fixed เพื่อให้ตกค้างหน้าจอ
+        flake.innerHTML = snowflakeSymbols[Math.floor(Math.random() * snowflakeSymbols.length)];
+        flake.style.position = "fixed";
         flake.style.color = "white";
         flake.style.opacity = Math.random();
         flake.style.left = Math.random() * 100 + "vw";
         flake.style.top = "-5vh";
         flake.style.fontSize = (Math.random() * 20 + 10) + "px";
-        flake.style.zIndex = "1"; // ให้อยู่ด้านหลัง Element อื่นๆ
-        flake.style.pointerEvents = "none"; // ป้องกันหิมะบังปุ่มกด
+        flake.style.zIndex = "1";
+        flake.style.pointerEvents = "none";
+        flake.style.filter = "drop-shadow(0 0 5px rgba(255,255,255,0.8))";
         
-        // ฟังก์ชันทำให้หิมะวนกลับไปตกใหม่
         const fall = () => {
-            const duration = Math.random() * 5000 + 5000;
+            const duration = Math.random() * 8000 + 5000;
+            const drift = (Math.random() * 10) - 5; // ส่ายซ้ายขวาเล็กน้อย
+            
             flake.animate([
-                { top: "-5vh" },
-                { top: "105vh" }
+                { transform: `translateY(0vh) translateX(0vw) rotate(0deg)` },
+                { transform: `translateY(105vh) translateX(${drift}vw) rotate(360deg)` }
             ], {
                 duration: duration,
                 iterations: Infinity
