@@ -1,55 +1,50 @@
 /**
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
+// อัปเดตเสียงคลิกให้ดูเป็นแนวคริสต์มาส (ถ้ามีไฟล์เสียง Bell)
+// หรือใช้เสียงเดิมแต่ปรับ Volume ให้เหมาะสม
 function enterWebsite() {
-    // เล่นเสียงคลิกเพื่อปลดล็อกระบบเสียง
-    playSound('click'); 
+    playSound('success'); // ใช้เสียงสำเร็จตอนเข้าเพื่อความตื่นเต้น
     
     const welcome = document.getElementById('welcome-screen');
     const welcomeBox = welcome.querySelector('.welcome-box');
     
-    // อนิเมชั่นตัวกล่องให้ยุบลงเล็กน้อยก่อนหายไป
-    welcomeBox.style.transform = "scale(0.9)";
-    welcomeBox.style.transition = "transform 0.4s ease";
+    welcomeBox.style.transform = "scale(0.8) rotate(-5deg)"; // เพิ่มการหมุนเล็กน้อย
+    welcomeBox.style.transition = "all 0.5s ease-in-out";
     
-    // ค่อยๆ จางหน้าจอ Welcome ทั้งหมดหายไป
-    welcome.classList.add('fade-out-screen');
-    
-    // ลบ Element ทิ้งหลังจากเล่นอนิเมชั่นเสร็จ (0.8 วินาทีตาม CSS)
+    welcome.style.opacity = "0";
     setTimeout(() => {
         welcome.remove();
     }, 800);
 }
 
-// เพิ่มฟังก์ชันสร้างหิมะในหน้า Welcome
-// แก้ไขฟังก์ชันสร้างหิมะใน script.js
+// แก้ไขจำนวนหิมะให้ดูหนาตาขึ้นแต่ไม่บังจอ
 document.addEventListener("DOMContentLoaded", () => {
-    // สร้างหิมะไปที่ body เลยเพื่อให้ตกตลอดเวลา
     const container = document.body; 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 70; i++) { // เพิ่มเป็น 70 ดวง
         let flake = document.createElement('div');
-        flake.innerHTML = "❄";
-        flake.style.position = "fixed"; // เปลี่ยนเป็น fixed เพื่อให้ตกค้างหน้าจอ
+        // สุ่มทั้งเกล็ดหิมะและวงกลมสีขาว
+        flake.innerHTML = Math.random() > 0.5 ? "❄" : "•";
+        flake.style.position = "fixed";
         flake.style.color = "white";
         flake.style.opacity = Math.random();
         flake.style.left = Math.random() * 100 + "vw";
         flake.style.top = "-5vh";
         flake.style.fontSize = (Math.random() * 20 + 10) + "px";
-        flake.style.zIndex = "1"; // ให้อยู่ด้านหลัง Element อื่นๆ
-        flake.style.pointerEvents = "none"; // ป้องกันหิมะบังปุ่มกด
+        flake.style.zIndex = "0"; 
+        flake.style.pointerEvents = "none";
+        flake.style.filter = "blur(1px)"; // เพิ่มความนวล
         
-        // ฟังก์ชันทำให้หิมะวนกลับไปตกใหม่
         const fall = () => {
-            const duration = Math.random() * 5000 + 5000;
+            const duration = Math.random() * 7000 + 8000; // ตกช้าลงให้ดูละมุน
             flake.animate([
-                { top: "-5vh" },
-                { top: "105vh" }
+                { transform: "translateY(0) rotate(0deg)" },
+                { transform: "translateY(110vh) rotate(360deg)" }
             ], {
                 duration: duration,
                 iterations: Infinity
             });
         };
-        
         container.appendChild(flake);
         fall();
     }
