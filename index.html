@@ -11,7 +11,7 @@
 
     <style>
         :root {
-            /* Christmas Luxury Pro Palette */
+            /* Christmas Luxury Pro Palette (Default) */
             --primary-bg: radial-gradient(circle at center, #1a3a32 0%, #0f1b2a 50%, #2d0a0a 100%);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --christmas-red: #d42426;
@@ -20,6 +20,59 @@
             --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.4);
             --gold-glow: 0 0 15px rgba(179, 135, 40, 0.5);
         }
+
+        /* --- สไตล์สำหรับ Theme Midnight Gold (หรูหรา ดำ-ทอง) --- */
+        body.theme-midnight {
+            --primary-bg: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            --christmas-red: #b38728;
+            --christmas-green: #222;
+            --gold-gradient: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.8);
+        }
+        body.theme-midnight .th-green { background: #2d3436; }
+        body.theme-midnight .th-red { background: #4a3400; }
+
+        /* --- สไตล์สำหรับ Theme Ocean Breeze (สะอาดตา น้ำเงิน-ฟ้า) --- */
+        body.theme-ocean {
+            --primary-bg: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            --christmas-red: #3b82f6;
+            --christmas-green: #0369a1;
+            --gold-gradient: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%);
+        }
+        body.theme-ocean .th-green { background: #075985; }
+        body.theme-ocean .th-red { background: #1e40af; }
+
+        /* สไตล์ปุ่มเลือกธีม */
+        .theme-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0 20px 0;
+            position: relative;
+            z-index: 10;
+        }
+        .theme-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(191, 149, 63, 0.5);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.85rem;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .theme-btn.active {
+            background: var(--gold-gradient);
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(179, 135, 40, 0.6);
+            border-color: #fff;
+        }
+
+        /* ซ่อนกวางและหิมะในธีมอื่นเพื่อให้เข้ากับบรรยากาศ */
+        body:not(.theme-christmas) .reindeer-container { display: none; }
 
         body {
             font-family: 'Sarabun', sans-serif;
@@ -32,35 +85,13 @@
             overflow-x: hidden;
         }
 
-        /* --- Animations (ครบถ้วนตามเดิม) --- */
-        @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(40px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-        }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.25); opacity: 0; }
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        /* --- Animation กวางเรนเดียร์ --- */
-        @keyframes run-reindeer {
-            0% { left: -150px; }
-            100% { left: 110vw; }
-        }
-        @keyframes jump {
-            from { transform: translateY(0); }
-            to { transform: translateY(-20px); }
-        }
+        /* --- Animations คงเดิมทั้งหมด --- */
+        @keyframes fadeInUp { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.25); opacity: 0; } }
+        @keyframes shine { to { background-position: 200% center; } }
+        @keyframes run-reindeer { 0% { left: -150px; } 100% { left: 110vw; } }
+        @keyframes jump { from { transform: translateY(0); } to { transform: translateY(-20px); } }
 
         /* --- Reindeer Container --- */
         .reindeer-container {
@@ -102,7 +133,7 @@
             box-shadow: var(--shadow-premium);
             max-width: 450px;
             width: 90%;
-            border: 4px solid #bf953f; /* ขอบสีทอง */
+            border: 4px solid #bf953f;
             transform: translateY(0);
             animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
@@ -169,7 +200,7 @@
             animation: pulse-ring 2s infinite;
         }
 
-        /* --- Original Page Styles ปรับแต่งธีมใหม่ --- */
+        /* --- Page Header --- */
         .header-container { text-align: center; margin-bottom: 30px; color: white; position: relative; z-index: 5;}
         .profile-group img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #bf953f; margin: 0 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         h2 { 
@@ -182,6 +213,7 @@
             filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
         }
 
+        /* --- Dashboard --- */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1300px; margin: 0 auto 30px; position: relative; z-index: 5;}
         .info-card { 
             background: var(--glass-bg); 
@@ -194,7 +226,6 @@
 
         .action-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; position: relative; z-index: 5;}
 
-        /* --- ส่วนที่แก้ไข: ปุ่มสไตล์ Ornate Luxury Red --- */
         .btn-main { 
             position: relative;
             background-color: #b3000c;
@@ -223,10 +254,10 @@
             box-shadow: 0 0 25px rgba(191, 149, 63, 0.8), 0 0 40px rgba(212, 36, 38, 0.4);
             filter: brightness(1.2);
         }
-        /* ------------------------------------- */
 
         .btn-clear { background: linear-gradient(135deg, #1a1a1a 0%, #4a0e0e 100%); border-color: #d4af37; color: #fcf6ba; }
 
+        /* --- Table Card --- */
         #tables-container { max-width: 1300px; margin: 0 auto; position: relative; z-index: 5;}
         .table-card { 
             background: white; 
@@ -262,6 +293,7 @@
         .btn-remove-row:hover { background: #e74c3c; color: white; transform: scale(1.1); }
         .btn-close-table { position: absolute; top: 15px; right: 15px; background: #f8fafc; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: 0.3s; }
 
+        /* --- Modal --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); transform: scale(0.9); transition: 0.3s; border: 4px solid #bf953f; }
@@ -279,30 +311,11 @@
             -webkit-text-fill-color: transparent;
             animation: shine 3s linear infinite;
             font-weight: bold;
-            }
-        .btn-copy-img {
-            background: linear-gradient(135deg, #d42426 0%, #8b1315 100%);
-            color: #ffdf91;
-            border: 1px solid #bf953f;
-            padding: 8px 15px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: 0.3s;
-        }
-        
-        .btn-copy-img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(212, 36, 38, 0.5);
         }
 
     </style>
 </head>
-<body>
+<body class="theme-christmas">
 
     <div id="welcome-screen">
         <div class="welcome-box">
@@ -332,6 +345,12 @@
             <img src="https://img5.pic.in.th/file/secure-sv1/unnamed-7263f4c44a1f2a1a7.jpg" alt="Admin">
         </div>
         <h2>ADMIN ROCKET PREMIUM</h2>
+
+        <div class="theme-switcher">
+            <button id="btn-theme-christmas" class="theme-btn active" onclick="setTheme('christmas')">🎄 Christmas</button>
+            <button id="btn-theme-midnight" class="theme-btn" onclick="setTheme('midnight')">🌙 Midnight Gold</button>
+            <button id="btn-theme-ocean" class="theme-btn" onclick="setTheme('ocean')">🌊 Ocean Breeze</button>
+        </div>
     </div>
 
     <div class="dashboard-grid">
@@ -382,8 +401,35 @@
             Developed by <span>Bungnot_DeveloperAI</span>
         </div>
     </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
+
+    <script>
+        function setTheme(themeName) {
+            // ลบ class ธีมเก่าทั้งหมด
+            document.body.classList.remove('theme-christmas', 'theme-midnight', 'theme-ocean');
+            // ใส่ class ธีมใหม่
+            document.body.classList.add('theme-' + themeName);
+            // บันทึกค่าไว้ในเครื่อง
+            localStorage.setItem('admin_selected_theme', themeName);
+            
+            // อัปเดตสถานะปุ่ม
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('btn-theme-' + themeName);
+            if(activeBtn) activeBtn.classList.add('active');
+
+            // เล่นเสียงถ้ามีฟังก์ชัน playSound (จากไฟล์ script.js)
+            if (typeof playSound === 'function') {
+                playSound('click');
+            }
+        }
+
+        // โหลดธีมที่บันทึกไว้เมื่อเปิดหน้าเว็บ
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('admin_selected_theme') || 'christmas';
+            setTheme(savedTheme);
+        });
+    </script>
 </body>
 </html>
-
