@@ -382,7 +382,7 @@ function showHistory() {
             
             .btn-copy-item {
                 background: #f0fff4; color: #22c55e; border: 1px solid #bbf7d0;
-                width: 35px; height: 35px; border-radius: 8px; cursor: pointer;
+                width: 35px; height: 35px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
             }
             .btn-copy-item:hover { background: #22c55e; color: white; }
             
@@ -407,7 +407,7 @@ function showHistory() {
                 <td>
                     <div class="status-group">
                         <i class="fas fa-check-circle status-icon"></i>
-                        <button class="btn-copy-item no-print" onclick="copySingleRow('${tIdx}-${rIdx}', '${h.title}', '${h.timestamp}', '${h.profit}')">
+                        <button class="btn-copy-item no-print" onclick="copySingleRow('${tIdx}-${rIdx}', '${h.title}', '${h.timestamp}')" title="ก๊อปรูปแผลนี้">
                             <i class="fas fa-camera"></i>
                         </button>
                     </div>
@@ -438,39 +438,38 @@ function showHistory() {
 
     content += `
         <script>
-            function copySingleRow(id, title, time, profit) {
+            function copySingleRow(id, title, time) {
                 const row = document.getElementById('row-' + id);
                 const tempDiv = document.createElement('div');
                 
-                tempDiv.style.cssText = "position:fixed; top:-9999px; width:700px; padding:25px; background:white; border-radius:20px; font-family:'Sarabun';";
+                tempDiv.style.cssText = "position:fixed; top:-9999px; width:800px; padding:30px; background:white; border-radius:20px; font-family:'Sarabun';";
                 
                 tempDiv.innerHTML = \`
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <div style="color:#64748b; font-size:14px;">🕒 ปิดยอดเมื่อ: \${time}</div>
-                        <div style="background:#2ecc71; color:white; padding:5px 15px; border-radius:50px; font-weight:bold; font-size:14px;">กำไร: ฿\${parseFloat(profit).toLocaleString(undefined,{minimumFractionDigits:2})}</div>
+                    <div style="display:flex; justify-content:flex-start; align-items:center; margin-bottom:15px;">
+                        <div style="color:#64748b; font-size:16px; font-weight:bold;">🕒 ปิดยอดเมื่อ: \${time}</div>
                     </div>
-                    <div style="text-align:center; font-size:22px; font-weight:bold; color:#b3000c; background:#fff5f5; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #ffcccc;">
+                    <div style="text-align:center; font-size:26px; font-weight:bold; color:#b3000c; background:#fff5f5; padding:15px; border-radius:15px; margin-bottom:20px; border:2px solid #ffcccc;">
                         \${title}
                     </div>
-                    <table style="width:100%; border-collapse:separate; border-spacing:0 8px;">
+                    <table style="width:100%; border-collapse:separate; border-spacing:0 10px;">
                         <thead>
-                            <tr style="color:white; text-align:center;">
-                                <th style="background:#14452f; padding:12px; border-radius:10px 0 0 10px;">คนไล่</th>
-                                <th style="background:#bf953f; padding:12px;">ราคา</th>
-                                <th style="background:#b3000c; padding:12px;">คนยั้ง</th>
-                                <th style="background:#2d3436; padding:12px; border-radius:0 10px 10px 0;">สถานะ</th>
+                            <tr style="color:white; text-align:center; font-size:18px;">
+                                <th style="background:#14452f; padding:15px; border-radius:12px 0 0 12px;">คนไล่</th>
+                                <th style="background:#bf953f; padding:15px;">ราคา</th>
+                                <th style="background:#b3000c; padding:15px;">คนยั้ง</th>
+                                <th style="background:#2d3436; padding:15px; border-radius:0 12px 12px 0;">สถานะ</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr style="text-align:center; font-weight:600; font-size:18px;">
-                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; border-radius:8px;">\${row.cells[0].innerText}</td>
-                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; color:#b3000c;">\${row.cells[1].innerText}</td>
-                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7;">\${row.cells[2].innerText}</td>
-                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; color:#22c55e;">✔</td>
+                            <tr style="text-align:center; font-weight:700; font-size:22px;">
+                                <td style="padding:20px; background:#f8fafc; border:1px solid #edf2f7; border-radius:10px;">\${row.cells[0].innerText}</td>
+                                <td style="padding:20px; background:#f8fafc; border:1px solid #edf2f7; color:#b3000c;">\${row.cells[1].innerText}</td>
+                                <td style="padding:20px; background:#f8fafc; border:1px solid #edf2f7;">\${row.cells[2].innerText}</td>
+                                <td style="padding:20px; background:#f8fafc; border:1px solid #edf2f7; color:#22c55e;">✔</td>
                             </tr>
                         </tbody>
                     </table>
-                    <div style="text-align:center; margin-top:15px; color:#cbd5e1; font-size:12px;">ADMIN ROCKET PREMIUM - SYSTEM DATA</div>
+                    <div style="text-align:center; margin-top:20px; color:#cbd5e1; font-size:14px; letter-spacing:1px;">ADMIN ROCKET PREMIUM - SYSTEM DATA</div>
                 \`;
                 
                 document.body.appendChild(tempDiv);
@@ -480,12 +479,12 @@ function showHistory() {
                         try {
                             const item = new ClipboardItem({ "image/png": blob });
                             navigator.clipboard.write([item]).then(() => {
-                                alert("📋 คัดลอกรูปภาพแล้ว! สามารถกด Ctrl + V เพื่อส่งลงไลน์ได้เลย");
+                                alert("📋 คัดลอกรายการแล้ว! สามารถกด Ctrl + V เพื่อส่งลงไลน์ได้เลย");
                                 document.body.removeChild(tempDiv);
                             });
                         } catch (err) {
                             console.error("Clipboard Error:", err);
-                            alert("เบราว์เซอร์ไม่รองรับการก๊อปรูปโดยตรง กรุณาลองใช้ Chrome");
+                            alert("เบราว์เซอร์ไม่รองรับการก๊อปรูปโดยตรง กรุณาใช้ Google Chrome");
                         }
                     }, "image/png");
                 });
