@@ -21,14 +21,16 @@ function enterWebsite() {
     }, 800);
 }
 
-// แก้ไขส่วนสร้างหิมะใน script.js
 document.addEventListener("DOMContentLoaded", () => {
     const container = document.body; 
     const snowflakeSymbols = ["❄", "❅", "❆", "✨"];
     
     for (let i = 0; i < 60; i++) {
         let flake = document.createElement('div');
+        flake.className = "snowflake"; // *** เพิ่มบรรทัดนี้เพื่อให้ CSS ควบคุมได้ ***
         flake.innerHTML = snowflakeSymbols[Math.floor(Math.random() * snowflakeSymbols.length)];
+        
+        // สไตล์พื้นฐานของหิมะ
         flake.style.position = "fixed";
         flake.style.color = "white";
         flake.style.opacity = Math.random();
@@ -41,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const fall = () => {
             const duration = Math.random() * 8000 + 5000;
-            const drift = (Math.random() * 10) - 5; // ส่ายซ้ายขวาเล็กน้อย
+            const drift = (Math.random() * 10) - 5;
             
             flake.animate([
                 { transform: `translateY(0vh) translateX(0vw) rotate(0deg)` },
