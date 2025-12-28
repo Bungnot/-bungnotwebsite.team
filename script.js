@@ -207,9 +207,6 @@ function addTable(title = "", rows = null, isSilent = false) {
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
             <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
             <div style="display:flex; gap:10px;">
-                <button class="btn-copy-img" onclick="copyTableAsImage(this.closest('.table-container'))">
-                    <i class="fas fa-image"></i> ก๊อปเป็นรูป
-                </button>
                 <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
             </div>
         </div>
