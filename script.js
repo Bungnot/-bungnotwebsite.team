@@ -398,22 +398,34 @@ function showHistory() {
         </div>
         <h2 class="history-title">ประวัติการคิดยอดทั้งหมด</h2>`;
 
+    // ค้นหาส่วนนี้ในฟังก์ชัน showHistory เดิมของคุณ
     historyData.slice().reverse().forEach((h, tIdx) => {
-        let rowsHtml = h.rows.map((r, rIdx) => `
-            <tr id="row-${tIdx}-${rIdx}">
-                <td>${r[0] || '-'}</td>
-                <td style="color:#b3000c;">${r[1] || '0'}</td>
-                <td>${r[2] || '-'}</td>
-                <td>
-                    <div class="status-group">
-                        <i class="fas fa-check-circle status-icon"></i>
-                        <button class="btn-copy-item no-print" onclick="copySingleRow('${tIdx}-${rIdx}', '${h.title}', '${h.timestamp}')" title="ก๊อปรูปแผลนี้">
-                            <i class="fas fa-camera"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+        let rowsHtml = h.rows.map((r, rIdx) => {
+            // --- ส่วนที่เพิ่ม/แก้ไขใหม่: ตรวจสอบราคาว่าเป็นตัวเลขล้วนหรือไม่ ---
+            let displayPrice = r[1] || '0';
+            
+            // ตรวจสอบว่าในช่องราคามีเฉพาะตัวเลขเท่านั้น (ไม่ว่าง และ เป็นตัวเลขล้วน)
+            // ใช้ Regex /^\d+$/ เพื่อเช็คว่าตั้งแต่ต้นจนจบมีแค่ตัวเลข 0-9
+            if (displayPrice.trim() !== "" && /^\d+$/.test(displayPrice.trim())) {
+                displayPrice += " ชล"; // ถ้าจริง ให้เติมคำว่า " ชล" ต่อท้าย
+            }
+            // -------------------------------------------------------
+    
+            return `
+                <tr id="row-${tIdx}-${rIdx}">
+                    <td>${r[0] || '-'}</td>
+                    <td style="color:#b3000c;">${displayPrice}</td> <td>${r[2] || '-'}</td>
+                    <td>
+                        <div class="status-group">
+                            <i class="fas fa-check-circle status-icon"></i>
+                            <button class="btn-copy-item no-print" onclick="copySingleRow('${tIdx}-${rIdx}', '${h.title}', '${h.timestamp}')" title="ก๊อปรูปแผลนี้">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
 
         content += `
         <div class="table-card">
