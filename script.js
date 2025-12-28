@@ -204,9 +204,14 @@ function addTable(title = "", rows = null, isSilent = false) {
     let rowsHtml = rows ? rows.map(r => generateRowHtml(r)).join('') : generateRowHtml();
 
     newTable.innerHTML = `
-        <div style="display:flex; justify-content:space-between; padding:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
             <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
-            <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-copy-img" onclick="copyTableAsImage(this.closest('.table-container'))">
+                    <i class="fas fa-image"></i> ก๊อปเป็นรูป
+                </button>
+                <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
+            </div>
         </div>
         <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()">
         <table class="custom-table">
@@ -236,6 +241,38 @@ function removeRow(btn) {
     playSound('delete'); // <--- มั่นใจว่ามีบรรทัดนี้
     btn.closest('tr').remove(); 
     saveData(); 
+}
+
+function copyTableAsImage(tableElement) {
+    playSound('popup'); // เล่นเสียงเปิดการทำงาน
+    
+    // ตั้งค่าชั่วคราวเพื่อให้รูปออกมาสวย (ลบปุ่มต่างๆ ออกจากรูป)
+    const actionButtons = tableElement.querySelectorAll('button, .btn-close-table');
+    actionButtons.forEach(btn => btn.style.visibility = 'hidden');
+
+    html2canvas(tableElement, {
+        backgroundColor: "#ffffff", // พื้นหลังขาวเพื่อให้เห็นชัด
+        scale: 2, // เพิ่มความชัดของรูป
+        logging: false,
+        useCORS: true
+    }).then(canvas => {
+        // คืนค่าปุ่มต่างๆ ให้กลับมามองเห็นเหมือนเดิม
+        actionButtons.forEach(btn => btn.style.visibility = 'visible');
+
+        // แปลงเป็นไฟล์ภาพและดาวน์โหลด (วิธีที่ชัวร์ที่สุดสำหรับส่งใน Line)
+        const link = document.createElement('a');
+        const title = tableElement.querySelector('.table-title-input').value || "Bung-Fai";
+        link.download = `ค่าย-${title}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+        playSound('success'); // เสียงเมื่อสำเร็จ
+        
+        const alertBox = document.getElementById("auto-save-alert");
+        alertBox.innerText = "📸 บันทึกรูปภาพลงเครื่องแล้ว!";
+        alertBox.style.opacity = "1";
+        setTimeout(() => alertBox.style.opacity = "0", 2000);
+    });
 }
 
 // --- 2. แก้ไขการลบตาราง (เพิ่มเสียง Success เมื่อปิดยอด) ---
