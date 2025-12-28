@@ -398,23 +398,24 @@ function showHistory() {
         </div>
         <h2 class="history-title">ประวัติการคิดยอดทั้งหมด</h2>`;
 
-    // ค้นหาส่วนนี้ในฟังก์ชัน showHistory เดิมของคุณ
+    // ค้นหาส่วนนี้ในฟังก์ชัน showHistory ของคุณ
     historyData.slice().reverse().forEach((h, tIdx) => {
         let rowsHtml = h.rows.map((r, rIdx) => {
-            // --- ส่วนที่เพิ่ม/แก้ไขใหม่: ตรวจสอบราคาว่าเป็นตัวเลขล้วนหรือไม่ ---
+            
+            // --- ส่วนที่แก้ไขใหม่: ให้ "ชล" อยู่ข้างหน้าตัวเลขล้วน ---
             let displayPrice = r[1] || '0';
             
-            // ตรวจสอบว่าในช่องราคามีเฉพาะตัวเลขเท่านั้น (ไม่ว่าง และ เป็นตัวเลขล้วน)
-            // ใช้ Regex /^\d+$/ เพื่อเช็คว่าตั้งแต่ต้นจนจบมีแค่ตัวเลข 0-9
+            // ตรวจสอบว่าในช่องราคามีเฉพาะตัวเลขเท่านั้น
             if (displayPrice.trim() !== "" && /^\d+$/.test(displayPrice.trim())) {
-                displayPrice += " ชล"; // ถ้าจริง ให้เติมคำว่า " ชล" ต่อท้าย
+                displayPrice = "ชล " + displayPrice; // เปลี่ยนจากเดิมที่ต่อท้าย มาไว้ข้างหน้าแทน
             }
             // -------------------------------------------------------
     
             return `
                 <tr id="row-${tIdx}-${rIdx}">
                     <td>${r[0] || '-'}</td>
-                    <td style="color:#b3000c;">${displayPrice}</td> <td>${r[2] || '-'}</td>
+                    <td style="color:#b3000c;">${displayPrice}</td>
+                    <td>${r[2] || '-'}</td>
                     <td>
                         <div class="status-group">
                             <i class="fas fa-check-circle status-icon"></i>
