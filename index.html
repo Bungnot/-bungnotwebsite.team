@@ -42,6 +42,22 @@
         body.theme-ocean .th-green { background: #075985; }
         body.theme-ocean .th-red { background: #1e40af; }
 
+        /* === กฎการซ่อนองค์ประกอบคริสต์มาส (ปรับปรุงใหม่) === */
+        body:not(.theme-christmas) .reindeer-container,
+        body:not(.theme-christmas) .snowflake { 
+            display: none !important; 
+        }
+
+        body.theme-midnight .btn-main, 
+        body.theme-ocean .btn-main {
+            background-image: none !important; /* ลบลาย Speckle */
+        }
+
+        body.theme-midnight .btn-main::before, body.theme-midnight .btn-main::after,
+        body.theme-ocean .btn-main::before, body.theme-ocean .btn-main::after {
+            display: none !important; /* ลบไอคอนดอกไม้ข้างปุ่ม */
+        }
+
         /* สไตล์ปุ่มเลือกธีม */
         .theme-switcher {
             display: flex;
@@ -71,9 +87,6 @@
             border-color: #fff;
         }
 
-        /* ซ่อนกวางและหิมะในธีมอื่นเพื่อให้เข้ากับบรรยากาศ */
-        body:not(.theme-christmas) .reindeer-container { display: none; }
-
         body {
             font-family: 'Sarabun', sans-serif;
             background: var(--primary-bg);
@@ -85,7 +98,7 @@
             overflow-x: hidden;
         }
 
-        /* --- Animations คงเดิมทั้งหมด --- */
+        /* --- Animations --- */
         @keyframes fadeInUp { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
         @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.25); opacity: 0; } }
@@ -407,25 +420,19 @@
 
     <script>
         function setTheme(themeName) {
-            // ลบ class ธีมเก่าทั้งหมด
             document.body.classList.remove('theme-christmas', 'theme-midnight', 'theme-ocean');
-            // ใส่ class ธีมใหม่
             document.body.classList.add('theme-' + themeName);
-            // บันทึกค่าไว้ในเครื่อง
             localStorage.setItem('admin_selected_theme', themeName);
             
-            // อัปเดตสถานะปุ่ม
             document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById('btn-theme-' + themeName);
             if(activeBtn) activeBtn.classList.add('active');
 
-            // เล่นเสียงถ้ามีฟังก์ชัน playSound (จากไฟล์ script.js)
             if (typeof playSound === 'function') {
                 playSound('click');
             }
         }
 
-        // โหลดธีมที่บันทึกไว้เมื่อเปิดหน้าเว็บ
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('admin_selected_theme') || 'christmas';
             setTheme(savedTheme);
