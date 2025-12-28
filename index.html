@@ -19,6 +19,8 @@
             --gold-gradient: linear-gradient(135deg, #ffdf91 0%, #b38728 50%, #ffdf91 100%);
             --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.4);
             --gold-glow: 0 0 15px rgba(179, 135, 40, 0.5);
+            --btn-icon-l: '✿';
+            --btn-icon-r: '✿';
         }
 
         /* --- สไตล์สำหรับ Theme Midnight Gold (หรูหรา ดำ-ทอง) --- */
@@ -28,9 +30,16 @@
             --christmas-green: #222;
             --gold-gradient: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
             --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.8);
+            --btn-icon-l: '✦';
+            --btn-icon-r: '✦';
         }
         body.theme-midnight .th-green { background: #2d3436; }
         body.theme-midnight .th-red { background: #4a3400; }
+        body.theme-midnight .btn-main {
+            background-image: linear-gradient(135deg, #1a1a1a 0%, #333 100%) !important;
+            border-color: #bf953f !important;
+            color: #ffdf91 !important;
+        }
 
         /* --- สไตล์สำหรับ Theme Ocean Breeze (สะอาดตา น้ำเงิน-ฟ้า) --- */
         body.theme-ocean {
@@ -38,24 +47,21 @@
             --christmas-red: #3b82f6;
             --christmas-green: #0369a1;
             --gold-gradient: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%);
+            --btn-icon-l: '✧';
+            --btn-icon-r: '✧';
         }
         body.theme-ocean .th-green { background: #075985; }
         body.theme-ocean .th-red { background: #1e40af; }
+        body.theme-ocean .btn-main {
+            background-image: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+            border-color: #7dd3fc !important;
+            color: white !important;
+        }
 
-        /* === กฎการซ่อนองค์ประกอบคริสต์มาส (ปรับปรุงใหม่) === */
+        /* === กฎการซ่อนองค์ประกอบคริสต์มาส === */
         body:not(.theme-christmas) .reindeer-container,
         body:not(.theme-christmas) .snowflake { 
             display: none !important; 
-        }
-
-        body.theme-midnight .btn-main, 
-        body.theme-ocean .btn-main {
-            background-image: none !important; /* ลบลาย Speckle */
-        }
-
-        body.theme-midnight .btn-main::before, body.theme-midnight .btn-main::after,
-        body.theme-ocean .btn-main::before, body.theme-ocean .btn-main::after {
-            display: none !important; /* ลบไอคอนดอกไม้ข้างปุ่ม */
         }
 
         /* สไตล์ปุ่มเลือกธีม */
@@ -105,6 +111,7 @@
         @keyframes shine { to { background-position: 200% center; } }
         @keyframes run-reindeer { 0% { left: -150px; } 100% { left: 110vw; } }
         @keyframes jump { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+        @keyframes flare-sweep { 0% { left: -150%; } 100% { left: 150%; } }
 
         /* --- Reindeer Container --- */
         .reindeer-container {
@@ -239,12 +246,11 @@
 
         .action-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; position: relative; z-index: 5;}
 
+        /* --- ปรับปรุงปุ่มหลัก (btn-main) --- */
         .btn-main { 
             position: relative;
-            background-color: #b3000c;
-            background-image: 
-                url('https://www.transparenttextures.com/patterns/vintage-speckle.png'),
-                radial-gradient(circle at center, #d42426 0%, #8b1315 100%);
+            background-color: var(--christmas-red);
+            background-image: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.2) 100%);
             color: #fff9e6; 
             border: 2px solid #bf953f; 
             padding: 14px 30px; 
@@ -254,18 +260,35 @@
             font-size: 1rem;
             display: flex; align-items: center; gap: 12px;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 10px rgba(191, 149, 63, 0.5), 0 0 20px rgba(191, 149, 63, 0.2), inset 0 0 15px rgba(255, 223, 145, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), var(--gold-glow);
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
             overflow: hidden;
         }
 
-        .btn-main::before { content: '✿'; position: absolute; left: 8px; font-size: 12px; color: rgba(255, 223, 145, 0.6); pointer-events: none; }
-        .btn-main::after { content: '✿'; position: absolute; right: 8px; font-size: 12px; color: rgba(255, 223, 145, 0.6); pointer-events: none; }
+        /* ไอคอนประดับข้างปุ่ม */
+        .btn-main::before { content: var(--btn-icon-l); position: absolute; left: 10px; font-size: 14px; opacity: 0.7; transition: 0.3s; }
+        .btn-main::after { content: var(--btn-icon-r); position: absolute; right: 10px; font-size: 14px; opacity: 0.7; transition: 0.3s; }
+
+        /* แสงสะท้อน Flare */
+        .btn-main .flare {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 45px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-30deg);
+            left: -150%;
+            pointer-events: none;
+        }
 
         .btn-main:hover { 
             transform: translateY(-5px) scale(1.05); 
-            box-shadow: 0 0 25px rgba(191, 149, 63, 0.8), 0 0 40px rgba(212, 36, 38, 0.4);
-            filter: brightness(1.2);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.4), var(--gold-glow);
+            filter: brightness(1.15);
+        }
+
+        .btn-main:hover .flare {
+            animation: flare-sweep 0.7s ease-in-out forwards;
         }
 
         .btn-clear { background: linear-gradient(135deg, #1a1a1a 0%, #4a0e0e 100%); border-color: #d4af37; color: #fcf6ba; }
@@ -391,11 +414,11 @@
     </div>
 
     <div class="action-bar">
-        <button class="btn-main" onclick="addTable()"><i class="fas fa-rocket"></i> เพิ่มบั้งใหม่</button>
-        <button class="btn-main" onclick="restoreLastDeleted()"><i class="fas fa-undo"></i> กู้คืนประวัติ</button>
-        <button class="btn-main" onclick="showHistory()"><i class="fas fa-history"></i> ประวัติการคิดยอด</button>
-        <button class="btn-main" onclick="openStopwatchWindow()"><i class="fas fa-stopwatch"></i> จับเวลาบั้งไฟ</button>
-        <button class="btn-main btn-clear" onclick="clearAllHistory()"><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
+        <button class="btn-main" onclick="addTable()"><span class="flare"></span><i class="fas fa-rocket"></i> เพิ่มบั้งใหม่</button>
+        <button class="btn-main" onclick="restoreLastDeleted()"><span class="flare"></span><i class="fas fa-undo"></i> กู้คืนประวัติ</button>
+        <button class="btn-main" onclick="showHistory()"><span class="flare"></span><i class="fas fa-history"></i> ประวัติการคิดยอด</button>
+        <button class="btn-main" onclick="openStopwatchWindow()"><span class="flare"></span><i class="fas fa-stopwatch"></i> จับเวลาบั้งไฟ</button>
+        <button class="btn-main btn-clear" onclick="clearAllHistory()"><span class="flare"></span><i class="fas fa-trash-alt"></i> ล้างประวัติ</button>
     </div>
 
     <div id="tables-container"></div>
