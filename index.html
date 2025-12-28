@@ -280,6 +280,26 @@
             animation: shine 3s linear infinite;
             font-weight: bold;
             }
+        .btn-copy-img {
+            background: linear-gradient(135deg, #d42426 0%, #8b1315 100%);
+            color: #ffdf91;
+            border: 1px solid #bf953f;
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+        }
+        
+        .btn-copy-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(212, 36, 38, 0.5);
+        }
+
     </style>
 </head>
 <body>
@@ -362,7 +382,8 @@
             Developed by <span>Bungnot_DeveloperAI</span>
         </div>
     </footer>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+
