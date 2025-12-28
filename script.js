@@ -348,8 +348,7 @@ function showHistory() {
     playSound('popup');
     let newWindow = window.open("", "History", "width=1100,height=900");
     
-    // ดึง CSS จากหน้าหลักมาใช้เพื่อให้หน้าตาเหมือนกัน 100%
-let content = `
+    let content = `
     <html>
     <head>
         <title>ประวัติการปิดยอด - ADMIN ROCKET</title>
@@ -360,52 +359,71 @@ let content = `
             body { font-family: 'Sarabun', sans-serif; background: #0f1b2a; padding: 40px; color: #333; margin: 0; }
             .history-title { color: white; text-align: center; margin-bottom: 30px; font-size: 2rem; }
             .table-card { 
-                background: white; border-radius: 24px; padding: 25px; margin-bottom: 50px; 
-                box-shadow: 0 15px 35px rgba(0,0,0,0.5); border-top: 8px solid #d42426; position: relative;
+                background: white; border-radius: 20px; padding: 25px; margin-bottom: 50px; 
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; border-top: 6px solid #d42426;
             }
-            .table-title-display { font-size: 1.4rem; font-weight: bold; color: #b3000c; text-align: center; background: #fff5f5; padding: 10px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ffcccc; }
+            .history-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+            .timestamp-label { color: #64748b; font-size: 0.9rem; }
+            .profit-label { background: #2ecc71; color: white; padding: 4px 15px; border-radius: 50px; font-weight: bold; font-size: 0.9rem; }
+            
+            .table-title-display { 
+                font-size: 1.4rem; font-weight: bold; color: #b3000c; text-align: center; 
+                background: #fff5f5; padding: 10px; border-radius: 12px; margin-bottom: 20px; 
+                border: 1px solid #ffcccc; 
+            }
             .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-            .custom-table th { padding: 12px; color: white; }
-            .th-green { background: #14452f; border-radius: 12px 0 0 12px; }
-            .th-orange { background: #bf953f; color: white !important; }
+            .custom-table th { padding: 12px; color: white; font-weight: 600; }
+            .th-green { background: #14452f; border-radius: 10px 0 0 10px; }
+            .th-orange { background: #bf953f; }
             .th-red { background: #b3000c; }
-            .th-purple { background: #2d3436; border-radius: 0 12px 12px 0; }
-            .custom-table td { padding: 15px; text-align: center; background: #f8fafc; border: 1px solid #edf2f7; border-radius: 10px; font-weight: 600; font-size: 1.1rem; }
+            .th-dark { background: #2d3436; border-radius: 0 10px 10px 0; }
             
-            /* ปุ่มก๊อปรูปรายรายการ */
-            .btn-copy-item {
-                background: #f0fdf4; color: #166534; border: 2px solid #bbf7d0;
-                width: 45px; height: 45px; border-radius: 12px; cursor: pointer; transition: 0.2s;
+            .custom-table td { 
+                padding: 15px; text-align: center; background: #f8fafc; 
+                border: 1px solid #edf2f7; border-radius: 8px; font-weight: 600; 
             }
-            .btn-copy-item:hover { background: #16a34a; color: white; transform: scale(1.1); }
             
-            .status-check { color: #94a3b8; font-size: 1.2rem; margin-right: 8px; }
+            .btn-copy-item {
+                background: #f0fff4; color: #22c55e; border: 1px solid #bbf7d0;
+                width: 35px; height: 35px; border-radius: 8px; cursor: pointer;
+            }
+            .btn-copy-item:hover { background: #22c55e; color: white; }
+            
+            .status-group { display: flex; align-items: center; justify-content: center; gap: 8px; }
+            .status-icon { color: #94a3b8; font-size: 1.1rem; }
+            
             @media print { .no-print { display: none; } }
         </style>
     </head>
     <body>
-        <div class="no-print" style="text-align:right; margin-bottom:20px; display:flex; justify-content:flex-end; gap:10px;">
-            <button onclick="window.print()" style="padding:10px 20px; border-radius:10px; cursor:pointer; background:white; font-weight:bold; border:1px solid #ccc;">พิมพ์ประวัติ</button>
+        <div class="no-print" style="text-align:right; margin-bottom:20px;">
+            <button onclick="window.print()" style="padding:10px 20px; border-radius:10px; cursor:pointer; background:white; font-weight:bold;">พิมพ์ประวัติ</button>
         </div>
         <h2 class="history-title">ประวัติการคิดยอดทั้งหมด</h2>`;
 
-    historyData.slice().reverse().forEach((h, tableIdx) => {
-        let rowsHtml = h.rows.map((r, rowIdx) => `
-            <tr id="row-${tableIdx}-${rowIdx}">
+    historyData.slice().reverse().forEach((h, tIdx) => {
+        let rowsHtml = h.rows.map((r, rIdx) => `
+            <tr id="row-${tIdx}-${rIdx}">
                 <td>${r[0] || '-'}</td>
                 <td style="color:#b3000c;">${r[1] || '0'}</td>
                 <td>${r[2] || '-'}</td>
-                <td style="display:flex; align-items:center; justify-content:center; gap:10px;">
-                    <i class="fas fa-check-circle status-check"></i>
-                    <button class="btn-copy-item no-print" onclick="copySingleRow('${tableIdx}-${rowIdx}', '${h.title}')" title="ก๊อปรูปแผลนี้">
-                        <i class="fas fa-camera"></i>
-                    </button>
+                <td>
+                    <div class="status-group">
+                        <i class="fas fa-check-circle status-icon"></i>
+                        <button class="btn-copy-item no-print" onclick="copySingleRow('${tIdx}-${rIdx}', '${h.title}', '${h.timestamp}', '${h.profit}')">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
 
         content += `
         <div class="table-card">
+            <div class="history-meta-row">
+                <div class="timestamp-label"><i class="far fa-clock"></i> ปิดยอดเมื่อ: ${h.timestamp}</div>
+                <div class="profit-label">กำไร: ฿${h.profit.toLocaleString(undefined,{minimumFractionDigits:2})}</div>
+            </div>
             <div class="table-title-display">${h.title || 'ไม่ระบุชื่อค่าย'}</div>
             <table class="custom-table">
                 <thead>
@@ -413,7 +431,7 @@ let content = `
                         <th class="th-green">คนไล่</th>
                         <th class="th-orange">ราคา</th>
                         <th class="th-red">คนยั้ง</th>
-                        <th class="th-purple">สถานะ</th>
+                        <th class="th-dark">สถานะ</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -421,42 +439,49 @@ let content = `
         </div>`;
     });
 
-    // เพิ่มฟังก์ชัน JavaScript สำหรับการก๊อปรูปในหน้าต่างใหม่
     content += `
         <script>
-            function copySingleRow(id, title) {
+            function copySingleRow(id, title, time, profit) {
                 const row = document.getElementById('row-' + id);
-                // สร้างกล่องจำลองขึ้นมาเพื่อให้ภาพออกมาสวยเหมือนแผลเดียว
                 const tempDiv = document.createElement('div');
-                tempDiv.style.padding = '20px';
-                tempDiv.style.background = 'white';
-                tempDiv.style.width = '600px';
-                tempDiv.style.position = 'fixed';
-                tempDiv.style.top = '-9999px';
+                
+                // สไตล์ของรูปภาพที่ต้องการ (ตามตัวอย่างเป๊ะๆ)
+                tempDiv.style.cssText = "position:fixed; top:-9999px; width:700px; padding:25px; background:white; border-radius:20px; font-family:'Sarabun';";
                 
                 tempDiv.innerHTML = \`
-                    <div style="text-align:center; font-weight:bold; color:#b3000c; margin-bottom:15px; border-bottom:2px solid #b3000c; padding-bottom:5px;">
-                        ค่าย: \${title}
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div style="color:#64748b; font-size:14px;">🕒 ปิดยอดเมื่อ: \${time}</div>
+                        <div style="background:#2ecc71; color:white; padding:5px 15px; border-radius:50px; font-weight:bold; font-size:14px;">กำไร: ฿\${parseFloat(profit).toLocaleString(undefined,{minimumFractionDigits:2})}</div>
                     </div>
-                    <table style="width:100%; border-collapse:collapse; font-family:'Sarabun';">
-                        <tr style="background:#f8fafc;">
-                            <th style="padding:10px; border:1px solid #ddd;">คนไล่</th>
-                            <th style="padding:10px; border:1px solid #ddd; color:#b3000c;">ราคา</th>
-                            <th style="padding:10px; border:1px solid #ddd;">คนยั้ง</th>
-                        </tr>
-                        <tr>
-                            <td style="padding:15px; border:1px solid #ddd; text-align:center; font-weight:bold;">\${row.cells[0].innerText}</td>
-                            <td style="padding:15px; border:1px solid #ddd; text-align:center; font-weight:bold; color:#b3000c;">\${row.cells[1].innerText}</td>
-                            <td style="padding:15px; border:1px solid #ddd; text-align:center; font-weight:bold;">\${row.cells[2].innerText}</td>
-                        </tr>
+                    <div style="text-align:center; font-size:22px; font-weight:bold; color:#b3000c; background:#fff5f5; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #ffcccc;">
+                        \${title}
+                    </div>
+                    <table style="width:100%; border-collapse:separate; border-spacing:0 8px;">
+                        <thead>
+                            <tr style="color:white; text-align:center;">
+                                <th style="background:#14452f; padding:12px; border-radius:10px 0 0 10px;">คนไล่</th>
+                                <th style="background:#bf953f; padding:12px;">ราคา</th>
+                                <th style="background:#b3000c; padding:12px;">คนยั้ง</th>
+                                <th style="background:#2d3436; padding:12px; border-radius:0 10px 10px 0;">สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="text-align:center; font-weight:600; font-size:18px;">
+                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; border-radius:8px;">\${row.cells[0].innerText}</td>
+                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; color:#b3000c;">\${row.cells[1].innerText}</td>
+                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7;">\${row.cells[2].innerText}</td>
+                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; color:#94a3b8;">✔</td>
+                            </tr>
+                        </tbody>
                     </table>
-                    <div style="text-align:right; font-size:10px; color:#ccc; margin-top:5px;">ADMIN ROCKET PREMIUM</div>
+                    <div style="text-align:center; margin-top:15px; color:#cbd5e1; font-size:12px;">ADMIN ROCKET PREMIUM - SYSTEM DATA</div>
                 \`;
+                
                 document.body.appendChild(tempDiv);
 
-                html2canvas(tempDiv, { scale: 2 }).then(canvas => {
+                html2canvas(tempDiv, { scale: 3, backgroundColor: null }).then(canvas => {
                     const link = document.createElement('a');
-                    link.download = 'แผล-' + title + '.png';
+                    link.download = 'แผล_' + title + '_' + id + '.png';
                     link.href = canvas.toDataURL("image/png");
                     link.click();
                     document.body.removeChild(tempDiv);
