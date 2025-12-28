@@ -442,7 +442,6 @@ function showHistory() {
                 const row = document.getElementById('row-' + id);
                 const tempDiv = document.createElement('div');
                 
-                // สไตล์ของรูปภาพที่ต้องการ (ตามตัวอย่างเป๊ะๆ)
                 tempDiv.style.cssText = "position:fixed; top:-9999px; width:700px; padding:25px; background:white; border-radius:20px; font-family:'Sarabun';";
                 
                 tempDiv.innerHTML = \`
@@ -467,7 +466,7 @@ function showHistory() {
                                 <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; border-radius:8px;">\${row.cells[0].innerText}</td>
                                 <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; color:#b3000c;">\${row.cells[1].innerText}</td>
                                 <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7;">\${row.cells[2].innerText}</td>
-                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; color:#94a3b8;">✔</td>
+                                <td style="padding:15px; background:#f8fafc; border:1px solid #edf2f7; color:#22c55e;">✔</td>
                             </tr>
                         </tbody>
                     </table>
@@ -476,12 +475,19 @@ function showHistory() {
                 
                 document.body.appendChild(tempDiv);
 
-                html2canvas(tempDiv, { scale: 3, backgroundColor: null }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'แผล_' + title + '_' + id + '.png';
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                    document.body.removeChild(tempDiv);
+                html2canvas(tempDiv, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+                    canvas.toBlob(blob => {
+                        try {
+                            const item = new ClipboardItem({ "image/png": blob });
+                            navigator.clipboard.write([item]).then(() => {
+                                alert("📋 คัดลอกรูปภาพแล้ว! สามารถกด Ctrl + V เพื่อส่งลงไลน์ได้เลย");
+                                document.body.removeChild(tempDiv);
+                            });
+                        } catch (err) {
+                            console.error("Clipboard Error:", err);
+                            alert("เบราว์เซอร์ไม่รองรับการก๊อปรูปโดยตรง กรุณาลองใช้ Chrome");
+                        }
+                    }, "image/png");
                 });
             }
         </script>
