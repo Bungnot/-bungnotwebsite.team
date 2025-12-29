@@ -4,6 +4,8 @@
 
 
 let isSoundEnabled = true;
+
+// ระบบสลับสถานะเสียง
 function toggleSound() {
     isSoundEnabled = !isSoundEnabled;
     const icon = document.getElementById('sound-icon');
@@ -32,10 +34,17 @@ function showToast(message) {
 // ลองใช้แทน alert:
 // showToast("บันทึกภาพสำเร็จแล้ว!");
 
-// แก้ไขฟังก์ชัน playSound เดิม:
+// ฟังก์ชันเล่นเสียงกลาง (เช็คปุ่มปิดเสียงที่นี่ที่เดียว)
 function playSound(soundName) {
-    if(!isSoundEnabled) return; // ถ้าปิดเสียงอยู่ ไม่ต้องเล่น
-    // ... code เดิม ...
+    if (!isSoundEnabled) return; 
+
+    const sound = sounds[soundName] || extraSounds[soundName];
+    if (sound) {
+        sound.pause(); 
+        sound.currentTime = 0;
+        sound.volume = 0.2;
+        sound.play().catch(e => console.log("Audio play prevented"));
+    }
 }
 
 function launchConfetti() {
@@ -90,8 +99,8 @@ const extraSounds = {
     fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
 };
 
-let isConfettiActive = false; // ตัวแปรควบคุมการทำงาน
-
+// 2. ระบบพลุ (Confetti)
+let isConfettiActive = false;
 function launchConfetti() {
     const canvas = document.getElementById('confetti-canvas');
     if (!canvas) return;
@@ -120,36 +129,26 @@ function launchConfetti() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
-        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles.forEach((p, i) => {
             ctx.beginPath();
-            ctx.lineWidth = p.r;
-            ctx.strokeStyle = p.color;
+            ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
             ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
             ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
             ctx.stroke();
-            
-            p.y -= p.speed;
-            p.x += Math.sin(p.y / 10);
-            
-            if (p.y < -20) p.y = canvas.height + 20; // วนกลับขึ้นไปใหม่จนกว่าจะหมดเวลา
+            p.y -= p.speed; p.x += Math.sin(p.y / 10);
+            if (p.y < -20) p.y = canvas.height + 20;
         });
         requestAnimationFrame(draw);
     }
-
     draw();
-    
-    // สั่งให้หยุดเล่นหลังจาก 3 วินาที
-    setTimeout(() => {
-        isConfettiActive = false;
-    }, 3000);
+    setTimeout(() => { isConfettiActive = false; }, 3000);
 }
 
 // 3. แก้ไขฟังก์ชันเดิมเพื่อใส่ลูกเล่น
 const originalAddTable = addTable;
 addTable = function(title = "", rows = null, isSilent = false) {
-    if(!isSilent) extraSounds.woosh.play(); // เสียง Woosh ตอนตารางโผล่
+    if(!isSilent) playSound('woosh'); // แก้จาก extraSounds.woosh.play()
     originalAddTable(title, rows, isSilent);
     
     // ใส่ Animation จางเข้า
@@ -168,7 +167,7 @@ addTable = function(title = "", rows = null, isSilent = false) {
 
 // เมื่อปิดยอดสำเร็จ
 function handleClosingSuccess() {
-    extraSounds.fanfare.play();
+    playSound('fanfare'); // แก้จาก extraSounds.fanfare.play()
     launchConfetti();
 }
 
@@ -364,54 +363,50 @@ function loadData() {
     data.forEach(t => addTable(t.title, t.rows, true));
 }
 
+// 3. ฟังก์ชันการทำงานของตาราง
 function addTable(title = "", rows = null, isSilent = false) {
-    if(!isSilent) {
-        if(extraSounds && extraSounds.woosh) extraSounds.woosh.play();
-        else playSound('click');
-    }
+    if(!isSilent) playSound('woosh'); // เรียกผ่าน playSound
     
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
     newTable.classList.add("table-container", "table-card");
     
-    // ใส่สไตล์ Animation เริ่มต้น
     newTable.style.opacity = '0';
     newTable.style.transform = 'translateY(20px)';
 
     const generateRowHtml = (r = ["", "", ""]) => `
         <tr>
-            <td><input type="text" value="${r[0]}" oninput="saveData()" placeholder="..."></td>
-            <td><input type="text" value="${r[1]}" oninput="saveData()" placeholder="0" style="color:#2e7d32;"></td>
-            <td><input type="text" value="${r[2]}" oninput="saveData()" placeholder="..."></td>
+            <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
+            <td><input type="text" value="${r[1]}" oninput="saveData()" style="color:#2e7d32;"></td>
+            <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
     let rowsHtml = rows ? rows.map(r => generateRowHtml(r)).join('') : generateRowHtml();
-
     newTable.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
             <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
-            <div style="display:flex; gap:10px;">
-                <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
-            </div>
+            <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
         </div>
         <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()">
         <table class="custom-table">
             <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr></thead>
             <tbody>${rowsHtml}</tbody>
         </table>
-        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผลที่เล่น</button>`;
+        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผล</button>`;
     
     container.appendChild(newTable);
-    
-    // รัน Animation
     setTimeout(() => {
         newTable.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         newTable.style.opacity = '1';
         newTable.style.transform = 'translateY(0)';
     }, 50);
-
     saveData();
+}
+
+function handleClosingSuccess() {
+    playSound('fanfare'); // เรียกผ่าน playSound
+    launchConfetti();
 }
 
 function addRow(table) {
@@ -471,15 +466,11 @@ function removeTable(button) {
     const calculatedProfit = calculateTableProfit(tableContainer);
 
     showConfirmModal(title, calculatedProfit, (finalProfit) => {
-        // --- ส่วนที่ควบคุมพลุ ---
         if (finalProfit > 0) {
-            if (typeof extraSounds !== 'undefined' && extraSounds.fanfare) {
-                extraSounds.fanfare.play();
-            }
-            launchConfetti(); // พลุจะเริ่มเล่นเฉพาะตรงนี้
-            showToast(`ยินดีด้วย! กำไร ฿${finalProfit.toLocaleString()}`);
+            handleClosingSuccess(); // ซึ่งในนี้เราแก้เป็น playSound('fanfare') แล้ว
+            launchConfetti();
         } else {
-            playSound('success');
+            playSound('success'); // อันนี้ปลอดภัยเพราะผ่าน playSound
         }
         // -----------------------
 
@@ -896,9 +887,11 @@ function openStopwatchWindow() {
                 };
 
                 btnStart.onclick = function() {
-                    const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
-                    clickSound.volume = 0.3;
-                    clickSound.play();
+                    if (window.opener && window.opener.isSoundEnabled) {
+                            const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
+                            clickSound.volume = 0.3;
+                            clickSound.play();
+                        }
 
                     if (intervalId) {
                         // Pause
