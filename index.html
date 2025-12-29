@@ -417,6 +417,73 @@
     }
     .toast.show { transform: translateX(0); }
         
+
+        /* --- อัปเกรดเอฟเฟกต์ปุ่มและแสง --- */
+    .btn-main {
+        overflow: hidden;
+        position: relative;
+    }
+
+    .btn-main::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -60%;
+        width: 20%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.4);
+        transform: rotate(30deg);
+        transition: none;
+        animation: shine-sweep 3s infinite;
+    }
+
+    @keyframes shine-sweep {
+        0% { left: -60%; }
+        20% { left: 120%; }
+        100% { left: 120%; }
+    }
+
+    /* --- ตารางแบบ 3D Lift --- */
+    .table-card {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        perspective: 1000px;
+    }
+
+    .table-card:hover {
+        transform: translateY(-10px) rotateX(2deg);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 20px var(--theme-accent);
+    }
+
+    /* --- Input Focus แอนิเมชั่น --- */
+    .custom-table input {
+        transition: all 0.2s ease;
+    }
+
+    .custom-table input:focus {
+        transform: scale(1.05);
+        background: #ffffff !important;
+        border-color: var(--theme-accent) !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        z-index: 10;
+    }
+
+    /* --- บั้งไฟขนาดเล็กวิ่งผ่านหน้าจอเป็นระยะ --- */
+    @keyframes rocket-fly {
+        0% { bottom: -10%; left: -10%; transform: rotate(45deg); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { bottom: 110%; left: 110%; transform: rotate(45deg); opacity: 0; }
+    }
+
+    .rocket-mini {
+        position: fixed;
+        font-size: 2rem;
+        pointer-events: none;
+        z-index: 0;
+        animation: rocket-fly 10s linear infinite;
+        filter: blur(1px);
+    }
+
     </style>
 </head>
 <body class="theme-christmas">
@@ -470,6 +537,9 @@
         <h2>ADMIN ROCKET PREMIUM</h2>
 
         <div class="theme-switcher">
+            <button id="btn-sound-toggle" class="theme-btn" onclick="toggleSound()">
+                <i id="sound-icon" class="fas fa-volume-up"></i> เสียง: เปิด
+            </button>
             <button id="btn-theme-christmas" class="theme-btn active" onclick="setTheme('christmas')">🎄 Christmas</button>
             <button id="btn-theme-midnight" class="theme-btn" onclick="setTheme('midnight')">🌙 Midnight Gold</button>
             <button id="btn-theme-ocean" class="theme-btn" onclick="setTheme('ocean')">🌊 Ocean Breeze</button>
@@ -658,8 +728,6 @@
     </script>
 </body>
 </html>
-
-
 
 
 
