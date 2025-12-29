@@ -110,7 +110,7 @@ function launchConfetti() {
 
     let particles = [];
     // รายการตัวบั้งไฟและเอฟเฟกต์ (จะถูกสุ่มใช้ห้ามซ้ำกันในแต่ละเม็ด)
-    const rocketSymbols = ['🚀', '✨', '🔥', '🎆', '🎇', '🏮', '🚩']; 
+    const rocketSymbols = ['🎆', '🎇', '🧨', '✨', '💥', '🏮', '🌟', '🌠', '🎊', '🎉']; 
     const colors = ['#ffdf91', '#d42426', '#0a4d34', '#38bdf8', '#ffffff'];
     isConfettiActive = true;
 
