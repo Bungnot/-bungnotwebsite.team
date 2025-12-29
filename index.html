@@ -388,6 +388,25 @@
         animation: shake 0.2s infinite;
     }
 
+
+        /* ตารางจะขยายเล็กน้อยและมีแสงเงาที่นุ่มนวลขึ้น */
+    .table-card {
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    }
+    
+    .table-card:hover {
+        transform: translateY(-8px) scale(1.01);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+    }
+    
+    /* เอฟเฟกต์สำหรับ Input เมื่อโฟกัส */
+    .custom-table input:focus {
+        outline: none;
+        border-color: #bf953f;
+        background: #fff;
+        box-shadow: 0 0 10px rgba(191, 149, 63, 0.3);
+        transform: scale(1.02);
+    }
         
     </style>
 </head>
@@ -442,6 +461,9 @@
         <h2>ADMIN ROCKET PREMIUM</h2>
 
         <div class="theme-switcher">
+            <button id="btn-sound-toggle" class="theme-btn" onclick="toggleSound()">
+                <i id="sound-icon" class="fas fa-volume-up"></i> เสียง: เปิด
+            </button>
             <button id="btn-theme-christmas" class="theme-btn active" onclick="setTheme('christmas')">🎄 Christmas</button>
             <button id="btn-theme-midnight" class="theme-btn" onclick="setTheme('midnight')">🌙 Midnight Gold</button>
             <button id="btn-theme-ocean" class="theme-btn" onclick="setTheme('ocean')">🌊 Ocean Breeze</button>
@@ -630,6 +652,7 @@
     </script>
 </body>
 </html>
+
 
 
 
