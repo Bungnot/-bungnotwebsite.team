@@ -284,26 +284,98 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             animation: shine 3s linear infinite; font-weight: bold;
         }
+
+        /* สไตล์การ์ดเลือกธีมแบบใหม่ */
+    .welcome-theme-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 25px 0 35px 0;
+    }
+
+    .theme-card {
+        background: rgba(255, 255, 255, 0.5);
+        border: 2px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 15px 10px;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .theme-card i, .theme-card span.emoji {
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+    }
+
+    .theme-card label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #475569;
+        cursor: pointer;
+    }
+
+    .theme-card:hover {
+        transform: translateY(-5px);
+        background: white;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-color: #bf953f;
+    }
+
+    .theme-card.active {
+        background: var(--gold-gradient);
+        border-color: #fff;
+        box-shadow: 0 0 20px rgba(179, 135, 40, 0.4);
+        transform: scale(1.05);
+    }
+
+    .theme-card.active label {
+        color: #000;
+    }
+
+    /* ปรับแต่งปุ่มเข้าเว็บให้ดูพรีเมียม */
+    .btn-enter-web.ready {
+        background: linear-gradient(135deg, #14452f 0%, #0a4d34 100%) !important;
+        box-shadow: 0 10px 25px rgba(10, 77, 52, 0.4), var(--gold-glow) !important;
+        opacity: 1 !important;
+        cursor: pointer !important;
+    }
+
+        
     </style>
 </head>
 <body class="theme-christmas">
 
     <canvas class="snow-canvas" id="snowCanvas"></canvas>
 <div id="welcome-screen">
-    <div class="welcome-box">
+    <div class="welcome-box" style="padding: 40px 30px; border-radius: 50px; background: rgba(255,255,255,0.95); backdrop-filter: blur(25px);">
         <div class="logo-wrapper">
-            <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Rocket Logo" class="floating-logo">
+            <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" alt="Rocket Logo" class="floating-logo" style="width: 120px; height: 120px;">
         </div>
-        <h1 class="welcome-title">ยินดีต้อนรับ</h1>
-        <p class="welcome-subtitle">ระบบจัดการ ADMIN ROCKET PREMIUM<br><strong>กรุณาเลือกธีมก่อนเข้าใช้งาน</strong></p>
         
-        <div class="theme-switcher" style="margin-bottom: 30px;">
-            <button id="welcome-theme-christmas" class="theme-btn" onclick="selectInitialTheme('christmas')">🎄 Christmas</button>
-            <button id="welcome-theme-midnight" class="theme-btn" onclick="selectInitialTheme('midnight')">🌙 Midnight</button>
-            <button id="welcome-theme-ocean" class="theme-btn" onclick="selectInitialTheme('ocean')">🌊 Ocean</button>
+        <h1 class="welcome-title" style="font-size: 1.8rem; margin-bottom: 5px;">ยินดีต้อนรับ</h1>
+        <p class="welcome-subtitle" style="margin-bottom: 20px;">ระบบจัดการ ADMIN ROCKET PREMIUM<br><span style="color: #bf953f; font-weight: 600;">กรุณาเลือกธีมที่ต้องการใช้งาน</span></p>
+        
+        <div class="welcome-theme-grid">
+            <div id="card-christmas" class="theme-card" onclick="selectInitialTheme('christmas')">
+                <span class="emoji">🎄</span>
+                <label>Christmas</label>
+            </div>
+            <div id="card-midnight" class="theme-card" onclick="selectInitialTheme('midnight')">
+                <span class="emoji">🌙</span>
+                <label>Midnight</label>
+            </div>
+            <div id="card-ocean" class="theme-card" onclick="selectInitialTheme('ocean')">
+                <span class="emoji">🌊</span>
+                <label>Ocean</label>
+            </div>
         </div>
 
-        <button id="btn-enter" class="btn-enter-web" onclick="enterWebsite()" disabled style="opacity: 0.5; cursor: not-allowed; background: #64748b;">
+        <button id="btn-enter" class="btn-enter-web" onclick="enterWebsite()" disabled style="opacity: 0.6; cursor: not-allowed; background: #94a3b8; border: none; font-size: 1.2rem; transition: 0.5s;">
+            <span class="flare"></span>
             เข้าเว็บตอนนี้ <i class="fas fa-rocket"></i>
         </button>
     </div>
@@ -488,28 +560,23 @@
             }, 800);
         }
 
-        // ฟังก์ชันใหม่สำหรับการเลือกธีมครั้งแรกในหน้า Welcome
-    function selectInitialTheme(themeName) {
-        // เรียกใช้ฟังก์ชัน setTheme เดิมเพื่อเปลี่ยนหน้าตาเบื้องหลัง
-        setTheme(themeName);
+function selectInitialTheme(themeName) {
+        // เรียกใช้ฟังก์ชันเดิมเพื่อเปลี่ยนพื้นหลัง
+        setTheme(themeName); 
         
-        // ไฮไลท์ปุ่มที่เลือกในหน้า Welcome
-        document.querySelectorAll('#welcome-screen .theme-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.getElementById('welcome-theme-' + themeName);
-        if(activeBtn) activeBtn.classList.add('active');
+        // อัปเดต UI ของการ์ด
+        document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
+        document.getElementById('card-' + themeName).classList.add('active');
 
-        // เปิดการใช้งานปุ่ม "เข้าเว็บตอนนี้"
-        const enterBtn = document.getElementById('btn-enter');
-        enterBtn.disabled = false;
-        enterBtn.style.opacity = '1';
-        enterBtn.style.cursor = 'pointer';
-        enterBtn.style.background = 'linear-gradient(to right, #14452f, #1a3a32)'; // คืนค่าสีปุ่ม
-        enterBtn.classList.add('pulse-effect');
+        // ปลดล็อกปุ่มเข้าเว็บ
+        const btn = document.getElementById('btn-enter');
+        btn.disabled = false;
+        btn.classList.add('ready', 'pulse-effect');
     }
 
-    // ฟังก์ชัน enterWebsite เดิม (ไม่ต้องแก้ไข)
     function enterWebsite() {
         const screen = document.getElementById('welcome-screen');
+        screen.style.transform = 'scale(1.1)';
         screen.style.opacity = '0';
         setTimeout(() => {
             screen.style.visibility = 'hidden';
@@ -519,4 +586,5 @@
     </script>
 </body>
 </html>
+
 
