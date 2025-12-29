@@ -966,8 +966,7 @@ function openStopwatchWindow() {
 function createRandomRocket() {
     const rocket = document.createElement('div');
     rocket.className = 'rocket-mini';
-    const rocketSymbols = ['🚀', '✨', '🔥', '🎆', '🎇', '🏮', '🚩'];
-    rocket.innerHTML = rocketSymbols[Math.floor(Math.random() * rocketSymbols.length)];
+    rocket.innerHTML = '🚀';
     rocket.style.left = Math.random() * 100 + 'vw';
     rocket.style.animationDuration = (Math.random() * 5 + 5) + 's';
     rocket.style.opacity = '0.2';
