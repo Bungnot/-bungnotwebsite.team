@@ -5,7 +5,19 @@
 
 let isSoundEnabled = true;
 
-
+// ระบบสลับสถานะเสียง
+function toggleSound() {
+    isSoundEnabled = !isSoundEnabled;
+    const icon = document.getElementById('sound-icon');
+    const btn = document.getElementById('btn-sound-toggle');
+    if(isSoundEnabled) {
+        icon.className = "fas fa-volume-up";
+        btn.innerHTML = `<i class="fas fa-volume-up"></i> เสียง: เปิด`;
+    } else {
+        icon.className = "fas fa-volume-mute";
+        btn.innerHTML = `<i class="fas fa-volume-mute"></i> เสียง: ปิด`;
+    }
+}
 
 function showToast(message) {
     let toast = document.createElement('div');
@@ -455,16 +467,12 @@ function removeTable(button) {
 
     showConfirmModal(title, calculatedProfit, (finalProfit) => {
         if (finalProfit > 0) {
-            handleClosingSuccess(); 
+            handleClosingSuccess(); // ซึ่งในนี้เราแก้เป็น playSound('fanfare') แล้ว
             launchConfetti();
-            
-            // --- เพิ่มบรรทัดนี้เพื่อแสดงแจ้งเตือนบนขวา ---
-            showToast(`ปิดยอดค่าย: ${title} เรียบร้อย! กำไร ฿${finalProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`);
         } else {
-            playSound('success');
-            // กรณีปิดจาว (ไม่มีกำไร)
-            showToast(`ปิดยอดค่าย: ${title} (ไม่มีกำไร)`);
+            playSound('success'); // อันนี้ปลอดภัยเพราะผ่าน playSound
         }
+        // -----------------------
 
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
@@ -930,6 +938,42 @@ function openStopwatchWindow() {
     win.document.write(html);
     win.document.close();
 }
+
+// ฟังก์ชันสร้างบั้งไฟจิ๋ววิ่งผ่านหลังจอ (เพิ่มใน DOMContentLoaded)
+function createRandomRocket() {
+    const rocket = document.createElement('div');
+    rocket.className = 'rocket-mini';
+    rocket.innerHTML = '🚀';
+    rocket.style.left = Math.random() * 100 + 'vw';
+    rocket.style.animationDuration = (Math.random() * 5 + 5) + 's';
+    rocket.style.opacity = '0.2';
+    document.body.appendChild(rocket);
+    
+    setTimeout(() => {
+        rocket.remove();
+    }, 10000);
+}
+
+// สั่งให้ทำงานทุกๆ 15 วินาที
+setInterval(createRandomRocket, 15000);
+
+// อัปเกรดฟังก์ชัน addTable ให้มีการสั่นตอนเด้งเข้า
+const upgradeAddTable = addTable;
+addTable = function(title = "", rows = null, isSilent = false) {
+    upgradeAddTable(title, rows, isSilent);
+    const allTables = document.querySelectorAll('.table-card');
+    const target = allTables[allTables.length - 1];
+    if(target) {
+        target.animate([
+            { transform: 'scale(0.5) translateY(100px)', opacity: 0 },
+            { transform: 'scale(1.05) translateY(-10px)', opacity: 1 },
+            { transform: 'scale(1) translateY(0)', opacity: 1 }
+        ], {
+            duration: 600,
+            easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+        });
+    }
+};
 
 function sendMessageToLine() {
     const name = document.getElementById('lineName').value;
