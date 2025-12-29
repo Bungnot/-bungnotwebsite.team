@@ -36,14 +36,18 @@ function showToast(message) {
 
 // ฟังก์ชันเล่นเสียงกลาง (เช็คปุ่มปิดเสียงที่นี่ที่เดียว)
 function playSound(soundName) {
-    if (!isSoundEnabled) return; 
+    if (!isSoundEnabled) return;
 
+    // ตรวจสอบทั้งชุดเสียงหลักและชุดเสียงพิเศษที่คุณเพิ่ม
     const sound = sounds[soundName] || extraSounds[soundName];
+    
     if (sound) {
         sound.pause(); 
         sound.currentTime = 0;
-        sound.volume = 0.2;
-        sound.play().catch(e => console.log("Audio play prevented"));
+        const playPromise = sound.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => console.log("Browser Blocked Audio:", e));
+        }
     }
 }
 
