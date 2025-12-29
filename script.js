@@ -5,6 +5,21 @@
 
 let isSoundEnabled = true;
 
+const sounds = {
+    click: new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3'),
+    success: new Audio('https://actions.google.com/sounds/v1/communication/notification_high_intensity.ogg'),
+    delete: new Audio('https://actions.google.com/sounds/v1/actions/remove_item.ogg'),
+    popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2039/2039-preview.mp3'),
+    clear: new Audio('https://assets.mixkit.co/active_storage/sfx/3118/3118-preview.mp3'),
+    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2047/2047-preview.mp3')
+};
+
+const extraSounds = {
+    woosh: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
+    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
+    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
+};
+
 // ระบบสลับสถานะเสียง
 function toggleSound() {
     isSoundEnabled = !isSoundEnabled;
@@ -19,6 +34,7 @@ function toggleSound() {
     }
 }
 
+// --- [PART 2: ระบบ Visual Effects และ UI] ---
 function showToast(message) {
     let toast = document.createElement('div');
     toast.className = 'toast';
@@ -34,9 +50,9 @@ function showToast(message) {
 // ลองใช้แทน alert:
 // showToast("บันทึกภาพสำเร็จแล้ว!");
 
-// ฟังก์ชันเล่นเสียงกลาง (เช็คปุ่มปิดเสียงที่นี่ที่เดียว)
+// ฟังก์ชันเล่นเสียงกลาง (หัวใจหลักของการปิดเสียง)
 function playSound(soundName) {
-    if (!isSoundEnabled) return; 
+    if (!isSoundEnabled) return; // ถ้าปิดเสียงอยู่ ให้หยุดทำงานทันที
 
     const sound = sounds[soundName] || extraSounds[soundName];
     if (sound) {
@@ -92,12 +108,7 @@ function updateDashboardStats() {
     }
 }
 
-// 1. เพิ่มเสียงใหม่ๆ
-const extraSounds = {
-    woosh: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
-    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
-    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
-};
+
 
 // 2. ระบบพลุ (Confetti)
 let isConfettiActive = false;
@@ -233,17 +244,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-const sounds = {
-    click: new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3'),
-    // แก้ไข 2 ลิงก์ที่เสียเป็น Mixkit ตัวใหม่
-    success: new Audio('https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3'),
-    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/1489/1489-preview.mp3'),
-
-    popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2039/2039-preview.mp3'),
-    
-    clear: new Audio('https://assets.mixkit.co/active_storage/sfx/3118/3118-preview.mp3'),
-    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2047/2047-preview.mp3')
-};
 
 // บังคับเปลี่ยน Source เป็นไฟล์เสียง MP3 ที่ใช้ได้จริงแน่นอน
 sounds.success.src = 'https://actions.google.com/sounds/v1/communication/notification_high_intensity.ogg';
@@ -363,9 +363,9 @@ function loadData() {
     data.forEach(t => addTable(t.title, t.rows, true));
 }
 
-// 3. ฟังก์ชันการทำงานของตาราง
+// --- [PART 3: การจัดการตารางและการปิดยอด] ---
 function addTable(title = "", rows = null, isSilent = false) {
-    if(!isSilent) playSound('woosh'); // เรียกผ่าน playSound
+    if(!isSilent) playSound('woosh'); // เรียกผ่าน playSound Filter
     
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
@@ -405,7 +405,7 @@ function addTable(title = "", rows = null, isSilent = false) {
 }
 
 function handleClosingSuccess() {
-    playSound('fanfare'); // เรียกผ่าน playSound
+    playSound('fanfare'); // เรียกผ่าน playSound Filter
     launchConfetti();
 }
 
