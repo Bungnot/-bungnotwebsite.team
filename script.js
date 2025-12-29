@@ -96,18 +96,25 @@ function updateDashboardStats() {
     }
 }
 
-// ประกาศเสียงที่คุณต้องการใช้
+// ประกาศและบังคับโหลดเสียงใหม่
 const extraSounds = {
     woosh: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
-    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'), // เสียงปิดยอดเสร็จ
-    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3') // เสียงตอนเห็นกำไร
+    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
+    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
 };
 
-// สั่งให้เบราว์เซอร์โหลดไฟล์เสียงรอล่วงหน้า
-Object.values(extraSounds).forEach(audio => {
-    audio.load();
-    audio.volume = 0.3; // ปรับความดังไว้ที่ 50%
-});
+// ฟังก์ชันบังคับปลดล็อกเสียง (เรียกใช้เมื่อมีการคลิกครั้งแรก)
+function unlockAudio() {
+    Object.values(extraSounds).forEach(audio => {
+        audio.play().then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+        }).catch(e => console.log("Audio waiting for user click..."));
+    });
+    // เมื่อปลดล็อกแล้ว ให้ลบ Event ทิ้งเพื่อไม่ให้ทำงานซ้ำ
+    document.removeEventListener('click', unlockAudio);
+}
+document.addEventListener('click', unlockAudio);
 
 // 2. ระบบพลุ (Confetti)
 let isConfettiActive = false;
@@ -283,17 +290,20 @@ Object.values(sounds).forEach(audio => {
 });
 
 function playSound(soundName) {
-    const sound = sounds[soundName];
+    if (!isSoundEnabled) return; 
+
+    // เน้นหาจาก extraSounds ก่อน
+    const sound = extraSounds[soundName] || (typeof sounds !== 'undefined' ? sounds[soundName] : null);
+    
     if (sound) {
         sound.pause(); 
-        sound.currentTime = 0;
-        sound.volume = 0.2;
+        sound.currentTime = 0; 
+        sound.volume = 0.3; // ปรับระดับเสียง 50%
         
-        // บังคับให้โหลดใหม่เพื่อให้เล่นได้ทันที
         const playPromise = sound.play();
         if (playPromise !== undefined) {
             playPromise.catch(error => {
-                console.warn("กรุณาคลิกหน้าจอ 1 ครั้งก่อนเพื่อเปิดระบบเสียง:", error);
+                console.warn("เสียงถูกบล็อก: ต้องคลิกหน้าจอเพื่อเปิดระบบเสียงครั้งแรก");
             });
         }
     }
