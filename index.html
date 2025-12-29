@@ -48,60 +48,64 @@
             color: #ffdf91 !important;
         }
 
-        /* --- สไตล์สำหรับ Theme Ocean Breeze (UPGRADED VERSION) --- */
+        /* --- สไตล์สำหรับ Theme Ocean Breeze (UPGRADED - ถนอมสายตา) --- */
         body.theme-ocean {
-            --primary-bg: linear-gradient(180deg, #0f172a 0%, #1e3a8a 50%, #0ea5e9 100%);
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --christmas-red: #3b82f6;
-            --christmas-green: #0ea5e9;
-            --gold-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.5);
+            /* เปลี่ยนจากฟ้าจ้าเป็นน้ำเงินเข้มลึก (Midnight Navy) */
+            --primary-bg: linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e293b 100%);
+            /* เปลี่ยน Card เป็นสีเข้มใส (Dark Glass) ลดการสะท้อนแสงขาว */
+            --glass-bg: rgba(15, 23, 42, 0.85);
+            --christmas-red: #1d4ed8;
+            --christmas-green: #075985;
+            --gold-gradient: linear-gradient(135deg, #38bdf8 0%, #1d4ed8 100%);
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.6);
             --btn-icon-l: '💧';
             --btn-icon-r: '💧';
-            --theme-accent: #00f2fe;
+            --theme-accent: #38bdf8;
+            color: #e2e8f0;
         }
         body.theme-ocean::after {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: url('https://www.transparenttextures.com/patterns/cubes.png');
-            opacity: 0.05; pointer-events: none; z-index: 1;
+            opacity: 0.03; pointer-events: none; z-index: 1;
         }
-        /* Glassmorphism Effect for Ocean */
+        /* Glassmorphism Effect for Ocean (Dark Version) */
         body.theme-ocean .info-card, 
         body.theme-ocean .table-card {
-            background: rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(15px) saturate(180%);
-            -webkit-backdrop-filter: blur(15px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
+            background: rgba(30, 41, 59, 0.7) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.15) !important;
+            color: #f1f5f9 !important;
         }
-        body.theme-ocean .info-card h3 { color: #7dd3fc !important; border-bottom-color: #0ea5e9; }
+        body.theme-ocean .info-card h3 { color: #38bdf8 !important; border-bottom-color: #0c4a6e; }
         body.theme-ocean .table-title-input { 
-            background: rgba(15, 23, 42, 0.6) !important; 
-            border: 2px solid #3b82f6 !important; 
-            color: #fff !important; 
+            background: rgba(15, 23, 42, 0.8) !important; 
+            border: 2px solid #1e40af !important; 
+            color: #38bdf8 !important; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
         }
         body.theme-ocean .custom-table input { 
-            background: rgba(255, 255, 255, 0.9) !important; 
-            border: 2px solid #7dd3fc !important; 
-            color: #0f172a !important; 
+            background: rgba(15, 23, 42, 0.9) !important; 
+            border: 1.5px solid #334155 !important; 
+            color: #f8fafc !important; 
         }
         body.theme-ocean .btn-main {
-            background-image: linear-gradient(135deg, #1e40af 0%, #0369a1 100%) !important;
-            border-color: #7dd3fc !important;
+            background-image: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+            border-color: #3b82f6 !important;
             color: white !important;
-            box-shadow: 0 0 20px rgba(14, 165, 233, 0.4) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
         }
-        body.theme-ocean .th-green { background: #075985; }
-        body.theme-ocean .th-red { background: #1e40af; }
+        body.theme-ocean .th-green { background: #0c4a6e; }
+        body.theme-ocean .th-red { background: #1e3a8a; }
         
-        /* Bubble Animation for Ocean Theme */
+        /* Bubble Animation (ปรับให้จางลงไม่กวนสายตา) */
         @keyframes bubble-up {
             0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.2; }
             100% { transform: translateY(-10vh) scale(1); opacity: 0; }
         }
         .ocean-bubble {
-            position: fixed; bottom: -20px; background: rgba(255, 255, 255, 0.2);
+            position: fixed; bottom: -20px; background: rgba(56, 189, 248, 0.15);
             border-radius: 50%; pointer-events: none; z-index: 2; animation: bubble-up linear infinite;
         }
 
@@ -384,7 +388,6 @@
             const activeBtn = document.getElementById('btn-theme-' + themeName);
             if(activeBtn) activeBtn.classList.add('active');
 
-            // Handle Theme Specific Elements
             if(themeName === 'ocean') {
                 createBubbles();
             } else {
