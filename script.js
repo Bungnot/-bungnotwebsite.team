@@ -5,19 +5,7 @@
 
 let isSoundEnabled = true;
 
-// ระบบสลับสถานะเสียง
-function toggleSound() {
-    isSoundEnabled = !isSoundEnabled;
-    const icon = document.getElementById('sound-icon');
-    const btn = document.getElementById('btn-sound-toggle');
-    if(isSoundEnabled) {
-        icon.className = "fas fa-volume-up";
-        btn.innerHTML = `<i class="fas fa-volume-up"></i> เสียง: เปิด`;
-    } else {
-        icon.className = "fas fa-volume-mute";
-        btn.innerHTML = `<i class="fas fa-volume-mute"></i> เสียง: ปิด`;
-    }
-}
+
 
 function showToast(message) {
     let toast = document.createElement('div');
