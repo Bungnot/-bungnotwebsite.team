@@ -92,15 +92,18 @@ function updateDashboardStats() {
     }
 }
 
-// 1. เพิ่มเสียงใหม่ๆ
+// ประกาศเสียงที่คุณต้องการใช้
 const extraSounds = {
     woosh: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
     chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'), // เสียงปิดยอดเสร็จ
-    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3') // เสียงแจ้งเตือนกำไร
+    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3') // เสียงตอนเห็นกำไร
 };
 
-// โหลดเสียงรอไว้เพื่อให้เล่นได้ทันทีไม่มีดีเลย์
-Object.values(extraSounds).forEach(audio => audio.load());
+// สั่งให้เบราว์เซอร์โหลดไฟล์เสียงรอล่วงหน้า
+Object.values(extraSounds).forEach(audio => {
+    audio.load();
+    audio.volume = 0.3; // ปรับความดังไว้ที่ 50%
+});
 
 // 2. ระบบพลุ (Confetti)
 let isConfettiActive = false;
