@@ -344,11 +344,55 @@
         cursor: pointer !important;
     }
 
+    /* --- เพิ่มลูกเล่นปุ่มกดแล้วยุบ (Active State) --- */
+    .btn-main:active, .btn-enter-web:active {
+        transform: scale(0.95) !important;
+    }
+    
+    /* --- แสงเรืองรองรอบการ์ด (Glassmorphism Hover) --- */
+    .table-card {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .table-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 20px var(--theme-accent);
+    }
+    
+    /* --- อนิเมชั่นช่อง Input เมื่อ Focus --- */
+    input[type="text"]:focus {
+        outline: none;
+        border-color: var(--theme-accent) !important;
+        box-shadow: 0 0 15px var(--theme-accent);
+        transform: scale(1.02);
+        z-index: 10;
+    }
+    
+    /* --- Particle Canvas สำหรับพลุเฉลิมฉลอง --- */
+    #confetti-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10000;
+    }
+    
+    /* --- เอฟเฟกต์สั่น (Shake) สำหรับปุ่มลบ --- */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-2px) rotate(-5deg); }
+        75% { transform: translateX(2px) rotate(5deg); }
+    }
+    .btn-remove-row:hover {
+        animation: shake 0.2s infinite;
+    }
+
         
     </style>
 </head>
 <body class="theme-christmas">
-
+    <canvas id="confetti-canvas"></canvas>
     <canvas class="snow-canvas" id="snowCanvas"></canvas>
 <div id="welcome-screen">
     <div class="welcome-box" style="padding: 40px 30px; border-radius: 50px; background: rgba(255,255,255,0.95); backdrop-filter: blur(25px);">
@@ -586,6 +630,7 @@
     </script>
 </body>
 </html>
+
 
 
 
