@@ -2,6 +2,50 @@
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
 
+function launchConfetti() {
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.innerHTML = "✨"; // หรือใช้สีสลับกัน
+        confetti.style.position = 'fixed';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-10px';
+        confetti.style.fontSize = Math.random() * 20 + 10 + 'px';
+        confetti.style.zIndex = '10001';
+        confetti.style.pointerEvents = 'none';
+        document.body.appendChild(confetti);
+
+        const fallDuration = Math.random() * 3 + 2;
+        confetti.animate([
+            { transform: 'translateY(0) rotate(0)', opacity: 1 },
+            { transform: `translateY(100vh) translateX(${Math.random() * 200 - 100}px) rotate(720deg)`, opacity: 0 }
+        ], { duration: fallDuration * 1000, easing: 'linear' });
+
+        setTimeout(() => confetti.remove(), fallDuration * 1000);
+    }
+}
+
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const current = Math.floor(progress * (end - start) + start);
+        obj.innerText = `฿${current.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+// เรียกใช้ใน updateDashboardStats():
+function updateDashboardStats() {
+    const pEl = document.getElementById("total-profit-display");
+    if(pEl) {
+        const currentVal = parseFloat(pEl.innerText.replace(/[฿,]/g, '')) || 0;
+        animateValue(pEl, currentVal, totalDeletedProfit, 500);
+    }
+}
 
 // 1. เพิ่มเสียงใหม่ๆ
 const extraSounds = {
