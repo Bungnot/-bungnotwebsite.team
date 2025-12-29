@@ -960,8 +960,6 @@ function openStopwatchWindow() {
 // ฟังก์ชันสร้างบั้งไฟจิ๋ววิ่งผ่านหลังจอ (เพิ่มใน DOMContentLoaded)
 function createRandomRocket() {
     const rocket = document.createElement('div');
-    rocket.className = 'rocket-mini';
-    rocket.innerHTML = '🚀';
     rocket.style.left = Math.random() * 100 + 'vw';
     rocket.style.animationDuration = (Math.random() * 5 + 5) + 's';
     rocket.style.opacity = '0.2';
