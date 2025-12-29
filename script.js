@@ -90,15 +90,18 @@ const extraSounds = {
     fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
 };
 
-// 2. ฟังก์ชันสร้างพลุกระดาษ (Confetti) แบบง่าย
+let isConfettiActive = false; // ตัวแปรควบคุมการทำงาน
+
 function launchConfetti() {
     const canvas = document.getElementById('confetti-canvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     let particles = [];
     const colors = ['#ffdf91', '#d42426', '#0a4d34', '#38bdf8', '#ffffff'];
+    isConfettiActive = true;
 
     for (let i = 0; i < 100; i++) {
         particles.push({
@@ -113,6 +116,11 @@ function launchConfetti() {
     }
 
     function draw() {
+        if (!isConfettiActive) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles.forEach((p, i) => {
             ctx.beginPath();
@@ -125,13 +133,17 @@ function launchConfetti() {
             p.y -= p.speed;
             p.x += Math.sin(p.y / 10);
             
-            if (p.y < -10) particles[i] = { ...p, y: canvas.height + 20 };
+            if (p.y < -20) p.y = canvas.height + 20; // วนกลับขึ้นไปใหม่จนกว่าจะหมดเวลา
         });
-        
-        let animationReq = requestAnimationFrame(draw);
-        setTimeout(() => cancelAnimationFrame(animationReq), 3000); // เล่น 3 วินาที
+        requestAnimationFrame(draw);
     }
+
     draw();
+    
+    // สั่งให้หยุดเล่นหลังจาก 3 วินาที
+    setTimeout(() => {
+        isConfettiActive = false;
+    }, 3000);
 }
 
 // 3. แก้ไขฟังก์ชันเดิมเพื่อใส่ลูกเล่น
@@ -459,10 +471,13 @@ function removeTable(button) {
     const calculatedProfit = calculateTableProfit(tableContainer);
 
     showConfirmModal(title, calculatedProfit, (finalProfit) => {
-        // --- ส่วนที่เพิ่มลูกเล่น ---
+        // --- ส่วนที่ควบคุมพลุ ---
         if (finalProfit > 0) {
-            handleClosingSuccess(); // เรียกพลุและเสียงฉลอง
-            showToast(`ปิดยอดสำเร็จ! กำไร ฿${finalProfit.toLocaleString()}`);
+            if (typeof extraSounds !== 'undefined' && extraSounds.fanfare) {
+                extraSounds.fanfare.play();
+            }
+            launchConfetti(); // พลุจะเริ่มเล่นเฉพาะตรงนี้
+            showToast(`ยินดีด้วย! กำไร ฿${finalProfit.toLocaleString()}`);
         } else {
             playSound('success');
         }
