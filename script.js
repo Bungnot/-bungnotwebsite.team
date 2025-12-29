@@ -2,6 +2,42 @@
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
 
+
+let isSoundEnabled = true;
+function toggleSound() {
+    isSoundEnabled = !isSoundEnabled;
+    const icon = document.getElementById('sound-icon');
+    const btn = document.getElementById('btn-sound-toggle');
+    if(isSoundEnabled) {
+        icon.className = "fas fa-volume-up";
+        btn.innerHTML = `<i class="fas fa-volume-up"></i> เสียง: เปิด`;
+    } else {
+        icon.className = "fas fa-volume-mute";
+        btn.innerHTML = `<i class="fas fa-volume-mute"></i> เสียง: ปิด`;
+    }
+}
+
+function showToast(message) {
+    let toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+// ลองใช้แทน alert:
+// showToast("บันทึกภาพสำเร็จแล้ว!");
+
+// แก้ไขฟังก์ชัน playSound เดิม:
+function playSound(soundName) {
+    if(!isSoundEnabled) return; // ถ้าปิดเสียงอยู่ ไม่ต้องเล่น
+    // ... code เดิม ...
+}
+
 function launchConfetti() {
     for (let i = 0; i < 50; i++) {
         const confetti = document.createElement('div');
