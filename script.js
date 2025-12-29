@@ -477,7 +477,7 @@ function removeTable(button) {
                 extraSounds.fanfare.play();
             }
             launchConfetti(); // พลุจะเริ่มเล่นเฉพาะตรงนี้
-            showToast(`ยินดีด้วย! กำไร ฿${finalProfit.toLocaleString()}`);
+            showToast(`! กำไรบั้งนี้ ฿${finalProfit.toLocaleString()}`);
         } else {
             playSound('success');
         }
