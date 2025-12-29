@@ -109,18 +109,23 @@ function launchConfetti() {
     canvas.height = window.innerHeight;
 
     let particles = [];
+    // รายการตัวบั้งไฟและเอฟเฟกต์ (จะถูกสุ่มใช้ห้ามซ้ำกันในแต่ละเม็ด)
+    const rocketSymbols = ['🚀', '✨', '🔥', '🎆', '🎇', '🏮', '🚩']; 
     const colors = ['#ffdf91', '#d42426', '#0a4d34', '#38bdf8', '#ffffff'];
     isConfettiActive = true;
 
-    for (let i = 0; i < 100; i++) {
+    // สร้างอนุภาค 60 ตัว (ลดลงเล็กน้อยเพื่อให้ดูสบายตา)
+    for (let i = 0; i < 60; i++) {
         particles.push({
             x: Math.random() * canvas.width,
             y: canvas.height + Math.random() * 100,
-            r: Math.random() * 6 + 2,
-            d: Math.random() * 10 + 5,
+            symbol: rocketSymbols[i % rocketSymbols.length], // วนลูปใช้สัญลักษณ์ในลิสต์เพื่อให้กระจายตัวไม่ซ้ำกัน
+            size: Math.random() * 20 + 15, // ขนาดตัวบั้งไฟ
             color: colors[Math.floor(Math.random() * colors.length)],
             tilt: Math.random() * 10 - 5,
-            speed: Math.random() * 5 + 2
+            // ปรับความเร็ว (Speed) ให้ลดลง (จากเดิม 2-7 เป็น 1.5-3.5) เพื่อไม่ให้เร็วเกินไป
+            speed: Math.random() * 2 + 1.5, 
+            opacity: Math.random() * 0.5 + 0.5
         });
     }
 
@@ -130,19 +135,33 @@ function launchConfetti() {
             return;
         }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach((p, i) => {
-            ctx.beginPath();
-            ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
-            ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
-            ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
-            ctx.stroke();
-            p.y -= p.speed; p.x += Math.sin(p.y / 10);
-            if (p.y < -20) p.y = canvas.height + 20;
+        
+        particles.forEach((p) => {
+            ctx.save();
+            ctx.globalAlpha = p.opacity;
+            ctx.font = `${p.size}px Arial`;
+            ctx.fillStyle = p.color;
+            // วาดตัวบั้งไฟหรือสัญลักษณ์แทนการวาดเส้น
+            ctx.fillText(p.symbol, p.x, p.y);
+            ctx.restore();
+
+            // เคลื่อนที่ขึ้นด้านบนช้าๆ
+            p.y -= p.speed; 
+            // ส่ายไปมาเล็กน้อยเหมือนบั้งไฟขึ้นฟ้า
+            p.x += Math.sin(p.y / 30) * 1.2; 
+
+            // ถ้าขึ้นพ้นจอ ให้เริ่มใหม่จากข้างล่างในช่วงที่เอฟเฟกต์ยังทำงาน
+            if (p.y < -50 && isConfettiActive) {
+                p.y = canvas.height + 50;
+                p.x = Math.random() * canvas.width;
+            }
         });
         requestAnimationFrame(draw);
     }
     draw();
-    setTimeout(() => { isConfettiActive = false; }, 3000);
+    
+    // ตั้งเวลาให้แสดงผล 4 วินาที (เพิ่มขึ้นเพื่อให้เห็นความช้าที่สวยงาม)
+    setTimeout(() => { isConfettiActive = false; }, 4000);
 }
 
 // 3. แก้ไขฟังก์ชันเดิมเพื่อใส่ลูกเล่น
@@ -947,7 +966,8 @@ function openStopwatchWindow() {
 function createRandomRocket() {
     const rocket = document.createElement('div');
     rocket.className = 'rocket-mini';
-    rocket.innerHTML = '🚀';
+    const rocketSymbols = ['🚀', '✨', '🔥', '🎆', '🎇', '🏮', '🚩'];
+    rocket.innerHTML = rocketSymbols[Math.floor(Math.random() * rocketSymbols.length)];
     rocket.style.left = Math.random() * 100 + 'vw';
     rocket.style.animationDuration = (Math.random() * 5 + 5) + 's';
     rocket.style.opacity = '0.2';
