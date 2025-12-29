@@ -852,7 +852,7 @@ function openStopwatchWindow() {
                 color: #2ecc71; font-size: 1.1rem; font-weight: bold; width: 60%; padding: 8px 12px; outline: none;
             }
             .timer-display { 
-                font-family: 'Courier New', monospace; font-size: 3.5rem; color: #f8fafc; 
+                font-family: 'Courier New', monospace; font-size: 4rem; color: #f8fafc; 
                 text-align: center; margin: 10px 0; font-weight: bold; letter-spacing: 2px;
                 text-shadow: 0 0 20px rgba(255,255,255,0.1);
             }
@@ -875,7 +875,7 @@ function openStopwatchWindow() {
     </head>
     <body>
         <div class="header">
-            <h2><i class="fas fa-stopwatch"></i> จับเวลารายค่าย</h2>
+            <h2><i class="fas fa-stopwatch"></i> จับเวลารายวินาที</h2>
         </div>
         
         <div id="timers-container"></div>
@@ -887,12 +887,10 @@ function openStopwatchWindow() {
         <script>
             let timerCount = 0;
 
+            // แก้ไขฟังก์ชันแสดงผลให้นับแค่วินาที
             function formatTime(ms) {
-                let totalSeconds = Math.floor(ms / 1000);
-                let minutes = Math.floor(totalSeconds / 60);
-                let seconds = totalSeconds % 60;
-                let tenths = Math.floor((ms % 1000) / 100);
-                return \`\${minutes.toString().padStart(2, '0')}:\${seconds.toString().padStart(2, '0')}.\${tenths}\`;
+                let totalSeconds = (ms / 1000).toFixed(1);
+                return totalSeconds + " วินาที";
             }
 
             function createNewTimer() {
@@ -911,7 +909,7 @@ function openStopwatchWindow() {
                         <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
                         <button class="btn-delete" onclick="this.parentElement.parentElement.deleteCard()"><i class="fas fa-trash-alt"></i></button>
                     </div>
-                    <div class="timer-display">00:00.0</div>
+                    <div class="timer-display">0.0 วินาที</div>
                     <div class="controls">
                         <button class="btn-start"><i class="fas fa-play"></i> เริ่ม</button>
                         <button class="btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
@@ -930,13 +928,14 @@ function openStopwatchWindow() {
 
                 btnStart.onclick = function() {
                     if (window.opener && window.opener.isSoundEnabled) {
+                        try {
                             const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
                             clickSound.volume = 0.3;
                             clickSound.play();
-                        }
+                        } catch(e) {}
+                    }
 
                     if (intervalId) {
-                        // Pause
                         elapsedTime += Date.now() - startTime;
                         clearInterval(intervalId);
                         intervalId = null;
@@ -944,9 +943,8 @@ function openStopwatchWindow() {
                         btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่มต่อ';
                         btnStart.className = 'btn-start';
                     } else {
-                        // Start/Resume
                         startTime = Date.now();
-                        intervalId = setInterval(updateDisplay, 100); // อัปเดตทุก 0.1 วินาที
+                        intervalId = setInterval(updateDisplay, 100); 
                         btnStart.innerHTML = '<i class="fas fa-pause"></i> หยุด';
                         btnStart.className = 'btn-pause';
                     }
@@ -957,7 +955,7 @@ function openStopwatchWindow() {
                     intervalId = null;
                     startTime = 0;
                     elapsedTime = 0;
-                    display.innerText = "00:00.0";
+                    display.innerText = "0.0 วินาที";
                     btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
                     btnStart.className = 'btn-start';
                 };
@@ -975,7 +973,7 @@ function openStopwatchWindow() {
             window.onload = createNewTimer;
         </script>
     </body>
-    </html>`;
+    </html>\`;
 
     win.document.write(html);
     win.document.close();
