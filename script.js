@@ -4,23 +4,6 @@
 
 
 let isSoundEnabled = true;
-
-const sounds = {
-    click: new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3'),
-    success: new Audio('https://actions.google.com/sounds/v1/communication/notification_high_intensity.ogg'),
-    delete: new Audio('https://actions.google.com/sounds/v1/actions/remove_item.ogg'),
-    popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2039/2039-preview.mp3'),
-    clear: new Audio('https://assets.mixkit.co/active_storage/sfx/3118/3118-preview.mp3'),
-    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2047/2047-preview.mp3')
-};
-
-const extraSounds = {
-    woosh: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
-    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
-    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
-};
-
-// ระบบสลับสถานะเสียง
 function toggleSound() {
     isSoundEnabled = !isSoundEnabled;
     const icon = document.getElementById('sound-icon');
@@ -34,7 +17,6 @@ function toggleSound() {
     }
 }
 
-// --- [PART 2: ระบบ Visual Effects และ UI] ---
 function showToast(message) {
     let toast = document.createElement('div');
     toast.className = 'toast';
@@ -50,17 +32,10 @@ function showToast(message) {
 // ลองใช้แทน alert:
 // showToast("บันทึกภาพสำเร็จแล้ว!");
 
-// ฟังก์ชันเล่นเสียงกลาง (หัวใจหลักของการปิดเสียง)
+// แก้ไขฟังก์ชัน playSound เดิม:
 function playSound(soundName) {
-    if (!isSoundEnabled) return; // ถ้าปิดเสียงอยู่ ให้หยุดทำงานทันที
-
-    const sound = sounds[soundName] || extraSounds[soundName];
-    if (sound) {
-        sound.pause(); 
-        sound.currentTime = 0;
-        sound.volume = 0.2;
-        sound.play().catch(e => console.log("Audio play prevented"));
-    }
+    if(!isSoundEnabled) return; // ถ้าปิดเสียงอยู่ ไม่ต้องเล่น
+    // ... code เดิม ...
 }
 
 function launchConfetti() {
@@ -108,10 +83,15 @@ function updateDashboardStats() {
     }
 }
 
+// 1. เพิ่มเสียงใหม่ๆ
+const extraSounds = {
+    woosh: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
+    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
+    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
+};
 
+let isConfettiActive = false; // ตัวแปรควบคุมการทำงาน
 
-// 2. ระบบพลุ (Confetti)
-let isConfettiActive = false;
 function launchConfetti() {
     const canvas = document.getElementById('confetti-canvas');
     if (!canvas) return;
@@ -140,26 +120,36 @@ function launchConfetti() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles.forEach((p, i) => {
             ctx.beginPath();
-            ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
+            ctx.lineWidth = p.r;
+            ctx.strokeStyle = p.color;
             ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
             ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
             ctx.stroke();
-            p.y -= p.speed; p.x += Math.sin(p.y / 10);
-            if (p.y < -20) p.y = canvas.height + 20;
+            
+            p.y -= p.speed;
+            p.x += Math.sin(p.y / 10);
+            
+            if (p.y < -20) p.y = canvas.height + 20; // วนกลับขึ้นไปใหม่จนกว่าจะหมดเวลา
         });
         requestAnimationFrame(draw);
     }
+
     draw();
-    setTimeout(() => { isConfettiActive = false; }, 3000);
+    
+    // สั่งให้หยุดเล่นหลังจาก 3 วินาที
+    setTimeout(() => {
+        isConfettiActive = false;
+    }, 3000);
 }
 
 // 3. แก้ไขฟังก์ชันเดิมเพื่อใส่ลูกเล่น
 const originalAddTable = addTable;
 addTable = function(title = "", rows = null, isSilent = false) {
-    if(!isSilent) playSound('woosh'); // แก้จาก extraSounds.woosh.play()
+    if(!isSilent) extraSounds.woosh.play(); // เสียง Woosh ตอนตารางโผล่
     originalAddTable(title, rows, isSilent);
     
     // ใส่ Animation จางเข้า
@@ -178,7 +168,7 @@ addTable = function(title = "", rows = null, isSilent = false) {
 
 // เมื่อปิดยอดสำเร็จ
 function handleClosingSuccess() {
-    playSound('fanfare'); // แก้จาก extraSounds.fanfare.play()
+    extraSounds.fanfare.play();
     launchConfetti();
 }
 
@@ -244,6 +234,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+const sounds = {
+    click: new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3'),
+    // แก้ไข 2 ลิงก์ที่เสียเป็น Mixkit ตัวใหม่
+    success: new Audio('https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3'),
+    delete: new Audio('https://assets.mixkit.co/active_storage/sfx/1489/1489-preview.mp3'),
+
+    popup: new Audio('https://assets.mixkit.co/active_storage/sfx/2039/2039-preview.mp3'),
+    
+    clear: new Audio('https://assets.mixkit.co/active_storage/sfx/3118/3118-preview.mp3'),
+    alert: new Audio('https://assets.mixkit.co/active_storage/sfx/2047/2047-preview.mp3')
+};
 
 // บังคับเปลี่ยน Source เป็นไฟล์เสียง MP3 ที่ใช้ได้จริงแน่นอน
 sounds.success.src = 'https://actions.google.com/sounds/v1/communication/notification_high_intensity.ogg';
@@ -363,50 +364,54 @@ function loadData() {
     data.forEach(t => addTable(t.title, t.rows, true));
 }
 
-// --- [PART 3: การจัดการตารางและการปิดยอด] ---
 function addTable(title = "", rows = null, isSilent = false) {
-    if(!isSilent) playSound('woosh'); // เรียกผ่าน playSound Filter
+    if(!isSilent) {
+        if(extraSounds && extraSounds.woosh) extraSounds.woosh.play();
+        else playSound('click');
+    }
     
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
     newTable.classList.add("table-container", "table-card");
     
+    // ใส่สไตล์ Animation เริ่มต้น
     newTable.style.opacity = '0';
     newTable.style.transform = 'translateY(20px)';
 
     const generateRowHtml = (r = ["", "", ""]) => `
         <tr>
-            <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
-            <td><input type="text" value="${r[1]}" oninput="saveData()" style="color:#2e7d32;"></td>
-            <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
+            <td><input type="text" value="${r[0]}" oninput="saveData()" placeholder="..."></td>
+            <td><input type="text" value="${r[1]}" oninput="saveData()" placeholder="0" style="color:#2e7d32;"></td>
+            <td><input type="text" value="${r[2]}" oninput="saveData()" placeholder="..."></td>
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
     let rowsHtml = rows ? rows.map(r => generateRowHtml(r)).join('') : generateRowHtml();
+
     newTable.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
             <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
-            <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
+            </div>
         </div>
         <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()">
         <table class="custom-table">
             <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr></thead>
             <tbody>${rowsHtml}</tbody>
         </table>
-        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผล</button>`;
+        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผลที่เล่น</button>`;
     
     container.appendChild(newTable);
+    
+    // รัน Animation
     setTimeout(() => {
         newTable.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         newTable.style.opacity = '1';
         newTable.style.transform = 'translateY(0)';
     }, 50);
-    saveData();
-}
 
-function handleClosingSuccess() {
-    playSound('fanfare'); // เรียกผ่าน playSound Filter
-    launchConfetti();
+    saveData();
 }
 
 function addRow(table) {
@@ -466,11 +471,15 @@ function removeTable(button) {
     const calculatedProfit = calculateTableProfit(tableContainer);
 
     showConfirmModal(title, calculatedProfit, (finalProfit) => {
+        // --- ส่วนที่ควบคุมพลุ ---
         if (finalProfit > 0) {
-            handleClosingSuccess(); // ซึ่งในนี้เราแก้เป็น playSound('fanfare') แล้ว
-            launchConfetti();
+            if (typeof extraSounds !== 'undefined' && extraSounds.fanfare) {
+                extraSounds.fanfare.play();
+            }
+            launchConfetti(); // พลุจะเริ่มเล่นเฉพาะตรงนี้
+            showToast(`ยินดีด้วย! กำไร ฿${finalProfit.toLocaleString()}`);
         } else {
-            playSound('success'); // อันนี้ปลอดภัยเพราะผ่าน playSound
+            playSound('success');
         }
         // -----------------------
 
@@ -887,11 +896,9 @@ function openStopwatchWindow() {
                 };
 
                 btnStart.onclick = function() {
-                    if (window.opener && window.opener.isSoundEnabled) {
-                            const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
-                            clickSound.volume = 0.3;
-                            clickSound.play();
-                        }
+                    const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
+                    clickSound.volume = 0.3;
+                    clickSound.play();
 
                     if (intervalId) {
                         // Pause
