@@ -95,9 +95,12 @@ function updateDashboardStats() {
 // 1. เพิ่มเสียงใหม่ๆ
 const extraSounds = {
     woosh: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
-    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
-    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
+    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'), // เสียงปิดยอดเสร็จ
+    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3') // เสียงแจ้งเตือนกำไร
 };
+
+// โหลดเสียงรอไว้เพื่อให้เล่นได้ทันทีไม่มีดีเลย์
+Object.values(extraSounds).forEach(audio => audio.load());
 
 // 2. ระบบพลุ (Confetti)
 let isConfettiActive = false;
@@ -480,28 +483,32 @@ function removeTable(button) {
     const calculatedProfit = calculateTableProfit(tableContainer);
 
     showConfirmModal(title, calculatedProfit, (finalProfit) => {
+        // --- จังหวะที่ 1: แจ้งเตือนเมื่อเห็นกำไร ---
         if (finalProfit > 0) {
-            handleClosingSuccess(); 
+            playSound('fanfare'); // เสียง https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3
             launchConfetti();
-            
-            // --- เพิ่มบรรทัดนี้เพื่อแสดงแจ้งเตือนบนขวา ---
             showToast(`ปิดยอดค่าย: ${title} เรียบร้อย! กำไร ฿${finalProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`);
         } else {
             playSound('success');
-            // กรณีปิดจาว (ไม่มีกำไร)
             showToast(`ปิดยอดค่าย: ${title} (ไม่มีกำไร)`);
         }
 
+        // ประมวลผลข้อมูล
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
             const cells = tr.querySelectorAll("input");
             rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
         });
 
+        // บันทึกประวัติ
         historyData.push({ title, rows: rowsData, profit: finalProfit, timestamp: new Date().toLocaleString("th-TH") });
         localStorage.setItem("historyData", JSON.stringify(historyData));
         totalDeletedProfit += finalProfit;
+        
+        // --- จังหวะที่ 2: ปิดยอดเสร็จสิ้น (ลบตารางออกจากจอ) ---
         tableContainer.remove();
+        playSound('chime'); // เสียง https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3
+        
         saveData();
     });
 }
