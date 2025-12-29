@@ -455,12 +455,16 @@ function removeTable(button) {
 
     showConfirmModal(title, calculatedProfit, (finalProfit) => {
         if (finalProfit > 0) {
-            handleClosingSuccess(); // ซึ่งในนี้เราแก้เป็น playSound('fanfare') แล้ว
+            handleClosingSuccess(); 
             launchConfetti();
+            
+            // --- เพิ่มบรรทัดนี้เพื่อแสดงแจ้งเตือนบนขวา ---
+            showToast(`ปิดยอดค่าย: ${title} เรียบร้อย! กำไร ฿${finalProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`);
         } else {
-            playSound('success'); // อันนี้ปลอดภัยเพราะผ่าน playSound
+            playSound('success');
+            // กรณีปิดจาว (ไม่มีกำไร)
+            showToast(`ปิดยอดค่าย: ${title} (ไม่มีกำไร)`);
         }
-        // -----------------------
 
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
