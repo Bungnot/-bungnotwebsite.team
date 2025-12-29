@@ -1,6 +1,89 @@
 /**
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
+
+
+// 1. เพิ่มเสียงใหม่ๆ
+const extraSounds = {
+    woosh: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
+    chime: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
+    fanfare: new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3')
+};
+
+// 2. ฟังก์ชันสร้างพลุกระดาษ (Confetti) แบบง่าย
+function launchConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+    const colors = ['#ffdf91', '#d42426', '#0a4d34', '#38bdf8', '#ffffff'];
+
+    for (let i = 0; i < 100; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: canvas.height + Math.random() * 100,
+            r: Math.random() * 6 + 2,
+            d: Math.random() * 10 + 5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            tilt: Math.random() * 10 - 5,
+            speed: Math.random() * 5 + 2
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            ctx.beginPath();
+            ctx.lineWidth = p.r;
+            ctx.strokeStyle = p.color;
+            ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+            ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+            ctx.stroke();
+            
+            p.y -= p.speed;
+            p.x += Math.sin(p.y / 10);
+            
+            if (p.y < -10) particles[i] = { ...p, y: canvas.height + 20 };
+        });
+        
+        let animationReq = requestAnimationFrame(draw);
+        setTimeout(() => cancelAnimationFrame(animationReq), 3000); // เล่น 3 วินาที
+    }
+    draw();
+}
+
+// 3. แก้ไขฟังก์ชันเดิมเพื่อใส่ลูกเล่น
+const originalAddTable = addTable;
+addTable = function(title = "", rows = null, isSilent = false) {
+    if(!isSilent) extraSounds.woosh.play(); // เสียง Woosh ตอนตารางโผล่
+    originalAddTable(title, rows, isSilent);
+    
+    // ใส่ Animation จางเข้า
+    const tables = document.querySelectorAll('.table-container');
+    const lastTable = tables[tables.length - 1];
+    if(lastTable) {
+        lastTable.style.opacity = '0';
+        lastTable.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            lastTable.style.transition = 'all 0.5s ease';
+            lastTable.style.opacity = '1';
+            lastTable.style.transform = 'translateY(0)';
+        }, 50);
+    }
+}
+
+// เมื่อปิดยอดสำเร็จ
+function handleClosingSuccess() {
+    extraSounds.fanfare.play();
+    launchConfetti();
+}
+
+// แก้ไขฟังก์ชัน removeTable ในส่วน Callback
+// ให้เพิ่ม handleClosingSuccess(); เข้าไปหลังจากคำนวณกำไรเสร็จ
+
+
 function enterWebsite() {
     // เล่นเสียงคลิกเพื่อปลดล็อกระบบเสียง
     playSound('click'); 
