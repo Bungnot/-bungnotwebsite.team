@@ -353,10 +353,18 @@ function loadData() {
 }
 
 function addTable(title = "", rows = null, isSilent = false) {
-    if(!isSilent) playSound('click');
+    if(!isSilent) {
+        if(extraSounds && extraSounds.woosh) extraSounds.woosh.play();
+        else playSound('click');
+    }
+    
     const container = document.getElementById("tables-container");
     const newTable = document.createElement("div");
     newTable.classList.add("table-container", "table-card");
+    
+    // ใส่สไตล์ Animation เริ่มต้น
+    newTable.style.opacity = '0';
+    newTable.style.transform = 'translateY(20px)';
 
     const generateRowHtml = (r = ["", "", ""]) => `
         <tr>
@@ -383,6 +391,14 @@ function addTable(title = "", rows = null, isSilent = false) {
         <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผลที่เล่น</button>`;
     
     container.appendChild(newTable);
+    
+    // รัน Animation
+    setTimeout(() => {
+        newTable.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        newTable.style.opacity = '1';
+        newTable.style.transform = 'translateY(0)';
+    }, 50);
+
     saveData();
 }
 
@@ -437,15 +453,21 @@ function copyTableAsImage(tableElement) {
     });
 }
 
-// --- 2. แก้ไขการลบตาราง (เพิ่มเสียง Success เมื่อปิดยอด) ---
 function removeTable(button) {
     const tableContainer = button.closest('.table-container');
     const title = tableContainer.querySelector('.table-title-input').value || "ไม่ระบุชื่อ";
     const calculatedProfit = calculateTableProfit(tableContainer);
 
     showConfirmModal(title, calculatedProfit, (finalProfit) => {
-        // เล่นเสียง Success เมื่อยืนยันปิดยอดสำเร็จ
-        playSound('success'); 
+        // --- ส่วนที่เพิ่มลูกเล่น ---
+        if (finalProfit > 0) {
+            handleClosingSuccess(); // เรียกพลุและเสียงฉลอง
+            showToast(`ปิดยอดสำเร็จ! กำไร ฿${finalProfit.toLocaleString()}`);
+        } else {
+            playSound('success');
+        }
+        // -----------------------
+
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
             const cells = tr.querySelectorAll("input");
