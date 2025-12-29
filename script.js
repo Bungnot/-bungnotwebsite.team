@@ -887,10 +887,12 @@ function openStopwatchWindow() {
         <script>
             let timerCount = 0;
 
-            // แก้ไขส่วนนี้: ให้คืนค่าเฉพาะวินาทีรวมเป็นเลขจำนวนเต็ม
             function formatTime(ms) {
                 let totalSeconds = Math.floor(ms / 1000);
-                return totalSeconds + " วินาที";
+                let minutes = Math.floor(totalSeconds / 60);
+                let seconds = totalSeconds % 60;
+                let tenths = Math.floor((ms % 1000) / 100);
+                return \`\${minutes.toString().padStart(2, '0')}:\${seconds.toString().padStart(2, '0')}.\${tenths}\`;
             }
 
             function createNewTimer() {
@@ -909,7 +911,7 @@ function openStopwatchWindow() {
                         <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
                         <button class="btn-delete" onclick="this.parentElement.parentElement.deleteCard()"><i class="fas fa-trash-alt"></i></button>
                     </div>
-                    <div class="timer-display">0 วินาที</div>
+                    <div class="timer-display">00:00.0</div>
                     <div class="controls">
                         <button class="btn-start"><i class="fas fa-play"></i> เริ่ม</button>
                         <button class="btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
@@ -928,10 +930,10 @@ function openStopwatchWindow() {
 
                 btnStart.onclick = function() {
                     if (window.opener && window.opener.isSoundEnabled) {
-                        const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
-                        clickSound.volume = 0.3;
-                        clickSound.play();
-                    }
+                            const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
+                            clickSound.volume = 0.3;
+                            clickSound.play();
+                        }
 
                     if (intervalId) {
                         // Pause
@@ -944,7 +946,7 @@ function openStopwatchWindow() {
                     } else {
                         // Start/Resume
                         startTime = Date.now();
-                        intervalId = setInterval(updateDisplay, 100); 
+                        intervalId = setInterval(updateDisplay, 100); // อัปเดตทุก 0.1 วินาที
                         btnStart.innerHTML = '<i class="fas fa-pause"></i> หยุด';
                         btnStart.className = 'btn-pause';
                     }
@@ -955,7 +957,7 @@ function openStopwatchWindow() {
                     intervalId = null;
                     startTime = 0;
                     elapsedTime = 0;
-                    display.innerText = "0 วินาที";
+                    display.innerText = "00:00.0";
                     btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
                     btnStart.className = 'btn-start';
                 };
@@ -973,7 +975,7 @@ function openStopwatchWindow() {
             window.onload = createNewTimer;
         </script>
     </body>
-    </html>\`;
+    </html>`;
 
     win.document.write(html);
     win.document.close();
