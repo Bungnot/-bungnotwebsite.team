@@ -407,6 +407,15 @@
         box-shadow: 0 0 10px rgba(191, 149, 63, 0.3);
         transform: scale(1.02);
     }
+
+    .toast {
+    position: fixed; top: 20px; right: 20px;
+    background: #14452f; color: white; padding: 15px 25px;
+    border-radius: 12px; border-left: 5px solid #bf953f;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    z-index: 100000; transform: translateX(120%); transition: 0.5s;
+    }
+    .toast.show { transform: translateX(0); }
         
     </style>
 </head>
@@ -652,6 +661,7 @@
     </script>
 </body>
 </html>
+
 
 
 
