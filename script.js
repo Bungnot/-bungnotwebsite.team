@@ -1,6 +1,49 @@
 /**
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
+function updateIndividualTableSummaries() {
+    document.querySelectorAll(".table-container").forEach(tableWrapper => {
+        const nameSummary = {};
+        const rows = tableWrapper.querySelectorAll("tbody tr");
+        
+        rows.forEach(tr => {
+            const inputs = tr.querySelectorAll("input");
+            if (inputs.length < 3) return;
+
+            const chaser = inputs[0].value.trim(); // คนไล่
+            const priceText = inputs[1].value.replace(/[Oo]/g, '0'); // ราคา
+            const holder = inputs[2].value.trim(); // คนยั้ง
+
+            const matches = priceText.match(/\d+/g);
+            let rowTotal = 0;
+            if (matches) {
+                matches.forEach(num => {
+                    if (num.length >= 3) rowTotal += parseFloat(num);
+                });
+            }
+
+            if (rowTotal > 0) {
+                if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
+                if (holder) nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
+            }
+        });
+
+        const summaryArea = tableWrapper.querySelector(".name-list-area");
+        if (summaryArea) {
+            const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
+            if (entries.length === 0) {
+                summaryArea.innerHTML = `<p style="color: #94a3b8; font-style: italic;">รอข้อมูล...</p>`;
+            } else {
+                summaryArea.innerHTML = entries.map(([name, total]) => `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px;">
+                        <span style="color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px;">${name}</span>
+                        <span style="font-weight: bold; color: #d42426;">${total.toLocaleString()}</span>
+                    </div>
+                `).join('');
+            }
+        }
+    });
+}
 
 function updateNameSummary() {
     const nameSummary = {};
@@ -438,6 +481,7 @@ function saveData() {
     updateDashboardStats();
 
     updateNameSummary(); // <--- เพิ่มบรรทัดนี้
+    updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
     
     // แสดง Badge แจ้งเตือน และเล่นเสียงเบาๆ ตอนบันทึก
     const badge = document.getElementById("auto-save-alert");
@@ -458,14 +502,18 @@ function loadData() {
 
 // 3. ฟังก์ชันการทำงานของตาราง
 function addTable(title = "", rows = null, isSilent = false) {
-    if(!isSilent) playSound('woosh'); // เรียกผ่าน playSound
+    if(!isSilent) playSound('woosh');
     
     const container = document.getElementById("tables-container");
-    const newTable = document.createElement("div");
-    newTable.classList.add("table-container", "table-card");
+    const newTableWrapper = document.createElement("div"); // สร้าง Wrapper ครอบทั้งตารางและสรุปยอด
+    newTableWrapper.classList.add("table-container", "table-card");
     
-    newTable.style.opacity = '0';
-    newTable.style.transform = 'translateY(20px)';
+    // ตั้งค่า Layout ให้ตารางอยู่ซ้าย สรุปยอดอยู่ขวา
+    newTableWrapper.style.display = "flex";
+    newTableWrapper.style.gap = "20px";
+    newTableWrapper.style.alignItems = "flex-start";
+    newTableWrapper.style.opacity = '0';
+    newTableWrapper.style.transform = 'translateY(20px)';
 
     const generateRowHtml = (r = ["", "", ""]) => `
         <tr>
@@ -476,23 +524,37 @@ function addTable(title = "", rows = null, isSilent = false) {
         </tr>`;
 
     let rowsHtml = rows ? rows.map(r => generateRowHtml(r)).join('') : generateRowHtml();
-    newTable.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
-            <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
-            <button class="btn-close-table" onclick="removeTable(this)"><i class="fas fa-times"></i></button>
-        </div>
-        <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()">
-        <table class="custom-table">
-            <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr></thead>
-            <tbody>${rowsHtml}</tbody>
-        </table>
-        <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผล</button>`;
     
-    container.appendChild(newTable);
+    // แบ่งเป็น 2 ฝั่ง: .table-main-content (ตาราง) และ .table-summary-sidebar (สรุปยอดข้างตาราง)
+    newTableWrapper.innerHTML = `
+        <div class="table-main-content" style="flex: 1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
+                <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
+                <button class="btn-close-table" onclick="removeTable(this)" style="position:static;"><i class="fas fa-times"></i></button>
+            </div>
+            <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()" style="width: 80%;">
+            <table class="custom-table">
+                <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr></thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+            <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผล</button>
+        </div>
+        
+        <div class="table-summary-sidebar" style="width: 200px; background: #f8fafc; border-radius: 15px; padding: 15px; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+            <div style="font-weight: bold; color: #1e293b; border-bottom: 2px solid #cbd5e1; margin-bottom: 10px; padding-bottom: 5px;">
+                <i class="fas fa-users"></i> สรุปยอดในค่าย
+            </div>
+            <div class="name-list-area">
+                <p style="color: #94a3b8; font-style: italic;">รอข้อมูล...</p>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(newTableWrapper);
     setTimeout(() => {
-        newTable.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        newTable.style.opacity = '1';
-        newTable.style.transform = 'translateY(0)';
+        newTableWrapper.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        newTableWrapper.style.opacity = '1';
+        newTableWrapper.style.transform = 'translateY(0)';
     }, 50);
     saveData();
 }
