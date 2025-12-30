@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
+<style>
         :root {
             /* Christmas Luxury Pro Palette (Default) */
             --primary-bg: radial-gradient(circle at center, #1a3a32 0%, #0f1b2a 50%, #2d0a0a 100%);
@@ -50,9 +50,7 @@
 
         /* --- สไตล์สำหรับ Theme Ocean Breeze (UPGRADED - ถนอมสายตา) --- */
         body.theme-ocean {
-            /* เปลี่ยนจากฟ้าจ้าเป็นน้ำเงินเข้มลึก (Midnight Navy) */
             --primary-bg: linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e293b 100%);
-            /* เปลี่ยน Card เป็นสีเข้มใส (Dark Glass) ลดการสะท้อนแสงขาว */
             --glass-bg: rgba(15, 23, 42, 0.85);
             --christmas-red: #1d4ed8;
             --christmas-green: #075985;
@@ -68,7 +66,6 @@
             background: url('https://www.transparenttextures.com/patterns/cubes.png');
             opacity: 0.03; pointer-events: none; z-index: 1;
         }
-        /* Glassmorphism Effect for Ocean (Dark Version) */
         body.theme-ocean .info-card, 
         body.theme-ocean .table-card {
             background: rgba(30, 41, 59, 0.7) !important;
@@ -98,7 +95,6 @@
         body.theme-ocean .th-green { background: #0c4a6e; }
         body.theme-ocean .th-red { background: #1e3a8a; }
         
-        /* Bubble Animation (ปรับให้จางลงไม่กวนสายตา) */
         @keyframes bubble-up {
             0% { transform: translateY(100vh) scale(0); opacity: 0; }
             50% { opacity: 0.2; }
@@ -115,14 +111,12 @@
             display: none !important; 
         }
 
-        /* หิมะสำหรับธีมคริสต์มาส */
         .snow-canvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 2; display: none;
         }
         body.theme-christmas .snow-canvas { display: block; }
 
-        /* สไตล์ปุ่มเลือกธีม */
         .theme-switcher {
             display: flex; justify-content: center; gap: 10px; margin: 10px 0 20px 0;
             position: relative; z-index: 10;
@@ -228,11 +222,6 @@
         }
         .btn-main::before { content: var(--btn-icon-l); position: absolute; left: 10px; font-size: 14px; opacity: 0.7; transition: 0.3s; }
         .btn-main::after { content: var(--btn-icon-r); position: absolute; right: 10px; font-size: 14px; opacity: 0.7; transition: 0.3s; }
-        .btn-main .flare {
-            position: absolute; top: 0; height: 100%; width: 45px;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
-            transform: skewX(-30deg); left: -150%; pointer-events: none;
-        }
         .btn-main:hover { 
             transform: translateY(-5px) scale(1.05); 
             box-shadow: 0 12px 25px rgba(0,0,0,0.4), var(--gold-glow);
@@ -266,7 +255,31 @@
         }
         .btn-remove-row { background: #fff; color: #e74c3c; border: 2px solid #fff5f5; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin: 0 auto; display: block; }
         .btn-remove-row:hover { background: #e74c3c; color: white; transform: scale(1.1); }
-        .btn-close-table { position: absolute; top: 15px; right: 15px; background: #f8fafc; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: 0.3s; }
+
+        /* --- ปุ่มปิดยอด (X) ปรับปรุงใหม่ --- */
+        .btn-close-table { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            background: #b3000c; /* สีแดงเข้ม */
+            color: white !important; 
+            border: 2px solid #ffffff; 
+            width: 38px; 
+            height: 38px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(179, 0, 12, 0.3);
+            z-index: 10;
+        }
+        .btn-close-table:hover {
+            background: #d42426;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 6px 15px rgba(212, 36, 38, 0.4);
+        }
 
         /* --- Modal --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; }
@@ -285,204 +298,190 @@
             animation: shine 3s linear infinite; font-weight: bold;
         }
 
-        /* สไตล์การ์ดเลือกธีมแบบใหม่ */
-    .welcome-theme-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin: 25px 0 35px 0;
-    }
+        .welcome-theme-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 25px 0 35px 0;
+        }
 
-    .theme-card {
-        background: rgba(255, 255, 255, 0.5);
-        border: 2px solid #e2e8f0;
-        border-radius: 18px;
-        padding: 15px 10px;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-    }
+        .theme-card {
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 15px 10px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .theme-card i, .theme-card span.emoji {
-        font-size: 1.8rem;
-        margin-bottom: 5px;
-    }
+        .theme-card i, .theme-card span.emoji {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
 
-    .theme-card label {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #475569;
-        cursor: pointer;
-    }
+        .theme-card label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+        }
 
-    .theme-card:hover {
-        transform: translateY(-5px);
-        background: white;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        border-color: #bf953f;
-    }
+        .theme-card:hover {
+            transform: translateY(-5px);
+            background: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: #bf953f;
+        }
 
-    .theme-card.active {
-        background: var(--gold-gradient);
-        border-color: #fff;
-        box-shadow: 0 0 20px rgba(179, 135, 40, 0.4);
-        transform: scale(1.05);
-    }
+        .theme-card.active {
+            background: var(--gold-gradient);
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(179, 135, 40, 0.4);
+            transform: scale(1.05);
+        }
 
-    .theme-card.active label {
-        color: #000;
-    }
+        .theme-card.active label {
+            color: #000;
+        }
 
-    /* ปรับแต่งปุ่มเข้าเว็บให้ดูพรีเมียม */
-    .btn-enter-web.ready {
-        background: linear-gradient(135deg, #14452f 0%, #0a4d34 100%) !important;
-        box-shadow: 0 10px 25px rgba(10, 77, 52, 0.4), var(--gold-glow) !important;
-        opacity: 1 !important;
-        cursor: pointer !important;
-    }
+        .btn-enter-web.ready {
+            background: linear-gradient(135deg, #14452f 0%, #0a4d34 100%) !important;
+            box-shadow: 0 10px 25px rgba(10, 77, 52, 0.4), var(--gold-glow) !important;
+            opacity: 1 !important;
+            cursor: pointer !important;
+        }
 
-    /* --- เพิ่มลูกเล่นปุ่มกดแล้วยุบ (Active State) --- */
-    .btn-main:active, .btn-enter-web:active {
-        transform: scale(0.95) !important;
-    }
-    
-    /* --- แสงเรืองรองรอบการ์ด (Glassmorphism Hover) --- */
-    .table-card {
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .table-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 20px var(--theme-accent);
-    }
-    
-    /* --- อนิเมชั่นช่อง Input เมื่อ Focus --- */
-    input[type="text"]:focus {
-        outline: none;
-        border-color: var(--theme-accent) !important;
-        box-shadow: 0 0 15px var(--theme-accent);
-        transform: scale(1.02);
-        z-index: 10;
-    }
-    
-    /* --- Particle Canvas สำหรับพลุเฉลิมฉลอง --- */
-    #confetti-canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 10000;
-    }
-    
-    /* --- เอฟเฟกต์สั่น (Shake) สำหรับปุ่มลบ --- */
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-2px) rotate(-5deg); }
-        75% { transform: translateX(2px) rotate(5deg); }
-    }
-    .btn-remove-row:hover {
-        animation: shake 0.2s infinite;
-    }
-
-
-        /* ตารางจะขยายเล็กน้อยและมีแสงเงาที่นุ่มนวลขึ้น */
-    .table-card {
-        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-    }
-    
-    .table-card:hover {
-        transform: translateY(-8px) scale(1.01);
-        box-shadow: 0 30px 60px rgba(0,0,0,0.12);
-    }
-    
-    /* เอฟเฟกต์สำหรับ Input เมื่อโฟกัส */
-    .custom-table input:focus {
-        outline: none;
-        border-color: #bf953f;
-        background: #fff;
-        box-shadow: 0 0 10px rgba(191, 149, 63, 0.3);
-        transform: scale(1.02);
-    }
-
-    .toast {
-    position: fixed; top: 20px; right: 20px;
-    background: #14452f; color: white; padding: 15px 25px;
-    border-radius: 12px; border-left: 5px solid #bf953f;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    z-index: 100000; transform: translateX(120%); transition: 0.5s;
-    }
-    .toast.show { transform: translateX(0); }
+        .btn-main:active, .btn-enter-web:active {
+            transform: scale(0.95) !important;
+        }
         
+        .table-card {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+        }
+        .table-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--theme-accent) !important;
+            box-shadow: 0 0 15px var(--theme-accent);
+            transform: scale(1.02);
+            z-index: 10;
+        }
+        
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10000;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px) rotate(-5deg); }
+            75% { transform: translateX(2px) rotate(5deg); }
+        }
+        .btn-remove-row:hover {
+            animation: shake 0.2s infinite;
+        }
 
-        /* --- อัปเกรดเอฟเฟกต์ปุ่มและแสง --- */
-    .btn-main {
-        overflow: hidden;
-        position: relative;
-    }
+        .toast {
+            position: fixed; top: 20px; right: 20px;
+            background: #14452f; color: white; padding: 15px 25px;
+            border-radius: 12px; border-left: 5px solid #bf953f;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            z-index: 100000; transform: translateX(120%); transition: 0.5s;
+        }
+        .toast.show { transform: translateX(0); }
+        
+        .btn-main {
+            overflow: hidden;
+            position: relative;
+        }
 
-    .btn-main::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -60%;
-        width: 20%;
-        height: 200%;
-        background: rgba(255, 255, 255, 0.4);
-        transform: rotate(30deg);
-        transition: none;
-        animation: shine-sweep 3s infinite;
-    }
+        .btn-main::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: rotate(30deg);
+            transition: none;
+            animation: shine-sweep 3s infinite;
+        }
 
-    @keyframes shine-sweep {
-        0% { left: -60%; }
-        20% { left: 120%; }
-        100% { left: 120%; }
-    }
+        @keyframes shine-sweep {
+            0% { left: -60%; }
+            20% { left: 120%; }
+            100% { left: 120%; }
+        }
 
-    /* --- ตารางแบบ 3D Lift --- */
-    .table-card {
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        perspective: 1000px;
-    }
+        .table-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            perspective: 1000px;
+        }
 
-    .table-card:hover {
-        transform: translateY(-10px) rotateX(2deg);
-        box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 20px var(--theme-accent);
-    }
+        .table-card:hover {
+            transform: translateY(-10px) rotateX(2deg);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 20px var(--theme-accent);
+        }
 
-    /* --- Input Focus แอนิเมชั่น --- */
-    .custom-table input {
-        transition: all 0.2s ease;
-    }
+        /* --- กรอบสรุปยอดรายชื่อ ปรับปรุงใหม่ --- */
+        .table-summary-sidebar {
+            background: #ffffff !important;
+            border: 2px solid #e2e8f0 !important;
+            box-shadow: 4px 4px 0px #cbd5e1;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 0.85rem;
+        }
+        .table-summary-sidebar div:first-child {
+            color: #14452f !important;
+            border-bottom: 2px solid #bf953f !important;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+        }
+        .name-list-area div {
+            padding: 6px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .name-list-area span:last-child {
+            background: #fff5f5;
+            color: #b3000c !important;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
 
-    .custom-table input:focus {
-        transform: scale(1.05);
-        background: #ffffff !important;
-        border-color: var(--theme-accent) !important;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        z-index: 10;
-    }
+        @keyframes rocket-fly {
+            0% { bottom: -10%; left: -10%; transform: rotate(45deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { bottom: 110%; left: 110%; transform: rotate(45deg); opacity: 0; }
+        }
 
-    /* --- บั้งไฟขนาดเล็กวิ่งผ่านหน้าจอเป็นระยะ --- */
-    @keyframes rocket-fly {
-        0% { bottom: -10%; left: -10%; transform: rotate(45deg); opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { bottom: 110%; left: 110%; transform: rotate(45deg); opacity: 0; }
-    }
-
-    .rocket-mini {
-        position: fixed;
-        font-size: 2rem;
-        pointer-events: none;
-        z-index: 0;
-        animation: rocket-fly 10s linear infinite;
-        filter: blur(1px);
-    }
+        .rocket-mini {
+            position: fixed;
+            font-size: 2rem;
+            pointer-events: none;
+            z-index: 0;
+            animation: rocket-fly 10s linear infinite;
+            filter: blur(1px);
+        }
 
     </style>
 </head>
@@ -728,6 +727,7 @@
     </script>
 </body>
 </html>
+
 
 
 
