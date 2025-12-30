@@ -173,7 +173,7 @@ function launchConfetti() {
     draw();
     
     // แสดงผลนานขึ้นเล็กน้อย (5 วินาที) เพราะเคลื่อนที่ช้าลง
-    setTimeout(() => { isConfettiActive = false; }, 4500);
+    setTimeout(() => { isConfettiActive = false; }, 2500);
 }
 
 // 3. แก้ไขฟังก์ชันเดิมเพื่อใส่ลูกเล่น
