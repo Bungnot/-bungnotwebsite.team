@@ -501,17 +501,18 @@ function loadData() {
 }
 
 // 3. ฟังก์ชันการทำงานของตาราง
+// 3. ฟังก์ชันการทำงานของตาราง (ฉบับแก้ไขตำแหน่ง Sidebar)
 function addTable(title = "", rows = null, isSilent = false) {
     if(!isSilent) playSound('woosh');
     
     const container = document.getElementById("tables-container");
-    const newTableWrapper = document.createElement("div"); // สร้าง Wrapper ครอบทั้งตารางและสรุปยอด
+    const newTableWrapper = document.createElement("div"); 
     newTableWrapper.classList.add("table-container", "table-card");
     
-    // ตั้งค่า Layout ให้ตารางอยู่ซ้าย สรุปยอดอยู่ขวา
+    // ตั้งค่า Layout ให้ขยายเท่ากัน (stretch)
     newTableWrapper.style.display = "flex";
     newTableWrapper.style.gap = "20px";
-    newTableWrapper.style.alignItems = "flex-start";
+    newTableWrapper.style.alignItems = "stretch"; 
     newTableWrapper.style.opacity = '0';
     newTableWrapper.style.transform = 'translateY(20px)';
 
@@ -525,7 +526,7 @@ function addTable(title = "", rows = null, isSilent = false) {
 
     let rowsHtml = rows ? rows.map(r => generateRowHtml(r)).join('') : generateRowHtml();
     
-    // แบ่งเป็น 2 ฝั่ง: .table-main-content (ตาราง) และ .table-summary-sidebar (สรุปยอดข้างตาราง)
+    // โครงสร้าง HTML: แบ่งฝั่งตาราง และ Sidebar (เลื่อนรายการลงมา 45px เพื่อให้ตรงกับแถวแรก)
     newTableWrapper.innerHTML = `
         <div class="table-main-content" style="flex: 1;">
             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
@@ -540,11 +541,11 @@ function addTable(title = "", rows = null, isSilent = false) {
             <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผล</button>
         </div>
         
-        <div class="table-summary-sidebar" style="width: 200px; background: #f8fafc; border-radius: 15px; padding: 15px; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+        <div class="table-summary-sidebar" style="width: 200px; background: #f8fafc; border-radius: 15px; padding: 15px; border: 1px solid #e2e8f0; font-size: 0.85rem; display: flex; flex-direction: column;">
             <div style="font-weight: bold; color: #1e293b; border-bottom: 2px solid #cbd5e1; margin-bottom: 10px; padding-bottom: 5px;">
-                <i class="fas fa-users"></i> เช็คยอดคนเล่น Real-Time
+                <i class="fas fa-users"></i> ยอดเล่น Real-Time
             </div>
-            <div class="name-list-area">
+            <div class="name-list-area" style="margin-top: 45px;">
                 <p style="color: #94a3b8; font-style: italic;">รอข้อมูล...</p>
             </div>
         </div>
