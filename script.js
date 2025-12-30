@@ -2,6 +2,63 @@
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
 
+function updateNameSummary() {
+    const nameSummary = {};
+
+    document.querySelectorAll(".table-container").forEach(table => {
+        table.querySelectorAll("tbody tr").forEach(tr => {
+            const inputs = tr.querySelectorAll("input");
+            if (inputs.length < 3) return;
+
+            const chaserName = inputs[0].value.trim(); // คนไล่
+            const priceVal = inputs[1].value.replace(/[Oo]/g, '0'); // ราคา
+            const holderName = inputs[2].value.trim(); // คนยั้ง
+
+            // ดึงเฉพาะตัวเลข 3 หลักขึ้นไป
+            const matches = priceVal.match(/\d+/g);
+            let rowTotal = 0;
+            if (matches) {
+                matches.forEach(numStr => {
+                    if (numStr.length >= 3) rowTotal += parseFloat(numStr);
+                });
+            }
+
+            if (rowTotal > 0) {
+                // รวมยอดฝั่งคนไล่
+                if (chaserName) {
+                    nameSummary[chaserName] = (nameSummary[chaserName] || 0) + rowTotal;
+                }
+                // รวมยอดฝั่งคนยั้ง
+                if (holderName) {
+                    nameSummary[holderName] = (nameSummary[holderName] || 0) + rowTotal;
+                }
+            }
+        });
+    });
+
+    // แสดงผลลงในหน้าจอ
+    const display = document.getElementById("name-summary-display");
+    if (!display) return;
+
+    const summaryArray = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]); // เรียงจากยอดมากไปน้อย
+
+    if (summaryArray.length === 0) {
+        display.innerHTML = `<p style="color: #64748b;">ไม่มีข้อมูลการเล่น...</p>`;
+        return;
+    }
+
+    let html = '<table style="width:100%; border-collapse: collapse;">';
+    summaryArray.forEach(([name, total]) => {
+        html += `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td style="padding: 5px 0; color: #334155;">${name}</td>
+                <td style="text-align: right; font-weight: bold; color: var(--theme-accent);">฿${total.toLocaleString()}</td>
+            </tr>`;
+    });
+    html += '</table>';
+    display.innerHTML = html;
+}
+
 
 let isSoundEnabled = true;
 
@@ -379,6 +436,8 @@ function saveData() {
     localStorage.setItem("savedTables", JSON.stringify(data));
     refreshAllBadges();
     updateDashboardStats();
+
+    updateNameSummary(); // <--- เพิ่มบรรทัดนี้
     
     // แสดง Badge แจ้งเตือน และเล่นเสียงเบาๆ ตอนบันทึก
     const badge = document.getElementById("auto-save-alert");
