@@ -542,7 +542,7 @@ function addTable(title = "", rows = null, isSilent = false) {
         
         <div class="table-summary-sidebar" style="width: 200px; background: #f8fafc; border-radius: 15px; padding: 15px; border: 1px solid #e2e8f0; font-size: 0.85rem;">
             <div style="font-weight: bold; color: #1e293b; border-bottom: 2px solid #cbd5e1; margin-bottom: 10px; padding-bottom: 5px;">
-                <i class="fas fa-users"></i> สรุปยอดในค่าย
+                <i class="fas fa-users"></i> เช็คยอดคนเล่น Real-Time
             </div>
             <div class="name-list-area">
                 <p style="color: #94a3b8; font-style: italic;">รอข้อมูล...</p>
