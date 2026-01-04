@@ -483,52 +483,41 @@
             filter: blur(1px);
         }
 
-    /* --- สไตล์สำหรับ Theme Halloween (Spooky Night) --- */
+        /* --- New Halloween Theme (Spooky & Unique) --- */
         body.theme-halloween {
-            --primary-bg: radial-gradient(circle at center, #2b1055 0%, #000000 100%);
-            --glass-bg: rgba(20, 20, 20, 0.9);
-            --christmas-red: #ff7518; /* สีส้มฟักทอง */
-            --christmas-green: #4b0082; /* สีม่วงเข้ม */
-            --gold-gradient: linear-gradient(135deg, #ff9d00 0%, #ff4500 100%);
-            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.9);
-            --btn-icon-l: '🎃';
-            --btn-icon-r: '🦇';
-            --theme-accent: #ff7518;
-            color: #ebd5ff;
+            /* พื้นหลัง: ดำสนิท ไล่ไปหา ส้มเข้มจัด (ต่างจากน้ำเงินแน่นอน) */
+            --primary-bg: radial-gradient(circle at center, #411d00 0%, #1a0f00 40%, #000000 100%);
+            --glass-bg: rgba(15, 10, 5, 0.95); /* กระจกสีดำอมน้ำตาล */
+            --christmas-red: #ff6d00; /* สีส้มฟักทอง */
+            --christmas-green: #39ff14; /* สีเขียวเลเซอร์/ปีศาจ */
+            --gold-gradient: linear-gradient(135deg, #ff9100 0%, #ff4d00 100%);
+            --theme-accent: #ff6d00;
+            --shadow-premium: 0 0 40px rgba(255, 109, 0, 0.2);
+            color: #ffe0b2;
         }
         
-        /* เอฟเฟกต์หมอกควันสีม่วง */
-        body.theme-halloween::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
-            opacity: 0.2; pointer-events: none; z-index: 1;
+        /* เพิ่ม Effect "หยากไย่" หรือ "ควัน" ไว้ที่มุมจอ */
+        body.theme-halloween::after {
+            content: ""; position: fixed; top: 0; right: 0; width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(57, 255, 20, 0.05) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
         }
         
-        /* ปรับปรุงการ์ดตารางให้ดูขลัง */
+        /* ปรับปรุงการ์ด: ขอบต้องเป็นสีส้มเรืองแสง */
         body.theme-halloween .info-card, 
         body.theme-halloween .table-card {
-            background: rgba(30, 10, 50, 0.7) !important;
-            border: 1px solid rgba(255, 117, 24, 0.3) !important;
-            box-shadow: 0 0 25px rgba(255, 117, 24, 0.15);
+            background: rgba(20, 15, 10, 0.8) !important;
+            border: 1px solid #ff6d00 !important; /* ขอบส้มชัดเจน */
+            box-shadow: 0 5px 25px rgba(255, 109, 0, 0.15);
         }
         
+        /* หัวข้อตาราง: ใช้สีเขียวปีศาจตัดกับส้ม */
         body.theme-halloween .table-title-input { 
-            background: #1a0a2e !important; 
-            border: 2px solid #ff7518 !important; 
-            color: #ff9d00 !important; 
+            background: #000000 !important; 
+            border: 2px solid #39ff14 !important; /* ขอบเขียว */
+            color: #ff9100 !important; /* ตัวหนังสือส้ม */
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
         }
-        
-        /* แอนิเมชั่นค้างคาวบิน */
-        @keyframes bat-fly {
-            0% { transform: translate(-10vw, 110vh) rotate(10deg) scale(1); }
-            50% { transform: translate(50vw, 50vh) rotate(-10deg) scale(1.5); }
-            100% { transform: translate(110vw, -10vh) rotate(10deg) scale(1); }
-        }
-        .bat-element {
-            position: fixed; font-size: 30px; pointer-events: none; z-index: 3;
-            animation: bat-fly linear infinite; opacity: 0.7;
-        }
-
     </style>
 </head>
 <body class="theme-christmas">
@@ -559,7 +548,7 @@
         </div>
 
         <div class="theme-card" id="card-halloween" onclick="selectInitialTheme('halloween')">
-            <div class="theme-preview" style="background: #2b1055;">🎃</div>
+            <div class="theme-preview" style="background: linear-gradient(135deg, #ff6d00, #000000);">🎃</div>
             <span>Halloween</span>
         </div>
 
@@ -590,7 +579,7 @@
             <button id="btn-sound-toggle" class="theme-btn" onclick="toggleSound()">
                 <i id="sound-icon" class="fas fa-volume-up"></i> เสียงทั้งระบบ: เปิด
             </button>
-            <button class="theme-btn" onclick="setTheme('halloween')">🎃 Halloween</button>
+            <button class="theme-btn" style="border-color: #ff6d00;" onclick="setTheme('halloween')">🎃 Halloween</button>
             <button id="btn-theme-christmas" class="theme-btn active" onclick="setTheme('christmas')">🎄 Christmas</button>
             <button id="btn-theme-midnight" class="theme-btn" onclick="setTheme('midnight')">🌙 Midnight Gold</button>
             <button id="btn-theme-ocean" class="theme-btn" onclick="setTheme('ocean')">🌊 Ocean Breeze</button>
@@ -776,34 +765,42 @@
         }, 800);
     }
 
-        // ฟังก์ชันสร้างค้างคาวบิน
-function createBats() {
+function createGhost() {
     if (!document.body.classList.contains('theme-halloween')) return;
+
+    const ghost = document.createElement('div');
+    ghost.innerHTML = "👻";
+    ghost.style.position = "fixed";
+    ghost.style.fontSize = Math.random() * (100 - 40) + 40 + "px";
+    ghost.style.left = Math.random() * 90 + "vw";
+    ghost.style.bottom = "-100px";
+    ghost.style.transition = "all 5s ease-in";
+    ghost.style.opacity = "0";
+    ghost.style.zIndex = "9999";
+    ghost.style.pointerEvents = "none";
     
-    const batSymbols = ["🦇", "👻", "🕷️", "💀"];
-    const bat = document.createElement('div');
-    bat.className = "bat-element";
-    bat.innerHTML = batSymbols[Math.floor(Math.random() * batSymbols.length)];
-    
-    bat.style.left = "-50px";
-    bat.style.bottom = "-50px";
-    bat.style.animationDuration = (Math.random() * 4 + 4) + 's';
-    
-    document.body.appendChild(bat);
-    
-    setTimeout(() => { bat.remove(); }, 8000);
+    document.body.appendChild(ghost);
+
+    // อนิเมชั่นลอยขึ้นแล้วหายไป
+    setTimeout(() => {
+        ghost.style.transform = "translateY(-110vh) rotate(20deg)";
+        ghost.style.opacity = "0.4";
+    }, 100);
+
+    setTimeout(() => { ghost.remove(); }, 6000);
 }
 
-// ตรวจสอบธีมและสร้างลูกเล่นทุกๆ 3 วินาที
+// สั่งให้ผีโผล่มาทุกๆ 5 วินาที
 setInterval(() => {
     if (document.body.classList.contains('theme-halloween')) {
-        createBats();
+        createGhost();
     }
-}, 3000);
+}, 5000);
         
     </script>
 </body>
 </html>
+
 
 
 
