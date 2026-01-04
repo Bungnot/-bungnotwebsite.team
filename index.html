@@ -565,6 +565,55 @@
             50% { transform: translate(15px, -25px) rotate(10deg); opacity: 0.7; }
         }
 
+            /* --- 💦 Theme Songkran (Summer Splash) --- */
+        body.theme-songkran {
+            --primary-bg: linear-gradient(180deg, #00b4db 0%, #0083b0 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --theme-accent: #ff007f;
+            --christmas-red: #00d2ff;
+            --christmas-green: #0056b3;
+            --gold-gradient: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            --btn-icon-l: '💦'; --btn-icon-r: '🔫';
+        }
+        body.theme-songkran::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: url('https://www.transparenttextures.com/patterns/water-drops.png'); opacity: 0.3; pointer-events: none; z-index: 0; }
+        
+        /* --- 🪷 Theme Loy Krathong (Moonlight River) --- */
+        body.theme-loykrathong {
+            --primary-bg: radial-gradient(circle at top, #1e3c72 0%, #1a2a6c 50%, #000000 100%);
+            --glass-bg: rgba(15, 32, 67, 0.85);
+            --theme-accent: #ffd700;
+            --christmas-red: #ff9900;
+            --christmas-green: #14452f;
+            --gold-gradient: linear-gradient(135deg, #ffcc33 0%, #d4af37 100%);
+            --btn-icon-l: '🪷'; --btn-icon-r: '🕯️';
+            color: #eee;
+        }
+        body.theme-loykrathong .table-card, body.theme-loykrathong .info-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); color: white; border: 1px solid rgba(255,215,0,0.3); }
+        
+        /* --- 🧧 Theme Chinese New Year (Golden Dragon) --- */
+        body.theme-chinese {
+            --primary-bg: linear-gradient(135deg, #d31027 0%, #ea384d 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --theme-accent: #ffcc00;
+            --christmas-red: #b30000;
+            --christmas-green: #ffd700;
+            --gold-gradient: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+            --btn-icon-l: '🧧'; --btn-icon-r: '🏮';
+        }
+        body.theme-chinese .login-card { border: 3px solid #ffd700; box-shadow: 0 0 25px rgba(255,204,0,0.5); }
+        
+        /* --- 💖 Theme Valentine (Sweet Heart) --- */
+        body.theme-valentine {
+            --primary-bg: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            --glass-bg: rgba(255, 245, 250, 0.92);
+            --theme-accent: #ff4d6d;
+            --christmas-red: #c9184a;
+            --christmas-green: #ff85a1;
+            --gold-gradient: linear-gradient(135deg, #ff4d6d 0%, #ffb3c1 100%);
+            --btn-icon-l: '💖'; --btn-icon-r: '🌹';
+        }
+            
     </style>
 </head>
 <body class="theme-christmas">
@@ -629,6 +678,10 @@
             <button id="btn-theme-midnight" class="theme-btn" onclick="setTheme('midnight')">🌙 Midnight Gold</button>
             <button id="btn-theme-ocean" class="theme-btn" onclick="setTheme('ocean')">🌊 Ocean Breeze</button>
             <button id="btn-theme-halloween" class="theme-btn" onclick="setTheme('halloween')">🎃 Halloween</button>
+            <button id="btn-theme-songkran" class="theme-btn" onclick="setTheme('songkran')">💦 สงกรานต์</button>
+            <button id="btn-theme-loykrathong" class="theme-btn" onclick="setTheme('loykrathong')">🪷 ลอยกระทง</button>
+            <button id="btn-theme-chinese" class="theme-btn" onclick="setTheme('chinese')">🧧 ตรุษจีน</button>
+            <button id="btn-theme-valentine" class="theme-btn" onclick="setTheme('valentine')">💖 วาเลนไทน์</button>
         </div>
     </div>
 
@@ -685,6 +738,41 @@
     <script src="script.js"></script>
 
 <script>
+
+    let currentTheme = 'christmas';
+
+class Flake {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height - height;
+        this.size = Math.random() * 5 + 2;
+        this.speed = Math.random() * 2 + 1;
+        this.velX = Math.random() * 1 - 0.5;
+        this.opacity = Math.random() * 0.5 + 0.3;
+        
+        // กำหนดลักษณะตามธีม
+        const theme = document.body.classList.value;
+        if (theme.includes('theme-valentine')) this.char = '❤️';
+        else if (theme.includes('theme-songkran')) this.char = '💧';
+        else if (theme.includes('theme-chinese')) this.char = '🧧';
+        else if (theme.includes('theme-loykrathong')) this.char = '🕯️';
+        else this.char = '❄️';
+    }
+    update() {
+        this.y += this.speed;
+        this.x += this.velX;
+        if (this.y > height) this.reset();
+    }
+    draw() {
+        ctx.font = `${this.size * 5}px Arial`;
+        ctx.globalAlpha = this.opacity;
+        ctx.fillText(this.char, this.x, this.y);
+    }
+}
+    
 /* --- ส่วนของ JavaScript ทั้งหมด (เวอร์ชันอัปเกรดฮาโลวีน) --- */
 
 // 1. ฟังก์ชันเปลี่ยนธีม (หัวใจหลักของระบบ)
@@ -886,6 +974,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
