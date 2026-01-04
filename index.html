@@ -483,66 +483,76 @@
             filter: blur(1px);
         }
 
-            /* --- 🎃 Halloween Full System 🎃 --- */
+/* --- 🎃 UPGRADED Halloween Full System 🎃 --- */
         body.theme-halloween {
             --primary-bg: radial-gradient(circle at center, #2d0a3d 0%, #1a0524 60%, #050505 100%);
-            --glass-bg: rgba(20, 10, 35, 0.92);
-            --text-primary: #f0f0f0;
-            --accent-color: #ff7518; /* ส้มฟักทอง */
-            --secondary-accent: #9d31ff; /* ม่วงผีหลอก */
-            --gold-gradient: linear-gradient(135deg, #ff7518 0%, #ff4500 100%);
-            color: #fff;
-        }
-        
-        /* ใยแมงมุมที่มุมจอ */
-        .spider-web-top {
-            position: fixed; top: 0; left: 0; width: 250px; height: 250px;
-            background: url('https://www.transparenttextures.com/patterns/stardust.png'), 
-                        url('https://cdn-icons-png.flaticon.com/512/282/282582.png');
-            background-size: contain; background-repeat: no-repeat;
-            opacity: 0.3; z-index: 100; pointer-events: none;
-        }
-        
-        /* ค้างคาวบินสุ่ม */
-        @keyframes bat-fly-anim {
-            0% { transform: translate(-100px, 100px) rotate(10deg); }
-            50% { transform: translate(50vw, -50px) rotate(-10deg); }
-            100% { transform: translate(110vw, 150px) rotate(10deg); }
-        }
-        .bat-animation {
-            position: fixed; font-size: 2.5rem; z-index: 99; pointer-events: none;
-            animation: bat-fly-anim 12s linear infinite; opacity: 0.4;
-        }
-        
-        /* ปรับแต่ง UI ให้ดู Halloween */
-        body.theme-halloween .navbar, body.theme-halloween .footer-bar {
-            background: rgba(10, 5, 20, 0.98);
-            border-bottom: 2px solid var(--accent-color);
-            box-shadow: 0 0 20px rgba(255, 117, 24, 0.4);
-        }
-        
-        body.theme-halloween .table-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--secondary-accent);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(157, 49, 255, 0.2);
-        }
-        
-        body.theme-halloween .table-title-input {
-            color: var(--accent-color) !important;
-            text-shadow: 0 0 8px rgba(255, 117, 24, 0.6);
+            --glass-bg: rgba(15, 5, 25, 0.9);
+            --christmas-red: #ff7518; /* Pumpkin Orange */
+            --christmas-green: #4b0082; /* Indigo Purple */
+            --gold-gradient: linear-gradient(135deg, #ff9d00 0%, #ff5e00 100%);
+            --theme-accent: #ff7518;
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(157, 49, 255, 0.2);
+            color: #f0f0f0;
         }
 
-    /* สีปุ่ม Active เฉพาะของฮาโลวีน */
-        body.theme-halloween #btn-theme-halloween.active {
-            background: linear-gradient(135deg, #ff7518 0%, #ff4500 100%);
-            box-shadow: 0 0 15px rgba(255, 117, 24, 0.8);
-            color: white;
+        /* เอฟเฟกต์หมอก (Fog) */
+        body.theme-halloween::after {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/fog.png');
+            opacity: 0.15; pointer-events: none; z-index: 1; animation: fog-move 60s linear infinite;
         }
+
+        @keyframes fog-move {
+            from { background-position: 0 0; }
+            to { background-position: 1000px 500px; }
+        }
+
+        /* ใยแมงมุมแบบละเอียด */
+        .halloween-web {
+            position: fixed; width: 300px; height: 300px; z-index: 100; pointer-events: none; opacity: 0.6;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); /* เพิ่ม texture */
+        }
+        .web-top-left { top: 0; left: 0; border-top: 150px solid transparent; border-left: 150px solid rgba(255,255,255,0.1); filter: drop-shadow(0 0 5px white); clip-path: polygon(0 0, 100% 0, 0 100%); }
         
-        /* ปรับแต่งไอคอนผีในหน้า Welcome ให้ดูดีขึ้น */
-        #card-halloween .emoji {
-            font-size: 2.2rem;
-            filter: drop-shadow(0 0 10px #ff7518);
+        /* ผีลอย (Ghost) */
+        @keyframes ghost-float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(10px, -20px) rotate(5deg); }
+            75% { transform: translate(-10px, -15px) rotate(-5deg); }
+        }
+        .ghost-mini {
+            position: fixed; font-size: 2.5rem; z-index: 98; pointer-events: none;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
+            animation: ghost-float 5s ease-in-out infinite; opacity: 0.6;
+        }
+
+        /* แมงมุมห้อยตัว */
+        .spider-hang {
+            position: fixed; top: -50px; right: 10%; width: 2px; height: 150px;
+            background: rgba(255,255,255,0.2); z-index: 101; transition: 1s;
+        }
+        .spider-hang::after {
+            content: '🕷️'; position: absolute; bottom: -20px; left: -14px; font-size: 25px;
+        }
+        .spider-hang:hover { top: 0; }
+
+        /* ปรับแต่ง Card ในธีม Halloween */
+        body.theme-halloween .info-card, body.theme-halloween .table-card {
+            background: rgba(30, 10, 50, 0.6) !important;
+            border: 1px solid #ff7518 !important;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 20px rgba(255, 117, 24, 0.2);
+        }
+        body.theme-halloween .table-title-input {
+            background: #1a0524 !important;
+            border-color: #ff7518 !important;
+            color: #ff9d00 !important;
+            box-shadow: 0 0 10px rgba(255, 117, 24, 0.5);
+        }
+        body.theme-halloween .btn-main {
+            background: linear-gradient(135deg, #4b0082 0%, #1a0524 100%) !important;
+            border-color: #ff7518 !important;
+            color: #ff7518 !important;
         }
 
     </style>
@@ -664,8 +674,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
 
-    <script>
-/* --- ส่วนของ JavaScript ทั้งหมด --- */
+<script>
+/* --- ส่วนของ JavaScript ทั้งหมด (เวอร์ชันอัปเกรดฮาโลวีน) --- */
 
 // 1. ฟังก์ชันเปลี่ยนธีม (หัวใจหลักของระบบ)
 function setTheme(name) {
@@ -681,8 +691,8 @@ function setTheme(name) {
     const activeBtn = document.getElementById('btn-theme-' + name);
     if(activeBtn) activeBtn.classList.add('active');
 
-    // --- RESET ระบบพิเศษ ---
-    document.querySelectorAll('.spider-web-top, .bat-animation, .ocean-bubble').forEach(el => el.remove());
+    // --- RESET ระบบพิเศษ (เพิ่มการล้างคลาสตกแต่งใหม่) ---
+    document.querySelectorAll('.spider-web-top, .bat-animation, .ocean-bubble, .halloween-extra').forEach(el => el.remove());
     
     const snowCanvas = document.getElementById('snowCanvas');
     if (snowCanvas) {
@@ -699,18 +709,38 @@ function setTheme(name) {
     if (typeof playSound === 'function') playSound('click');
 }
 
-// 2. ระบบฮาโลวีน (ใยแมงมุม + ค้างคาว)
+// 2. ระบบฮาโลวีน (อัปเกรด: ใยแมงมุม + ค้างคาว + ผี + แมงมุมห้อย)
 function initHalloweenSystem() {
+    // เพิ่มใยแมงมุมที่มุม (ถ้ายังไม่มี)
     if (!document.querySelector('.spider-web-top')) {
         const web = document.createElement('div');
-        web.className = 'spider-web-top';
+        web.className = 'spider-web-top halloween-extra';
         document.body.appendChild(web);
     }
 
-    // เพิ่มค้างคาว 2 ตัวเพื่อความนัว
+    // เพิ่มแมงมุมห้อยตัว (Spider Hang)
+    const spider = document.createElement('div');
+    spider.className = 'halloween-extra';
+    spider.style = "position:fixed; top:0; right:15%; width:2px; height:150px; background:rgba(255,255,255,0.2); z-index:100; animation: spiderHang 8s infinite ease-in-out;";
+    spider.innerHTML = '<div style="position:absolute; bottom:-20px; left:-14px; font-size:25px;">🕷️</div>';
+    document.body.appendChild(spider);
+
+    // เพิ่มผีลอยไปมา (3 ตัว)
+    const ghosts = ['👻', '👻', '💀'];
+    for (let i = 0; i < 3; i++) {
+        const ghost = document.createElement('div');
+        ghost.className = 'halloween-extra';
+        ghost.innerHTML = ghosts[i];
+        ghost.style = `position:fixed; font-size:2rem; opacity:0.6; z-index:99; pointer-events:none; 
+                       top:${Math.random() * 80 + 10}vh; left:${Math.random() * 80 + 10}vw; 
+                       animation: ghostFloat ${5 + i}s infinite ease-in-out;`;
+        document.body.appendChild(ghost);
+    }
+
+    // เพิ่มค้างคาว 2 ตัว (ตามเดิมแต่เพิ่มความนัว)
     for (let i = 0; i < 2; i++) {
         const bat = document.createElement('div');
-        bat.className = 'bat-animation';
+        bat.className = 'bat-animation halloween-extra';
         bat.style.animationDelay = (i * 6) + 's';
         bat.innerHTML = '🦇';
         document.body.appendChild(bat);
@@ -740,27 +770,32 @@ function selectInitialTheme(themeName) {
     if(targetCard) targetCard.classList.add('active');
 
     const btn = document.getElementById('btn-enter');
-    btn.disabled = false;
-    btn.classList.add('ready', 'pulse-effect');
+    if(btn) {
+        btn.disabled = false;
+        btn.classList.add('ready', 'pulse-effect');
+    }
 }
 
 function enterWebsite() {
     const screen = document.getElementById('welcome-screen');
-    screen.style.transform = 'scale(1.1)';
-    screen.style.opacity = '0';
-    setTimeout(() => { screen.style.visibility = 'hidden'; }, 800);
+    if(screen) {
+        screen.style.transform = 'scale(1.1)';
+        screen.style.opacity = '0';
+        setTimeout(() => { screen.style.visibility = 'hidden'; }, 800);
+    }
 }
 
 // 5. เมื่อโหลดหน้าจอเสร็จ
 window.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('admin_selected_theme') || 'christmas';
     setTheme(savedTheme);
-    initSnow(); // เรียกฟังก์ชันหิมะทิ้งไว้ (แต่จะถูกซ่อน/โชว์ด้วย CSS ใน setTheme)
+    initSnow(); 
 });
 
-/* --- ฟีเจอร์หิมะ (คงเดิมตามที่คุณส่งมา) --- */
+/* --- ฟีเจอร์หิมะ (คงเดิม) --- */
 function initSnow() {
     const canvas = document.getElementById('snowCanvas');
+    if(!canvas) return;
     const ctx = canvas.getContext('2d');
     let width, height, flakes = [];
 
@@ -799,7 +834,6 @@ function initSnow() {
 
     function animate() {
         ctx.clearRect(0, 0, width, height);
-        // แสดงหิมะเฉพาะตอนเป็นธีมคริสต์มาส
         if (document.body.classList.contains('theme-christmas')) {
             flakes.forEach(f => { f.update(); f.draw(); });
         }
@@ -809,10 +843,11 @@ function initSnow() {
     window.addEventListener('resize', updateSize);
     updateSize();
     animate();
-}        
-    </script>
+}       
+</script>
 </body>
 </html>
+
 
 
 
