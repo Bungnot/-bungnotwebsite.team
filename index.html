@@ -483,6 +483,68 @@
             filter: blur(1px);
         }
 
+            /* --- 🎃 Halloween Full System 🎃 --- */
+        body.theme-halloween {
+            --primary-bg: radial-gradient(circle at center, #2d0a3d 0%, #1a0524 60%, #050505 100%);
+            --glass-bg: rgba(20, 10, 35, 0.92);
+            --text-primary: #f0f0f0;
+            --accent-color: #ff7518; /* ส้มฟักทอง */
+            --secondary-accent: #9d31ff; /* ม่วงผีหลอก */
+            --gold-gradient: linear-gradient(135deg, #ff7518 0%, #ff4500 100%);
+            color: #fff;
+        }
+        
+        /* ใยแมงมุมที่มุมจอ */
+        .spider-web-top {
+            position: fixed; top: 0; left: 0; width: 250px; height: 250px;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png'), 
+                        url('https://cdn-icons-png.flaticon.com/512/282/282582.png');
+            background-size: contain; background-repeat: no-repeat;
+            opacity: 0.3; z-index: 100; pointer-events: none;
+        }
+        
+        /* ค้างคาวบินสุ่ม */
+        @keyframes bat-fly-anim {
+            0% { transform: translate(-100px, 100px) rotate(10deg); }
+            50% { transform: translate(50vw, -50px) rotate(-10deg); }
+            100% { transform: translate(110vw, 150px) rotate(10deg); }
+        }
+        .bat-animation {
+            position: fixed; font-size: 2.5rem; z-index: 99; pointer-events: none;
+            animation: bat-fly-anim 12s linear infinite; opacity: 0.4;
+        }
+        
+        /* ปรับแต่ง UI ให้ดู Halloween */
+        body.theme-halloween .navbar, body.theme-halloween .footer-bar {
+            background: rgba(10, 5, 20, 0.98);
+            border-bottom: 2px solid var(--accent-color);
+            box-shadow: 0 0 20px rgba(255, 117, 24, 0.4);
+        }
+        
+        body.theme-halloween .table-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--secondary-accent);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(157, 49, 255, 0.2);
+        }
+        
+        body.theme-halloween .table-title-input {
+            color: var(--accent-color) !important;
+            text-shadow: 0 0 8px rgba(255, 117, 24, 0.6);
+        }
+
+    /* สีปุ่ม Active เฉพาะของฮาโลวีน */
+        body.theme-halloween #btn-theme-halloween.active {
+            background: linear-gradient(135deg, #ff7518 0%, #ff4500 100%);
+            box-shadow: 0 0 15px rgba(255, 117, 24, 0.8);
+            color: white;
+        }
+        
+        /* ปรับแต่งไอคอนผีในหน้า Welcome ให้ดูดีขึ้น */
+        #card-halloween .emoji {
+            font-size: 2.2rem;
+            filter: drop-shadow(0 0 10px #ff7518);
+        }
+
     </style>
 </head>
 <body class="theme-christmas">
@@ -510,7 +572,11 @@
                 <span class="emoji">🌊</span>
                 <label>Ocean</label>
             </div>
+            <div id="card-halloween" class="theme-card" onclick="selectInitialTheme('halloween')">
+                <span class="emoji">🎃</span><label>Halloween</label>
+            </div>
         </div>
+
 
         <button id="btn-enter" class="btn-enter-web" onclick="enterWebsite()" disabled style="opacity: 0.6; cursor: not-allowed; background: #94a3b8; border: none; font-size: 1.2rem; transition: 0.5s;">
             <span class="flare"></span>
@@ -542,6 +608,7 @@
             <button id="btn-theme-christmas" class="theme-btn active" onclick="setTheme('christmas')">🎄 Christmas</button>
             <button id="btn-theme-midnight" class="theme-btn" onclick="setTheme('midnight')">🌙 Midnight Gold</button>
             <button id="btn-theme-ocean" class="theme-btn" onclick="setTheme('ocean')">🌊 Ocean Breeze</button>
+            <button id="btn-theme-halloween" class="theme-btn" onclick="setTheme('halloween')">🎃 Halloween</button>
         </div>
     </div>
 
@@ -598,135 +665,155 @@
     <script src="script.js"></script>
 
     <script>
-        function setTheme(themeName) {
-            document.body.classList.remove('theme-christmas', 'theme-midnight', 'theme-ocean');
-            document.body.classList.add('theme-' + themeName);
-            localStorage.setItem('admin_selected_theme', themeName);
-            
-            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.getElementById('btn-theme-' + themeName);
-            if(activeBtn) activeBtn.classList.add('active');
+/* --- ส่วนของ JavaScript ทั้งหมด --- */
 
-            if(themeName === 'ocean') {
-                createBubbles();
-            } else {
-                document.querySelectorAll('.ocean-bubble').forEach(b => b.remove());
-            }
+// 1. ฟังก์ชันเปลี่ยนธีม (หัวใจหลักของระบบ)
+function setTheme(name) {
+    // ล้าง Class เก่า
+    document.body.classList.remove('theme-christmas', 'theme-midnight', 'theme-ocean', 'theme-halloween');
+    document.body.classList.add('theme-' + name);
+    
+    // บันทึกค่า
+    localStorage.setItem('admin_selected_theme', name);
+    
+    // อัปเดตสถานะปุ่มใน Dashboard
+    document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById('btn-theme-' + name);
+    if(activeBtn) activeBtn.classList.add('active');
 
-            if (typeof playSound === 'function') {
-                playSound('click');
-            }
-        }
-
-        function createBubbles() {
-            document.querySelectorAll('.ocean-bubble').forEach(b => b.remove());
-            if (!document.body.classList.contains('theme-ocean')) return;
-
-            for (let i = 0; i < 20; i++) {
-                const bubble = document.createElement('div');
-                bubble.className = 'ocean-bubble';
-                const size = Math.random() * 20 + 5 + 'px';
-                bubble.style.width = size;
-                bubble.style.height = size;
-                bubble.style.left = Math.random() * 100 + 'vw';
-                bubble.style.animationDuration = Math.random() * 5 + 5 + 's';
-                bubble.style.animationDelay = Math.random() * 5 + 's';
-                document.body.appendChild(bubble);
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('admin_selected_theme') || 'christmas';
-            setTheme(savedTheme);
-            initSnow();
-        });
-
-        /* --- ฟีเจอร์หิมะสำหรับคริสต์มาส --- */
-        function initSnow() {
-            const canvas = document.getElementById('snowCanvas');
-            const ctx = canvas.getContext('2d');
-            let width, height, flakes = [];
-
-            function updateSize() {
-                width = window.innerWidth;
-                height = window.innerHeight;
-                canvas.width = width;
-                canvas.height = height;
-            }
-
-            class Flake {
-                constructor() {
-                    this.x = Math.random() * width;
-                    this.y = Math.random() * height;
-                    this.size = Math.random() * 3 + 1;
-                    this.speed = Math.random() * 1 + 0.5;
-                    this.velX = Math.random() * 0.5 - 0.25;
-                }
-                update() {
-                    this.y += this.speed;
-                    this.x += this.velX;
-                    if (this.y > height) {
-                        this.y = -10;
-                        this.x = Math.random() * width;
-                    }
-                }
-                draw() {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-
-            for (let i = 0; i < 100; i++) flakes.push(new Flake());
-
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                if (document.body.classList.contains('theme-christmas')) {
-                    flakes.forEach(f => { f.update(); f.draw(); });
-                }
-                requestAnimationFrame(animate);
-            }
-
-            window.addEventListener('resize', updateSize);
-            updateSize();
-            animate();
-        }
-
-        function enterWebsite() {
-            const screen = document.getElementById('welcome-screen');
-            screen.style.opacity = '0';
-            setTimeout(() => {
-                screen.style.visibility = 'hidden';
-            }, 800);
-        }
-
-    function selectInitialTheme(themeName) {
-        // เรียกใช้ฟังก์ชันเดิมเพื่อเปลี่ยนพื้นหลัง
-        setTheme(themeName); 
-        
-        // อัปเดต UI ของการ์ด
-        document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
-        document.getElementById('card-' + themeName).classList.add('active');
-
-        // ปลดล็อกปุ่มเข้าเว็บ
-        const btn = document.getElementById('btn-enter');
-        btn.disabled = false;
-        btn.classList.add('ready', 'pulse-effect');
+    // --- RESET ระบบพิเศษ ---
+    document.querySelectorAll('.spider-web-top, .bat-animation, .ocean-bubble').forEach(el => el.remove());
+    
+    const snowCanvas = document.getElementById('snowCanvas');
+    if (snowCanvas) {
+        snowCanvas.style.display = (name === 'christmas') ? 'block' : 'none';
     }
 
-    function enterWebsite() {
-        const screen = document.getElementById('welcome-screen');
-        screen.style.transform = 'scale(1.1)';
-        screen.style.opacity = '0';
-        setTimeout(() => {
-            screen.style.visibility = 'hidden';
-        }, 800);
+    // --- โหลดระบบใหม่ ---
+    if (name === 'halloween') {
+        initHalloweenSystem();
+    } else if (name === 'ocean') {
+        createBubbles();
     }
-        
+
+    if (typeof playSound === 'function') playSound('click');
+}
+
+// 2. ระบบฮาโลวีน (ใยแมงมุม + ค้างคาว)
+function initHalloweenSystem() {
+    if (!document.querySelector('.spider-web-top')) {
+        const web = document.createElement('div');
+        web.className = 'spider-web-top';
+        document.body.appendChild(web);
+    }
+
+    // เพิ่มค้างคาว 2 ตัวเพื่อความนัว
+    for (let i = 0; i < 2; i++) {
+        const bat = document.createElement('div');
+        bat.className = 'bat-animation';
+        bat.style.animationDelay = (i * 6) + 's';
+        bat.innerHTML = '🦇';
+        document.body.appendChild(bat);
+    }
+}
+
+// 3. ระบบฟองอากาศ (Ocean)
+function createBubbles() {
+    for (let i = 0; i < 20; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'ocean-bubble';
+        const size = Math.random() * 20 + 5 + 'px';
+        bubble.style.width = size;
+        bubble.style.height = size;
+        bubble.style.left = Math.random() * 100 + 'vw';
+        bubble.style.animationDuration = Math.random() * 5 + 5 + 's';
+        bubble.style.animationDelay = Math.random() * 5 + 's';
+        document.body.appendChild(bubble);
+    }
+}
+
+// 4. หน้าแรก (Welcome Screen)
+function selectInitialTheme(themeName) {
+    setTheme(themeName); 
+    document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
+    const targetCard = document.getElementById('card-' + themeName);
+    if(targetCard) targetCard.classList.add('active');
+
+    const btn = document.getElementById('btn-enter');
+    btn.disabled = false;
+    btn.classList.add('ready', 'pulse-effect');
+}
+
+function enterWebsite() {
+    const screen = document.getElementById('welcome-screen');
+    screen.style.transform = 'scale(1.1)';
+    screen.style.opacity = '0';
+    setTimeout(() => { screen.style.visibility = 'hidden'; }, 800);
+}
+
+// 5. เมื่อโหลดหน้าจอเสร็จ
+window.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('admin_selected_theme') || 'christmas';
+    setTheme(savedTheme);
+    initSnow(); // เรียกฟังก์ชันหิมะทิ้งไว้ (แต่จะถูกซ่อน/โชว์ด้วย CSS ใน setTheme)
+});
+
+/* --- ฟีเจอร์หิมะ (คงเดิมตามที่คุณส่งมา) --- */
+function initSnow() {
+    const canvas = document.getElementById('snowCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height, flakes = [];
+
+    function updateSize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+
+    class Flake {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.size = Math.random() * 3 + 1;
+            this.speed = Math.random() * 1 + 0.5;
+            this.velX = Math.random() * 0.5 - 0.25;
+        }
+        update() {
+            this.y += this.speed;
+            this.x += this.velX;
+            if (this.y > height) {
+                this.y = -10;
+                this.x = Math.random() * width;
+            }
+        }
+        draw() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < 100; i++) flakes.push(new Flake());
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        // แสดงหิมะเฉพาะตอนเป็นธีมคริสต์มาส
+        if (document.body.classList.contains('theme-christmas')) {
+            flakes.forEach(f => { f.update(); f.draw(); });
+        }
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', updateSize);
+    updateSize();
+    animate();
+}        
     </script>
 </body>
 </html>
+
 
 
 
