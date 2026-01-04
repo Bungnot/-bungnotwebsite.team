@@ -720,37 +720,66 @@ function setTheme(name) {
 }
 
 // 2. ระบบฮาโลวีน (อัปเกรด: ใยแมงมุม + ค้างคาว + ผี + แมงมุมห้อย)
+// 2. ระบบฮาโลวีน (อัปเกรด: ไม่ขวางตาราง)
 function initHalloweenSystem() {
-    // เพิ่มใยแมงมุมที่มุม (ถ้ายังไม่มี)
+    // ล้างตัวตกแต่งเก่าถ้ามี
+    document.querySelectorAll('.halloween-extra').forEach(el => el.remove());
+
+    // 1. เพิ่มใยแมงมุมที่มุมจอ (Z-index ต่ำ เพื่อไม่ให้บังปุ่ม)
     if (!document.querySelector('.spider-web-top')) {
         const web = document.createElement('div');
         web.className = 'spider-web-top halloween-extra';
+        // ปรับให้จางลงและอยู่หลังสุด
+        web.style.zIndex = "1"; 
+        web.style.opacity = "0.2";
         document.body.appendChild(web);
     }
 
-    // เพิ่มแมงมุมห้อยตัว (Spider Hang)
-    const spider = document.createElement('div');
-    spider.className = 'halloween-extra';
-    spider.style = "position:fixed; top:0; right:15%; width:2px; height:150px; background:rgba(255,255,255,0.2); z-index:100; animation: spiderHang 8s infinite ease-in-out;";
-    spider.innerHTML = '<div style="position:absolute; bottom:-20px; left:-14px; font-size:25px;">🕷️</div>';
-    document.body.appendChild(spider);
-
-    // เพิ่มผีลอยไปมา (3 ตัว)
-    const ghosts = ['👻', '👻', '💀'];
-    for (let i = 0; i < 3; i++) {
+    // 2. เพิ่มผีลอย (ให้ลอยแค่บริเวณขอบจอซ้าย-ขวา ไม่ให้ทับกลางตาราง)
+    const ghostIcons = ['👻', '💀'];
+    for (let i = 0; i < 4; i++) {
         const ghost = document.createElement('div');
         ghost.className = 'halloween-extra';
-        ghost.innerHTML = ghosts[i];
-        ghost.style = `position:fixed; font-size:2rem; opacity:0.6; z-index:99; pointer-events:none; 
-                       top:${Math.random() * 80 + 10}vh; left:${Math.random() * 80 + 10}vw; 
-                       animation: ghostFloat ${5 + i}s infinite ease-in-out;`;
+        ghost.innerHTML = ghostIcons[i % 2];
+        
+        // สุ่มให้อยู่แค่ขอบจอซ้าย (0-15%) หรือขอบจอขวา (85-100%)
+        const side = Math.random() > 0.5 ? Math.random() * 15 : 85 + (Math.random() * 10);
+        
+        ghost.style = `
+            position: fixed; 
+            font-size: 2rem; 
+            opacity: 0.3; 
+            z-index: 1; 
+            pointer-events: none; 
+            top: ${Math.random() * 80 + 10}vh; 
+            left: ${side}vw; 
+            animation: ghostFloat ${6 + i}s infinite ease-in-out;
+        `;
         document.body.appendChild(ghost);
     }
 
-    // เพิ่มค้างคาว 2 ตัว (ตามเดิมแต่เพิ่มความนัว)
+    // 3. แมงมุมห้อยตัว (ย้ายไปไว้มุมขวาสุดเพื่อไม่ให้บังปุ่ม X)
+    const spiderHang = document.createElement('div');
+    spiderHang.className = 'halloween-extra';
+    spiderHang.style = `
+        position: fixed; 
+        top: 0; 
+        right: 5%; 
+        width: 1px; 
+        height: 100px; 
+        background: rgba(255,255,255,0.1); 
+        z-index: 1; 
+        animation: spiderHang 10s infinite ease-in-out;
+    `;
+    spiderHang.innerHTML = '<div style="position:absolute; bottom:-20px; left:-14px; font-size:20px; opacity:0.4;">🕷️</div>';
+    document.body.appendChild(spiderHang);
+
+    // 4. ค้างคาว (ให้บินอยู่ชั้นหลังสุด)
     for (let i = 0; i < 2; i++) {
         const bat = document.createElement('div');
         bat.className = 'bat-animation halloween-extra';
+        bat.style.zIndex = "1"; 
+        bat.style.opacity = "0.2";
         bat.style.animationDelay = (i * 6) + 's';
         bat.innerHTML = '🦇';
         document.body.appendChild(bat);
@@ -857,6 +886,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
