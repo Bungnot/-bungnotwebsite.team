@@ -569,25 +569,32 @@
 </head>
 <body class="theme-christmas">
 
-<div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a3a32, #0f1b2a); z-index: 10000; display: flex; align-items: center; justify-content: center; font-family: 'Sarabun', sans-serif;">
-    <div style="background: white; padding: 2.5rem; border-radius: 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 350px; border: 2px solid #ffdf91;">
-        <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" width="100" style="border-radius: 50%; margin-bottom: 1rem; border: 3px solid #d42426;">
-        <h2 style="color: #1a3a32; margin-bottom: 5px;">ADMIN LOGIN</h2>
-        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+
+<div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a3a32, #0f1b2a); z-index: 99999; display: flex; align-items: center; justify-content: center; font-family: 'Sarabun', sans-serif;">
+    <div style="background: white; padding: 2.5rem; border-radius: 20px; text-align: center; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <img src="https://img2.pic.in.th/pic/unnamed-61092ef0931d49b03.jpg" width="80" style="border-radius: 50%; margin-bottom: 1rem;">
+        <h2 style="color: #d42426; margin: 0 0 15px 0;">ADMIN LOGIN</h2>
         
-        <input type="password" id="admin-pass" placeholder="รหัสผ่านแอดมิน" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; text-align: center;">
+        <select id="admin-user" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;">
+            <option value="Admin1">แอดมินคนที่ 1</option>
+            <option value="Admin2">แอดมินคนที่ 2</option>
+            <option value="Admin3">แอดมินคนที่ 3</option>
+            <option value="Admin4">แอดมินคนที่ 4</option>
+        </select>
         
-        <div style="margin-bottom: 20px; text-align: left; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <input type="checkbox" id="remember-me" style="width: 18px; height: 18px; cursor: pointer;"> 
-            <label for="remember-me" style="cursor: pointer; color: #333;">จดจำการเข้าระบบ</label>
+        <input type="password" id="admin-pass" placeholder="กรอกรหัสผ่าน" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+        
+        <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <input type="checkbox" id="remember-me" style="width: 18px; height: 18px;"> 
+            <label for="remember-me" style="color: #333;">จดจำรหัสผ่าน</label>
         </div>
         
-        <button onclick="checkLogin()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #d42426, #8b1a1a); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.3s;">ตกลง</button>
-        
-        <p id="login-msg" style="color: #d42426; font-size: 14px; margin-top: 15px; font-weight: bold;"></p>
+        <button onclick="checkLogin()" style="width: 100%; padding: 12px; background: #d42426; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 18px;">ตกลง</button>
+        <p id="login-msg" style="color: red; margin-top: 15px; font-size: 14px; font-weight: bold;"></p>
     </div>
 </div>
-
     
     <canvas id="confetti-canvas"></canvas>
     <canvas class="snow-canvas" id="snowCanvas"></canvas>
@@ -907,4 +914,5 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
