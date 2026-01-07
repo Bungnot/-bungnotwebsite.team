@@ -15,34 +15,81 @@ const ADMIN_USERS = {
 let mySessionId = Math.random().toString(36).substring(7);
 let activeUser = null;
 
+// 1. เพิ่ม Event Listener สำหรับปุ่ม Enter
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Enter") {
+        const loginScreen = document.getElementById('login_screen');
+        // ตรวจสอบว่าหน้า Login กำลังแสดงอยู่หรือไม่
+        if (loginScreen && loginScreen.style.display !== 'none') {
+            attemptLogin();
+        }
+    }
+});
+
+// 2. ปรับปรุงฟังก์ชัน attemptLogin
 async function attemptLogin() {
     const user = document.getElementById('login_user').value.trim();
     const pass = document.getElementById('login_pass').value;
-    const errorBox = document.getElementById('login_error');
+    const loginBox = document.querySelector('.login-container');
 
-    if (ADMIN_USERS[user] !== pass) {
-        errorBox.innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
-        errorBox.style.display = 'block';
+    if (!user || !pass) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'กรุณากรอกข้อมูล',
+            text: 'ใส่อินพุตให้ครบถ้วนด้วยครับแอด',
+            confirmButtonColor: '#d42426'
+        });
         return;
     }
 
-    // ตรวจสอบกับ Database กลางว่า User นี้ออนไลน์ที่อื่นอยู่ไหม
+    if (ADMIN_USERS[user] !== pass) {
+        // เอฟเฟกต์สั่นเมื่อรหัสผิด
+        loginBox.classList.add('shake');
+        setTimeout(() => loginBox.classList.remove('shake'), 400);
+
+        Swal.fire({
+            icon: 'error',
+            title: 'เข้าสู่ระบบล้มเหลว',
+            text: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!',
+            confirmButtonColor: '#d42426',
+            timer: 2000
+        });
+        return;
+    }
+
+    // ตรวจสอบกับ Database กลาง
     const userRef = db.ref('online_status/' + user);
     const snapshot = await userRef.once('value');
     const status = snapshot.val();
 
     if (status && status.isOnline) {
         const now = Date.now();
-        // ถ้ามีการอัปเดตสถานะล่าสุดไม่เกิน 10 วินาที แสดงว่ากำลังเล่นอยู่จริงๆ
-        if (now - status.lastSeen < 10000) {
-            alert("User นี้กำลังใช้งานอยู่ในเบราว์เซอร์หรือเครื่องอื่น! กรุณารอ 10 วินาทีหลังปิดเครื่องนั้น");
+        if (now - status.lastUpdate < 10000) {
+            Swal.fire({
+                icon: 'info',
+                title: 'บัญชีมีการใช้งานอยู่',
+                text: 'ชื่อผู้ใช้นี้กำลังออนไลน์อยู่ในเครื่องอื่น...',
+                confirmButtonText: 'รับทราบ'
+            });
             return;
         }
     }
 
-    // ผ่านการเช็ค -> ทำการล็อคเครื่องนี้
+    // ถ้าผ่านหมด ให้ Login
     activeUser = user;
-    enterSystem();
+    
+    // แจ้งเตือนสำเร็จก่อนเข้าหน้าหลัก
+    Swal.fire({
+        icon: 'success',
+        title: 'ยินดีต้อนรับครับแอด!',
+        text: `กำลังเข้าสู่ระบบ: ${user}`,
+        showConfirmButton: false,
+        timer: 1500
+    }).then(() => {
+        document.getElementById('login_screen').style.display = 'none';
+        document.getElementById('admin_panel').style.display = 'block';
+        startHeartbeat(user);
+    });
 }
 
 function enterSystem() {
