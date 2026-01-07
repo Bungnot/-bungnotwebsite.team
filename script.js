@@ -1,60 +1,81 @@
-const VALID_USERS = {
-    'admin1': '1111', 'admin2': '2222', 'admin3': '3333', 'admin4': '4444'
+// ตั้งค่า Firebase เพื่อใช้เป็นตัวกลางเช็คการเข้าซ้อน
+const firebaseConfig = {
+    databaseURL: "https://your-project-id.firebaseio.com/" // *** ต้องเปลี่ยนเป็น URL ของคุณ ***
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const ADMIN_USERS = {
+    'admin1': '1111',
+    'admin2': '2222',
+    'admin3': '3333',
+    'admin4': '4444'
 };
 
-let currentSessionId = null;
-let currentUsername = null;
+let mySessionId = Math.random().toString(36).substring(7);
+let activeUser = null;
 
-function attemptLogin() {
+async function attemptLogin() {
     const user = document.getElementById('login_user').value.trim();
     const pass = document.getElementById('login_pass').value;
     const errorBox = document.getElementById('login_error');
-    const errorText = document.getElementById('error_text');
 
-    if (VALID_USERS[user] !== pass) {
-        errorText.innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+    if (ADMIN_USERS[user] !== pass) {
+        errorBox.innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
         errorBox.style.display = 'block';
         return;
     }
 
-    const lockKey = 'rocket_lock_' + user;
-    const existingLock = JSON.parse(localStorage.getItem(lockKey) || 'null');
-    
-    // ตรวจสอบว่ามีคนใช้อยู่ไหม (ภายใน 5 วินาทีล่าสุด)
-    if (existingLock && (Date.now() - existingLock.timestamp < 5000)) {
-        alert("User นี้กำลังใช้งานอยู่ในเครื่องหรือหน้าต่างอื่น!");
-        return;
+    // ตรวจสอบกับ Database กลางว่า User นี้ออนไลน์ที่อื่นอยู่ไหม
+    const userRef = db.ref('online_status/' + user);
+    const snapshot = await userRef.once('value');
+    const status = snapshot.val();
+
+    if (status && status.isOnline) {
+        const now = Date.now();
+        // ถ้ามีการอัปเดตสถานะล่าสุดไม่เกิน 10 วินาที แสดงว่ากำลังเล่นอยู่จริงๆ
+        if (now - status.lastSeen < 10000) {
+            alert("User นี้กำลังใช้งานอยู่ในเบราว์เซอร์หรือเครื่องอื่น! กรุณารอ 10 วินาทีหลังปิดเครื่องนั้น");
+            return;
+        }
     }
 
-    currentUsername = user;
-    currentSessionId = Math.random().toString(36).substring(7);
-    
-    // บันทึกสถานะและเริ่มระบบตรวจสอบการซ้อน (Heartbeat)
-    updateHeartbeat();
-    setInterval(updateHeartbeat, 2000);
+    // ผ่านการเช็ค -> ทำการล็อคเครื่องนี้
+    activeUser = user;
+    enterSystem();
+}
 
+function enterSystem() {
     document.getElementById('login-gate').style.display = 'none';
     document.getElementById('main-content-wrapper').style.display = 'block';
 
-    // ดักจับถ้ามีการ Login จากหน้าต่างอื่น
-    window.addEventListener('storage', (e) => {
-        if (e.key === lockKey) {
-            const newLock = JSON.parse(e.newValue);
-            if (newLock && newLock.sid !== currentSessionId) {
-                alert("มีการเข้าใช้งานจากที่อื่น ระบบจะปิดหน้านี้");
-                location.reload();
-            }
+    const userRef = db.ref('online_status/' + activeUser);
+
+    // ส่งสัญญาณ "หัวใจเต้น" ทุก 5 วินาที เพื่อบอกว่าเครื่องนี้ยังใช้อยู่
+    setInterval(() => {
+        userRef.set({
+            isOnline: true,
+            lastSeen: firebase.database.ServerValue.TIMESTAMP,
+            sessionId: mySessionId
+        });
+    }, 5000);
+
+    // ดักฟังว่าถ้ามี SessionId อื่นมาเขียนทับ (แสดงว่ามีคน Login ใหม่จากที่อื่น) ให้เตะคนเก่าออก
+    userRef.on('value', (snap) => {
+        const data = snap.val();
+        if (data && data.sessionId !== mySessionId) {
+            alert("บัญชีของคุณมีการเข้าใช้งานจากที่อื่น หน้านี้จะถูกปิด");
+            location.reload();
         }
     });
 }
 
-function updateHeartbeat() {
-    if (!currentUsername) return;
-    localStorage.setItem('rocket_lock_' + currentUsername, JSON.stringify({
-        timestamp: Date.now(),
-        sid: currentSessionId
-    }));
-}
+// เมื่อปิดหน้าเว็บ ให้ปลดล็อคทันที
+window.onbeforeunload = () => {
+    if (activeUser) {
+        db.ref('online_status/' + activeUser).update({ isOnline: false });
+    }
+};
 
 function updateIndividualTableSummaries() {
     document.querySelectorAll(".table-container").forEach(tableWrapper => {
