@@ -10,49 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-
-            /* ตกแต่งหน้า Login ให้ดูพรีเมียม */
-        .login-card {
-            background: rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
-            border-radius: 25px !important;
-        }
-        
-        /* สไตล์สำหรับ Alert Popup */
-        .custom-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 10000;
-            display: none;
-            backdrop-filter: blur(5px);
-        }
-        
-        .custom-alert {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.7);
-            background: #fff;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            width: 320px;
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 10001;
-        }
-        
-        .custom-alert.active {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-        }
-        
-        #alert-icon { font-size: 50px; margin-bottom: 15px; }
-        #alert-title { color: #333; font-weight: bold; margin-bottom: 10px; }
-        #alert-message { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
-    
         :root {
             /* Christmas Luxury Pro Palette (Default) */
             --primary-bg: radial-gradient(circle at center, #1a3a32 0%, #0f1b2a 50%, #2d0a0a 100%);
@@ -613,31 +570,6 @@
 <body class="theme-christmas">
     <canvas id="confetti-canvas"></canvas>
     <canvas class="snow-canvas" id="snowCanvas"></canvas>
-
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
-<div id="login-gate" style="position: fixed; inset: 0; z-index: 10000; background: var(--primary-bg); display: flex; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 40px; border-radius: 25px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 2px solid #ffdf91;">
-        <div style="background: var(--gold-gradient); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-            <i class="fas fa-lock" style="font-size: 30px; color: #1a3a32;"></i>
-        </div>
-        <h2 style="color: #1a3a32; margin-bottom: 5px; font-weight: 800;">ADMIN ROCKET</h2>
-        <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">กรุณาลงชื่อเข้าใช้ (จำกัด 1 บัญชีต่อ 1 เครื่อง)</p>
-        
-        <input type="text" id="login_user" placeholder="ชื่อผู้ใช้" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1.5px solid #e2e8f0; border-radius: 12px; outline: none;">
-        <input type="password" id="login_pass" placeholder="รหัสผ่าน" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1.5px solid #e2e8f0; border-radius: 12px; outline: none;">
-        
-        <button onclick="attemptLogin()" style="width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--gold-gradient); color: #1a3a32; font-weight: 800; cursor: pointer; font-size: 16px;">
-            เข้าสู่ระบบ <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
-        </button>
-        <div id="login_error" style="color: #d42426; font-size: 13px; margin-top: 15px; display: none; background: #fee2e2; padding: 10px; border-radius: 8px;"></div>
-    </div>
-</div>
-
-<div id="main-content-wrapper" style="display: none;">
-    </div>
-    
 <div id="welcome-screen">
     <div class="welcome-box" style="padding: 40px 30px; border-radius: 50px; background: rgba(255,255,255,0.95); backdrop-filter: blur(25px);">
         <div class="logo-wrapper">
@@ -740,17 +672,6 @@
             <div id="modal-msg" style="color: #475569; margin-bottom: 10px; line-height: 1.6;"></div>
             <div id="modal-actions" class="modal-actions" style="display: flex; justify-content: center; gap: 15px;"></div>
         </div>
-    </div>
-
-        <div id="custom-overlay" class="custom-overlay"></div>
-    <div id="custom-alert" class="custom-alert">
-        <div id="alert-icon">⚠️</div>
-        <div id="alert-title">แจ้งเตือน</div>
-        <div id="alert-message">ข้อความแจ้งเตือน</div>
-        <button id="close-alert-btn" onclick="closeCustomAlert()" class="btn-enter-web" 
-                style="width: 100%; padding: 10px; font-size: 1rem;">
-            ตกลง (Enter)
-        </button>
     </div>
 
     <footer style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
@@ -965,7 +886,3 @@ function initSnow() {
 </script>
 </body>
 </html>
-
-
-
-
