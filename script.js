@@ -1,6 +1,64 @@
 /**
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
+
+// รายชื่อ User และ Password
+const USERS = {
+    'admin01': '9999',
+    'admin02': '8888',
+    'admin03': '7777',
+    'admin04': '6666'
+};
+
+function handleLogin() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const errorMsg = document.getElementById('loginError');
+
+    // 1. ตรวจสอบรหัสผ่าน
+    if (USERS[user] && USERS[user] === pass) {
+        
+        // 2. ระบบกันรันซ้อน (Single Session per Browser/PC)
+        // ใช้ BroadcastChannel เพื่อคุยกันระหว่าง Tab ใน Browser เดียวกัน
+        const channel = new BroadcastChannel('rocket_auth_channel');
+        
+        // เช็คว่ามีคนอื่นใช้ User นี้อยู่หรือไม่
+        const sessionKey = 'active_user_' + user;
+        if (localStorage.getItem(sessionKey)) {
+            alert("User นี้กำลังเข้าใช้งานในหน้าต่างอื่น หรือเครื่องนี้อยู่แล้ว!");
+            return;
+        }
+
+        // บันทึกการเข้าใช้งาน
+        localStorage.setItem(sessionKey, 'true');
+        localStorage.setItem('currentUser', user);
+
+        // แสดงหน้าหลัก
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+
+        // เมื่อปิดหน้าจอ หรือปิด Tab ให้ล้างสถานะ
+        window.addEventListener('beforeunload', function() {
+            localStorage.removeItem(sessionKey);
+            localStorage.removeItem('currentUser');
+        });
+
+    } else {
+        errorMsg.style.display = 'block';
+        errorMsg.innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+    }
+}
+
+// ตรวจสอบสถานะตอนโหลดหน้าใหม่
+window.onload = function() {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+        // ถ้าเคยล็อคอินแล้ว ให้ล้างค่าเก่าออกก่อนเพื่อให้เข้าใหม่ได้ (กรณีเผลอปิด Browser)
+        localStorage.removeItem('active_user_' + currentUser);
+        localStorage.removeItem('currentUser');
+    }
+}
+
 function updateIndividualTableSummaries() {
     document.querySelectorAll(".table-container").forEach(tableWrapper => {
         const nameSummary = {};
