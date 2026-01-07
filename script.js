@@ -6,10 +6,10 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const ADMIN_USERS = {
-    'admin1': '1111',
-    'admin2': '2222',
-    'admin3': '3333',
-    'admin4': '4444'
+    'bukdo': '1111',
+    'inwyo789': '2222',
+    'boomz789': '3333',
+    'bungnot': '4444'
 };
 
 let mySessionId = Math.random().toString(36).substring(7);
