@@ -18,33 +18,58 @@ let activeUser = null;
 async function attemptLogin() {
     const user = document.getElementById('login_user').value.trim();
     const pass = document.getElementById('login_pass').value;
-    const errorBox = document.getElementById('login_error');
 
+    // 1. เช็ค User/Pass ก่อน
     if (ADMIN_USERS[user] !== pass) {
-        errorBox.innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
-        errorBox.style.display = 'block';
+        showCustomAlert("❌ เข้าสู่ระบบไม่สำเร็จ", "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง", "error");
         return;
     }
 
-    // ตรวจสอบกับ Database กลางว่า User นี้ออนไลน์ที่อื่นอยู่ไหม
     const userRef = db.ref('online_status/' + user);
     const snapshot = await userRef.once('value');
     const status = snapshot.val();
 
     if (status && status.isOnline) {
         const now = Date.now();
-        // ถ้ามีการอัปเดตสถานะล่าสุดไม่เกิน 10 วินาที แสดงว่ากำลังเล่นอยู่จริงๆ
+        // เช็คว่าสถานะอัปเดตล่าสุดเมื่อไหร่ ถ้าเกิน 10 วินาที ให้ถือว่าหลุดไปแล้ว (Force Login)
         if (now - status.lastSeen < 10000) {
-            alert("User นี้กำลังใช้งานอยู่ในเบราว์เซอร์หรือเครื่องอื่น! กรุณารอ 10 วินาทีหลังปิดเครื่องนั้น");
+            showCustomAlert("⚠️ ตรวจพบการใช้งานซ้อน", "User นี้กำลังออนไลน์อยู่ที่เครื่องอื่น หากคุณเพิ่งปิดหน้าต่างไป กรุณารอ 10 วินาทีแล้วลองใหม่", "warning");
             return;
         }
     }
 
-    // ผ่านการเช็ค -> ทำการล็อคเครื่องนี้
+    // ถ้าผ่านเงื่อนไข ให้เข้าสู่ระบบ
     activeUser = user;
     enterSystem();
 }
 
+// ฟังก์ชันแสดง Alert Popup แบบสวยงาม
+function showCustomAlert(title, message, type) {
+    const overlay = document.getElementById('custom-overlay');
+    const alertBox = document.getElementById('custom-alert');
+    
+    document.getElementById('alert-title').innerText = title;
+    document.getElementById('alert-message').innerText = message;
+    
+    // เปลี่ยนสีตามประเภท
+    const icon = document.getElementById('alert-icon');
+    icon.innerHTML = type === 'error' ? '🚫' : '⚠️';
+    
+    overlay.style.display = 'block';
+    alertBox.classList.add('active');
+
+    // โฟกัสปุ่มตกลงเพื่อให้กด Enter ได้ทันที
+    setTimeout(() => {
+        document.getElementById('close-alert-btn').focus();
+    }, 100);
+}
+
+function closeCustomAlert() {
+    const overlay = document.getElementById('custom-overlay');
+    const alertBox = document.getElementById('custom-alert');
+    alertBox.classList.remove('active');
+    overlay.style.display = 'none';
+}
 function enterSystem() {
     document.getElementById('login-gate').style.display = 'none';
     document.getElementById('main-content-wrapper').style.display = 'block';
