@@ -1,6 +1,6 @@
 // ตั้งค่า Firebase เพื่อใช้เป็นตัวกลางเช็คการเข้าซ้อน
 const firebaseConfig = {
-    databaseURL: "https://your-project-id.firebaseio.com/" // *** ต้องเปลี่ยนเป็น URL ของคุณ ***
+    databaseURL: "https://webbungfire-default-rtdb.asia-southeast1.firebasedatabase.app/" // *** ต้องเปลี่ยนเป็น URL ของคุณ ***
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
