@@ -1,58 +1,66 @@
-// 1. ตั้งค่ารหัสผ่านแอดมินทั้ง 4 คน
-const ADMIN_PASSWORDS = ["PASS1", "PASS2", "PASS3", "PASS4"]; 
+// --- ตั้งค่า Firebase ด้วยข้อมูลของคุณ ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDWJTccvT9AxR5VvHdK-FKa2K-gaYLkC7g",
+  authDomain: "adminrocket-ac224.firebaseapp.com",
+  databaseURL: "https://adminrocket-ac224-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "adminrocket-ac224",
+  storageBucket: "adminrocket-ac224.firebasestorage.app",
+  messagingSenderId: "1046936644978",
+  appId: "1:1046936644978:web:dd4b5e091efb9765bf41eb"
+};
 
-// 2. ระบบป้องกันการเปิดซ้ำ (BroadcastChannel)
-const authChannel = new BroadcastChannel('rocket_secure_system');
-let isInitialCheck = true;
+// เริ่มการเชื่อมต่อ
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-function initSecurity() {
-    const loginScreen = document.getElementById('login-screen');
-    const isLoggedIn = localStorage.getItem('rocket_logged_in');
+// --- ตั้งรหัสผ่าน 4 คน (คุณสามารถเปลี่ยนรหัสหลังเครื่องหมาย : ได้ตามต้องการ) ---
+const ADMIN_PASSWORDS = {
+    "Admin1": "1111",
+    "Admin2": "2222",
+    "Admin3": "3333",
+    "Admin4": "4444"
+};
 
-    // เช็กทันทีว่ามีแท็บอื่นเปิดอยู่ไหม
-    authChannel.postMessage({ type: 'PING' });
-
-    authChannel.onmessage = (event) => {
-        if (event.data.type === 'PING') {
-            // มีคนอื่นพยายามเข้า เราต้องส่งตอบไปว่าเราใช้งานอยู่
-            authChannel.postMessage({ type: 'PONG' });
-        }
-        if (event.data.type === 'PONG') {
-            // ถ้าได้รับ PONG แสดงว่ามีคนเปิดอยู่ก่อนแล้ว
-            alert("⚠️ คำเตือน: มีการใช้งานโปรแกรมนี้อยู่ในหน้าต่างอื่นแล้ว! \nระบบจะปิดหน้านี้เพื่อความปลอดภัย");
-            window.location.href = "about:blank"; 
-        }
-    };
-
-    // ระบบจดจำรหัสผ่าน
-    if (isLoggedIn === 'true') {
-        loginScreen.style.display = 'none';
+// เช็กสถานะจดจำรหัสผ่านเมื่อโหลดหน้า
+window.addEventListener('load', () => {
+    if (localStorage.getItem('rocket_logged_in') === 'true') {
+        document.getElementById('login-screen').style.display = 'none';
     }
-}
+});
 
-// 3. ฟังก์ชันเช็ครหัสผ่าน
 function checkLogin() {
-    const passInput = document.getElementById('admin-pass').value;
-    const rememberMe = document.getElementById('remember-me').checked;
+    const user = document.getElementById('admin-user').value;
+    const pass = document.getElementById('admin-pass').value;
+    const remember = document.getElementById('remember-me').checked;
     const msg = document.getElementById('login-msg');
 
-    // ตรวจสอบว่ารหัสที่กรอก ตรงกับ 1 ใน 4 รหัสหรือไม่
-    if (ADMIN_PASSWORDS.includes(passInput)) {
-        if (rememberMe) {
-            localStorage.setItem('rocket_logged_in', 'true');
-        }
-        document.getElementById('login-screen').style.display = 'none';
-        
-        // แจ้งแท็บอื่นว่าแอดมินคนนี้เข้ามาแล้ว (เผื่อเปิดซ้ำตอนนี้)
-        authChannel.postMessage({ type: 'PING' });
+    if (ADMIN_PASSWORDS[user] === pass) {
+        // ตรวจสอบในฐานข้อมูล Cloud ว่า Admin คนนี้กำลังออนไลน์อยู่เครื่องอื่นหรือไม่
+        db.ref('active_sessions/' + user).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                alert("⚠️ " + user + " กำลังใช้งานอยู่ในเบราว์เซอร์อื่น!\nกรุณาปิดจากเครื่องเดิมก่อน หรือติดต่อแอดมิน");
+            } else {
+                // บันทึกสถานะว่าออนไลน์
+                db.ref('active_sessions/' + user).set({
+                    status: "online",
+                    last_login: new Date().getTime()
+                });
+
+                // สำคัญ: เมื่อปิดเบราว์เซอร์หรือปิดแท็บ ให้ลบสถานะออกจาก Cloud อัตโนมัติ
+                db.ref('active_sessions/' + user).onDisconnect().remove();
+
+                if (remember) {
+                    localStorage.setItem('rocket_logged_in', 'true');
+                }
+                
+                document.getElementById('login-screen').style.display = 'none';
+                msg.innerText = "";
+            }
+        });
     } else {
-        msg.innerText = "❌ รหัสผ่านไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าใช้งาน";
-        document.getElementById('admin-pass').value = "";
+        msg.innerText = "❌ รหัสผ่านไม่ถูกต้อง";
     }
 }
-
-// เรียกใช้ระบบความปลอดภัยทันทีที่โหลดหน้า
-window.addEventListener('DOMContentLoaded', initSecurity);
 
 /**
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
