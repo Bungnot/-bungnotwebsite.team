@@ -1,7 +1,3 @@
-/**
- * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
- */
-
 // รายชื่อ User และ Password
 const USERS = {
     'admin01': '9999',
