@@ -1,3 +1,59 @@
+// 1. ตั้งค่ารหัสผ่านแอดมินทั้ง 4 คน
+const ADMIN_PASSWORDS = ["PASS1", "PASS2", "PASS3", "PASS4"]; 
+
+// 2. ระบบป้องกันการเปิดซ้ำ (BroadcastChannel)
+const authChannel = new BroadcastChannel('rocket_secure_system');
+let isInitialCheck = true;
+
+function initSecurity() {
+    const loginScreen = document.getElementById('login-screen');
+    const isLoggedIn = localStorage.getItem('rocket_logged_in');
+
+    // เช็กทันทีว่ามีแท็บอื่นเปิดอยู่ไหม
+    authChannel.postMessage({ type: 'PING' });
+
+    authChannel.onmessage = (event) => {
+        if (event.data.type === 'PING') {
+            // มีคนอื่นพยายามเข้า เราต้องส่งตอบไปว่าเราใช้งานอยู่
+            authChannel.postMessage({ type: 'PONG' });
+        }
+        if (event.data.type === 'PONG') {
+            // ถ้าได้รับ PONG แสดงว่ามีคนเปิดอยู่ก่อนแล้ว
+            alert("⚠️ คำเตือน: มีการใช้งานโปรแกรมนี้อยู่ในหน้าต่างอื่นแล้ว! \nระบบจะปิดหน้านี้เพื่อความปลอดภัย");
+            window.location.href = "about:blank"; 
+        }
+    };
+
+    // ระบบจดจำรหัสผ่าน
+    if (isLoggedIn === 'true') {
+        loginScreen.style.display = 'none';
+    }
+}
+
+// 3. ฟังก์ชันเช็ครหัสผ่าน
+function checkLogin() {
+    const passInput = document.getElementById('admin-pass').value;
+    const rememberMe = document.getElementById('remember-me').checked;
+    const msg = document.getElementById('login-msg');
+
+    // ตรวจสอบว่ารหัสที่กรอก ตรงกับ 1 ใน 4 รหัสหรือไม่
+    if (ADMIN_PASSWORDS.includes(passInput)) {
+        if (rememberMe) {
+            localStorage.setItem('rocket_logged_in', 'true');
+        }
+        document.getElementById('login-screen').style.display = 'none';
+        
+        // แจ้งแท็บอื่นว่าแอดมินคนนี้เข้ามาแล้ว (เผื่อเปิดซ้ำตอนนี้)
+        authChannel.postMessage({ type: 'PING' });
+    } else {
+        msg.innerText = "❌ รหัสผ่านไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าใช้งาน";
+        document.getElementById('admin-pass').value = "";
+    }
+}
+
+// เรียกใช้ระบบความปลอดภัยทันทีที่โหลดหน้า
+window.addEventListener('DOMContentLoaded', initSecurity);
+
 /**
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
