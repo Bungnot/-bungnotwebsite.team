@@ -10,6 +10,34 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
+
+        /* สไตล์เพิ่มเติมสำหรับหน้า Login */
+        #login_screen {
+            backdrop-filter: blur(15px);
+            transition: all 0.3s ease;
+        }
+        .login-container {
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 36, 38, 0.2);
+            animation: loginAppear 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes loginAppear {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .login-container input:focus {
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 10px rgba(255, 223, 145, 0.5);
+            outline: none;
+        }
         :root {
             /* Christmas Luxury Pro Palette (Default) */
             --primary-bg: radial-gradient(circle at center, #1a3a32 0%, #0f1b2a 50%, #2d0a0a 100%);
@@ -571,6 +599,7 @@
     <canvas id="confetti-canvas"></canvas>
     <canvas class="snow-canvas" id="snowCanvas"></canvas>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -585,8 +614,8 @@
         <input type="text" id="login_user" placeholder="ชื่อผู้ใช้" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1.5px solid #e2e8f0; border-radius: 12px; outline: none;">
         <input type="password" id="login_pass" placeholder="รหัสผ่าน" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1.5px solid #e2e8f0; border-radius: 12px; outline: none;">
         
-        <button onclick="attemptLogin()" style="width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--gold-gradient); color: #1a3a32; font-weight: 800; cursor: pointer; font-size: 16px;">
-            เข้าสู่ระบบ <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+        <button onclick="attemptLogin()" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบแอดมิน
         </button>
         <div id="login_error" style="color: #d42426; font-size: 13px; margin-top: 15px; display: none; background: #fee2e2; padding: 10px; border-radius: 8px;"></div>
     </div>
@@ -911,6 +940,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
