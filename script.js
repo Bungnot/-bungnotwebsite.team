@@ -23,8 +23,13 @@ function updateIndividualTableSummaries() {
             }
 
             if (rowTotal > 0) {
-                if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
-                if (holder) nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
+                if (chaser) {
+                    nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
+                }
+                // แก้ไข: ป้องกันการบวกยอดซ้ำถ้าชื่อคนยั้งเหมือนกับคนไล่
+                if (holder && holder !== chaser) { 
+                    nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
+                }
             }
         });
 
@@ -71,8 +76,8 @@ function updateNameSummary() {
                 if (chaserName) {
                     nameSummary[chaserName] = (nameSummary[chaserName] || 0) + rowTotal;
                 }
-                // รวมยอดฝั่งคนยั้ง
-                if (holderName) {
+                // แก้ไข: รวมยอดฝั่งคนยั้ง โดยเช็คว่าชื่อไม่ซ้ำกับคนไล่ เพื่อป้องกันยอดเบิ้ล
+                if (holderName && holderName !== chaserName) {
                     nameSummary[holderName] = (nameSummary[holderName] || 0) + rowTotal;
                 }
             }
