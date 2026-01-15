@@ -661,30 +661,65 @@ function copyTableAsImage(tableElement) {
 
 function capturePlayerRow(playerName, total) {
     playSound('popup');
+
+    // ดึงชื่อค่ายจาก input ของตารางที่ผู้เล่นอยู่
+    const tableContainer = document.querySelector(".table-container:has(.name-list-area)");
+    const campInput = tableContainer?.querySelector(".table-title-input");
+    const campName = campInput?.value?.trim() || "ไม่ระบุชื่อค่าย";
+
+    // สร้างกล่องภาพ
     const captureDiv = document.createElement('div');
-    captureDiv.style.padding = '30px';
-    captureDiv.style.background = '#ffffff';
+    captureDiv.style.width = '800px';
+    captureDiv.style.padding = '50px 40px';
+    captureDiv.style.background = 'linear-gradient(180deg, #ffffff 0%, #fefce8 100%)';
     captureDiv.style.borderRadius = '20px';
-    captureDiv.style.boxShadow = '0 0 15px rgba(0,0,0,0.1)';
+    captureDiv.style.fontFamily = "'Sarabun', sans-serif";
+    captureDiv.style.textAlign = 'center';
+    captureDiv.style.boxShadow = '0 0 30px rgba(0,0,0,0.08)';
+
     captureDiv.innerHTML = `
-        <div style="font-family:'Sarabun',sans-serif;text-align:center;">
-            <h2 style="color:#d42426;">ยอดเล่น Real-Time</h2>
-            <p style="font-size:1.1rem;font-weight:bold;color:#334155;">@${playerName}</p>
-            <p style="font-size:2rem;color:#1e293b;">${total.toLocaleString()} บาท</p>
+        <div style="background: linear-gradient(90deg, #fde68a, #fbbf24, #f59e0b); 
+                    color: #b91c1c; 
+                    font-weight: 700;
+                    font-size: 1.8rem;
+                    padding: 15px 0;
+                    border-radius: 10px;
+                    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+                    margin-bottom: 25px;">
+            ยอดเล่น Real-Time
         </div>
+        <div style="font-size: 1.1rem; color: #475569; margin-bottom: 10px;">
+            <i class="fas fa-users"></i> ค่าย: <b style="color:#b91c1c;">${campName}</b>
+        </div>
+        <div style="font-size: 1.1rem; color: #334155; margin-bottom: 30px;">
+            🧍‍♂️ @${playerName}
+        </div>
+        <div style="font-size: 3rem; font-weight: bold; color: #111827;">
+            ${total.toLocaleString()} บาท
+        </div>
+        <div style="margin-top: 30px; font-size: 0.9rem; color: #94a3b8;">ADMIN ROCKET SYSTEM</div>
     `;
     document.body.appendChild(captureDiv);
 
-    html2canvas(captureDiv, { scale: 2 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `ยอดเล่น-${playerName}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        playSound('success');
-        showToast(`📸 บันทึกภาพของ ${playerName} เรียบร้อยแล้ว!`);
-        captureDiv.remove();
+    // แปลงเป็นภาพและคัดลอกลงคลิปบอร์ด
+    html2canvas(captureDiv, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+        canvas.toBlob(blob => {
+            try {
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item]).then(() => {
+                    showToast(`📋 คัดลอกรูปของ ${playerName} แล้ว! กด Ctrl + V เพื่อวางลงไลน์ได้เลย`);
+                    playSound('success');
+                    captureDiv.remove();
+                });
+            } catch (err) {
+                console.error("Clipboard Error:", err);
+                alert("⚠️ เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูปโดยตรง กรุณาใช้ Google Chrome");
+                captureDiv.remove();
+            }
+        }, "image/png");
     });
 }
+
 
 
 function removeTable(button) {
