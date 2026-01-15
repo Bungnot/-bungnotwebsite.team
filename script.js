@@ -674,6 +674,22 @@ function getPlayerRecords(playerName) {
   return records;
 }
 
+function getPlayerRecordsDetailed(playerName) {
+  const rows = document.querySelectorAll(".table-row");
+  const records = [];
+  rows.forEach(row => {
+    const from = row.querySelector(".player-from")?.textContent.trim();
+    const price = row.querySelector(".player-price")?.textContent.trim();
+    const to = row.querySelector(".player-to")?.textContent.trim();
+
+    // ตรวจว่าคนนี้เกี่ยวข้องไหม
+    if (from?.includes(playerName) || to?.includes(playerName)) {
+      records.push({ from, price, to });
+    }
+  });
+  return records;
+}
+
 
 function capturePlayerRow(playerName, total) {
   playSound('popup');
@@ -682,11 +698,20 @@ function capturePlayerRow(playerName, total) {
   const campName = campInput?.value?.trim() || "ไม่ระบุชื่อค่าย";
 
   const cleanName = playerName.replace(/^@+/, '');
-  const records = getPlayerRecords(playerName);
+  const records = getPlayerRecordsDetailed(playerName);
+
+  // ตรวจรูปแบบยอดรวม
   const totalText = /^\d+(\.\d+)?$/.test(total) ? `${total} ชล` : total;
-  const listHTML = records.length
-    ? records.map(r => `<li>${r.role} @${r.other} ${r.price}</li>`).join('')
-    : '<li style="color:#94a3b8;">ไม่มีรายการเล่น</li>';
+
+  // สร้าง HTML ตารางรายการ
+  const recordRows = records.length
+    ? records.map(r => `
+      <tr>
+        <td style="border:1px solid #f0e68c;padding:8px;">${r.from || '-'}</td>
+        <td style="border:1px solid #f0e68c;padding:8px;text-align:center;">${r.price || '-'}</td>
+        <td style="border:1px solid #f0e68c;padding:8px;">${r.to || '-'}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="3" style="color:#94a3b8;padding:10px;text-align:center;">ไม่มีรายการเล่น</td></tr>`;
 
   const captureDiv = document.createElement('div');
   captureDiv.style.width = '820px';
@@ -709,10 +734,18 @@ function capturePlayerRow(playerName, total) {
     <div style="font-size:1.05rem;color:#334155;margin-bottom:20px;">
       🧍‍♂️ ${cleanName}
     </div>
-    <ul style="list-style:none;padding:0;margin:0 auto 25px auto;
-               width:90%;text-align:left;color:#1e293b;line-height:1.6;">
-      ${listHTML}
-    </ul>
+
+    <table style="width:100%;border-collapse:collapse;margin-bottom:25px;font-size:1rem;color:#1e293b;">
+      <thead style="background:#fef3c7;">
+        <tr>
+          <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
+          <th style="border:1px solid #facc15;padding:8px;">ราคา</th>
+          <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
+        </tr>
+      </thead>
+      <tbody>${recordRows}</tbody>
+    </table>
+
     <div style="font-size:2.5rem;font-weight:bold;color:#111827;">
       รวม ${totalText}
     </div>
@@ -726,13 +759,14 @@ function capturePlayerRow(playerName, total) {
     canvas.toBlob(blob=>{
       const item=new ClipboardItem({"image/png":blob});
       navigator.clipboard.write([item]).then(()=>{
-        showToast(`📋 คัดลอกรูปของ ${cleanName} แล้ว กด Ctrl+V เพื่อวางในไลน์ได้เลย`);
+        showToast(`📋 คัดลอกรูปของ ${cleanName} แล้ว! กด Ctrl + V เพื่อวางใน LINE ได้เลย`);
         playSound('success');
         captureDiv.remove();
       });
     });
   });
 }
+
 
 
 
