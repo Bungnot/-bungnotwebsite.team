@@ -5,7 +5,7 @@ function updateIndividualTableSummaries() {
     document.querySelectorAll(".table-container").forEach(tableWrapper => {
         // 1. ดึงชื่อค่ายจากช่อง Input หัวตาราง
         const tableTitleInput = tableWrapper.querySelector(".table-title-input");
-        const campName = tableTitleInput ? tableTitleInput.value.trim() || "ทั่วไป" : "ทั่วไป";
+        const campName = tableTitleInput ? tableTitleInput.value.trim() || "ใส่ชื่อค่ายนำ" : "ใส่ชื่อค่ายนำ";
         
         const nameSummary = {};
         const rows = tableWrapper.querySelectorAll("tbody tr");
