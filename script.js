@@ -675,17 +675,19 @@ function getPlayerRecords(playerName) {
 }
 
 function getPlayerRecordsDetailed(playerName) {
-  const rows = document.querySelectorAll(".table-row");
   const records = [];
-  rows.forEach(row => {
-    const from = row.querySelector(".player-from")?.textContent.trim();
-    const price = row.querySelector(".player-price")?.textContent.trim();
-    const to = row.querySelector(".player-to")?.textContent.trim();
-
-    // ตรวจว่าคนนี้เกี่ยวข้องไหม
-    if (from?.includes(playerName) || to?.includes(playerName)) {
-      records.push({ from, price, to });
-    }
+  document.querySelectorAll(".table-container").forEach(table => {
+    const campName = table.querySelector(".table-title-input")?.value.trim() || "ไม่ระบุค่าย";
+    table.querySelectorAll("tbody tr").forEach(tr => {
+      const inputs = tr.querySelectorAll("input");
+      if (inputs.length < 3) return;
+      const from = inputs[0].value.trim();
+      const price = inputs[1].value.trim();
+      const to = inputs[2].value.trim();
+      if (from.includes(playerName) || to.includes(playerName)) {
+        records.push({ campName, from, price, to });
+      }
+    });
   });
   return records;
 }
@@ -693,24 +695,19 @@ function getPlayerRecordsDetailed(playerName) {
 
 function capturePlayerRow(playerName, total) {
   playSound('popup');
-  const tableContainer = document.querySelector(".table-container:has(.name-list-area)");
-  const campInput = tableContainer?.querySelector(".table-title-input");
-  const campName = campInput?.value?.trim() || "ไม่ระบุชื่อค่าย";
 
-  const cleanName = playerName.replace(/^@+/, '');
   const records = getPlayerRecordsDetailed(playerName);
-
-  // ตรวจรูปแบบยอดรวม
+  const cleanName = playerName.replace(/^@+/, '');
   const totalText = /^\d+(\.\d+)?$/.test(total) ? `${total} ชล` : total;
 
-  // สร้าง HTML ตารางรายการ
   const recordRows = records.length
     ? records.map(r => `
-      <tr>
-        <td style="border:1px solid #f0e68c;padding:8px;">${r.from || '-'}</td>
-        <td style="border:1px solid #f0e68c;padding:8px;text-align:center;">${r.price || '-'}</td>
-        <td style="border:1px solid #f0e68c;padding:8px;">${r.to || '-'}</td>
-      </tr>`).join('')
+        <tr>
+          <td style="border:1px solid #f0e68c;padding:8px;">${r.from || '-'}</td>
+          <td style="border:1px solid #f0e68c;padding:8px;text-align:center;">${r.price || '-'}</td>
+          <td style="border:1px solid #f0e68c;padding:8px;">${r.to || '-'}</td>
+        </tr>
+      `).join('')
     : `<tr><td colspan="3" style="color:#94a3b8;padding:10px;text-align:center;">ไม่มีรายการเล่น</td></tr>`;
 
   const captureDiv = document.createElement('div');
@@ -729,7 +726,7 @@ function capturePlayerRow(playerName, total) {
       ยอดเล่น Real-Time
     </div>
     <div style="font-size:1rem;color:#475569;margin-bottom:5px;">
-      👥 ค่าย: <b style="color:#b91c1c;">${campName}</b>
+      👥 ค่าย: <b style="color:#b91c1c;">${records[0]?.campName || 'ไม่ระบุค่าย'}</b>
     </div>
     <div style="font-size:1.05rem;color:#334155;margin-bottom:20px;">
       🧍‍♂️ ${cleanName}
@@ -766,6 +763,7 @@ function capturePlayerRow(playerName, total) {
     });
   });
 }
+
 
 
 
