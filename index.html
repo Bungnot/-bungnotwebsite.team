@@ -649,49 +649,37 @@
           transform:scale(1.1) rotate(-5deg);
         }
 
-
-        .table-main-content{
-          max-height: none !important;
-          overflow: visible !important;
-        }
-        /* scrollbar สวย ๆ */
-        .table-main-content::-webkit-scrollbar{
-          width: 6px;
-        }
-        .table-main-content::-webkit-scrollbar-thumb{
-          background: linear-gradient(180deg,#fde68a,#fbbf24);
-          border-radius: 10px;
-        }
-        .table-main-content::-webkit-scrollbar-track{
-          background: transparent;
-        }
-        
+    
         .table-summary-sidebar{
-          max-height: 520px;       /* ปรับตามจอ */
-          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          height: auto;          /* ⭐ รับความสูงจากตารางซ้าย */
           padding-right: 6px;
         }
+
+        .name-list-area{
+          overflow-y: auto;      /* ⭐ scroll เฉพาะรายการ */
+        }
+
 
         .custom-table thead th{
           position: sticky;
           top: 0;
           z-index: 5;
         }
-
-
-        .table-summary-sidebar::-webkit-scrollbar{
-          width: 6px;
+    
+        .name-list-area::-webkit-scrollbar{
+          width:6px;
         }
-        .table-summary-sidebar::-webkit-scrollbar-thumb{
+        .name-list-area::-webkit-scrollbar-thumb{
           background: linear-gradient(180deg,#fde68a,#fbbf24);
-          border-radius: 10px;
+          border-radius:10px;
         }
-        .table-summary-sidebar::-webkit-scrollbar-track{
+        .name-list-area::-webkit-scrollbar-track{
           background: transparent;
         }
 
     
-
     </style>
 </head>
 <body class="theme-christmas">
@@ -1013,6 +1001,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
