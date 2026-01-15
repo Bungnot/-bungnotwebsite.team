@@ -43,30 +43,29 @@ function updateIndividualTableSummaries() {
             // 2. ปรับโครงสร้าง HTML: ใส่ชื่อค่ายไว้ที่แถบสีฟ้า (Header)
             // และแยกชื่อผู้เล่นกับยอดเล่นไว้คนละฝั่ง0
             // เปลี่ยนโครงสร้าง HTML ภายในฟังก์ชัน updateIndividualTableSummaries ตรงส่วนที่สร้างตัวแปร html
+// 2. ปรับโครงสร้าง HTML: สไตล์ใหม่ สบายตา ไม่แสบตา
             let html = `
-                <div style="background: #1e293b; color: #38bdf8; padding: 12px; border-radius: 12px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); border: 1px solid #334155;">
-                    <span style="font-weight: bold; color: #10b981;">
-                        <i class="fas fa-bolt"></i> ยอดเล่น Real-time
+                <div style="background: #1e293b; color: #f8fafc; padding: 10px 14px; border-radius: 10px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <span style="display: flex; align-items: center; gap: 6px; color: #94a3b8;">
+                        <i class="fas fa-bolt" style="color: #fbbf24;"></i> ยอดเล่น Real-time
                     </span>
-                    <span style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                    <span style="background: #3b82f6; color: #ffffff; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.9rem;">
                         ค่าย: ${campName}
                     </span>
                 </div>
-            
-                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding: 0 5px 8px 5px; margin-bottom: 10px; color: #64748b; font-size: 0.85rem;">
+                
+                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; margin-bottom: 8px; color: #475569; font-size: 0.8rem;">
                     <span>ชื่อผู้เล่น</span>
-                    <span style="background: #fee2e2; color: #ef4444; padding: 2px 10px; border-radius: 20px;">ยอดเงินรวม</span>
+                    <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px;">ยอดเงินรวม</span>
                 </div>`;
             
             if (entries.length === 0) {
-                html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px;">รอข้อมูล...</p>`;
+                html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 10px;">รอข้อมูล...</p>`;
             } else {
                 html += entries.map(([name, total]) => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f8fafc; padding: 5px; font-size: 0.95rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px; font-size: 0.9rem;">
                         <span style="color: #334155; font-weight: 500;">${name}</span>
-                        <span style="font-weight: 800; color: #dc2626; background: #fff1f2; padding: 2px 8px; border-radius: 6px;">
-                            ${total.toLocaleString()}
-                        </span>
+                        <span style="font-weight: bold; color: #0f172a; font-family: 'Courier New', monospace;">${total.toLocaleString()}</span>
                     </div>
                 `).join('');
             }
