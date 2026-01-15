@@ -63,23 +63,22 @@ function updateIndividualTableSummaries() {
                 html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px; font-size: 0.85rem;">รอข้อมูล...</p>`;
             } else {
                 html += entries.map(([name, total]) => {
-                    const displayName = name.length > 15 ? name.substring(0, 15) + "..." : name;
-                    
-                    return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f8fafc; padding: 4px 5px;">
-                        <span style="flex: 1; color: #334155; font-weight: 500; font-size: 0.85rem; padding-right: 5px; word-break: break-all;">
-                            ${displayName}
-                        </span>
-                        <span style="width: 80px; text-align: right; font-weight: 800; color: #1e293b; font-size: 0.95rem;">
-                            ${total.toLocaleString()}
-                        </span>
-                        <button class="btn-capture-player" onclick="capturePlayerRow('${name}', ${total})" 
-                            style="background:#f1f5f9; border:none; color:#475569; border-radius:6px; margin-left:6px; cursor:pointer; padding:3px 6px;">
-                            <i class="fas fa-camera"></i>
-                        </button>
-                    </div>`;
+                  const displayName = name.length > 15 ? name.substring(0, 15) + "..." : name;
+                
+                  return `
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="player-name">@${displayName}</span>
+                        </div>
+                        <div class="player-total">
+                            <span>${total.toLocaleString()}</span>
+                            <button class="btn-capture-player" onclick="capturePlayerRow('${name}', ${total})">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </div>
+                  `;
                 }).join('');
-
             }
             summaryArea.innerHTML = html;
         }
