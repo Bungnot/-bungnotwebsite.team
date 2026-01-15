@@ -658,66 +658,80 @@ function copyTableAsImage(tableElement) {
     });
 }
 
+function getPlayerRecords(playerName) {
+  const rows = document.querySelectorAll(".table-row");
+  const records = [];
+  rows.forEach(row => {
+    const from = row.querySelector(".player-from")?.textContent.trim();
+    const to = row.querySelector(".player-to")?.textContent.trim();
+    const price = row.querySelector(".player-price")?.textContent.trim();
+    if (from?.includes(playerName)) {
+      records.push({ role: "ไล่", other: to, price });
+    } else if (to?.includes(playerName)) {
+      records.push({ role: "ยั้ง", other: from, price });
+    }
+  });
+  return records;
+}
+
 
 function capturePlayerRow(playerName, total) {
-    playSound('popup');
+  playSound('popup');
+  const tableContainer = document.querySelector(".table-container:has(.name-list-area)");
+  const campInput = tableContainer?.querySelector(".table-title-input");
+  const campName = campInput?.value?.trim() || "ไม่ระบุชื่อค่าย";
 
-    // ดึงชื่อค่ายจาก input ของตารางที่ผู้เล่นอยู่
-    const tableContainer = document.querySelector(".table-container:has(.name-list-area)");
-    const campInput = tableContainer?.querySelector(".table-title-input");
-    const campName = campInput?.value?.trim() || "ไม่ระบุชื่อค่าย";
+  const cleanName = playerName.replace(/^@+/, '');
+  const records = getPlayerRecords(playerName);
+  const totalText = /^\d+(\.\d+)?$/.test(total) ? `${total} ชล` : total;
+  const listHTML = records.length
+    ? records.map(r => `<li>${r.role} @${r.other} ${r.price}</li>`).join('')
+    : '<li style="color:#94a3b8;">ไม่มีรายการเล่น</li>';
 
-    // สร้างกล่องภาพ
-    const captureDiv = document.createElement('div');
-    captureDiv.style.width = '800px';
-    captureDiv.style.padding = '50px 40px';
-    captureDiv.style.background = 'linear-gradient(180deg, #ffffff 0%, #fefce8 100%)';
-    captureDiv.style.borderRadius = '20px';
-    captureDiv.style.fontFamily = "'Sarabun', sans-serif";
-    captureDiv.style.textAlign = 'center';
-    captureDiv.style.boxShadow = '0 0 30px rgba(0,0,0,0.08)';
+  const captureDiv = document.createElement('div');
+  captureDiv.style.width = '820px';
+  captureDiv.style.padding = '40px 50px';
+  captureDiv.style.background = 'linear-gradient(180deg,#fffef7,#fffbea)';
+  captureDiv.style.borderRadius = '20px';
+  captureDiv.style.fontFamily = "'Sarabun',sans-serif";
+  captureDiv.style.textAlign = 'center';
+  captureDiv.style.boxShadow = '0 0 30px rgba(0,0,0,0.08)';
 
-    captureDiv.innerHTML = `
-        <div style="background: linear-gradient(90deg, #fde68a, #fbbf24, #f59e0b); 
-                    color: #b91c1c; 
-                    font-weight: 700;
-                    font-size: 1.8rem;
-                    padding: 15px 0;
-                    border-radius: 10px;
-                    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-                    margin-bottom: 25px;">
-            ยอดเล่น Real-Time
-        </div>
-        <div style="font-size: 1.1rem; color: #475569; margin-bottom: 10px;">
-            <i class="fas fa-users"></i> ค่าย: <b style="color:#b91c1c;">${campName}</b>
-        </div>
-        <div style="font-size: 1.1rem; color: #334155; margin-bottom: 30px;">
-            🧍‍♂️ @${playerName}
-        </div>
-        <div style="font-size: 3rem; font-weight: bold; color: #111827;">
-            ${total.toLocaleString()} บาท
-        </div>
-        <div style="margin-top: 30px; font-size: 0.9rem; color: #94a3b8;">ADMIN ROCKET SYSTEM</div>
-    `;
-    document.body.appendChild(captureDiv);
+  captureDiv.innerHTML = `
+    <div style="background:linear-gradient(90deg,#fde68a,#fbbf24,#f59e0b);
+                color:#b91c1c;font-weight:700;font-size:1.8rem;
+                padding:15px 0;border-radius:10px;margin-bottom:25px;">
+      ยอดเล่น Real-Time
+    </div>
+    <div style="font-size:1rem;color:#475569;margin-bottom:5px;">
+      👥 ค่าย: <b style="color:#b91c1c;">${campName}</b>
+    </div>
+    <div style="font-size:1.05rem;color:#334155;margin-bottom:20px;">
+      🧍‍♂️ ${cleanName}
+    </div>
+    <ul style="list-style:none;padding:0;margin:0 auto 25px auto;
+               width:90%;text-align:left;color:#1e293b;line-height:1.6;">
+      ${listHTML}
+    </ul>
+    <div style="font-size:2.5rem;font-weight:bold;color:#111827;">
+      รวม ${totalText}
+    </div>
+    <div style="margin-top:25px;font-size:0.9rem;color:#94a3b8;">
+      ADMIN ROCKET SYSTEM
+    </div>
+  `;
+  document.body.appendChild(captureDiv);
 
-    // แปลงเป็นภาพและคัดลอกลงคลิปบอร์ด
-    html2canvas(captureDiv, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
-        canvas.toBlob(blob => {
-            try {
-                const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard.write([item]).then(() => {
-                    showToast(`📋 คัดลอกรูปของ ${playerName} แล้ว! กด Ctrl + V เพื่อวางลงไลน์ได้เลย`);
-                    playSound('success');
-                    captureDiv.remove();
-                });
-            } catch (err) {
-                console.error("Clipboard Error:", err);
-                alert("⚠️ เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูปโดยตรง กรุณาใช้ Google Chrome");
-                captureDiv.remove();
-            }
-        }, "image/png");
+  html2canvas(captureDiv,{scale:3,backgroundColor:"#ffffff"}).then(canvas=>{
+    canvas.toBlob(blob=>{
+      const item=new ClipboardItem({"image/png":blob});
+      navigator.clipboard.write([item]).then(()=>{
+        showToast(`📋 คัดลอกรูปของ ${cleanName} แล้ว กด Ctrl+V เพื่อวางในไลน์ได้เลย`);
+        playSound('success');
+        captureDiv.remove();
+      });
     });
+  });
 }
 
 
