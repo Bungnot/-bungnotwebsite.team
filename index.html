@@ -650,13 +650,10 @@
         }
 
 
-            /* ===== ทำให้ตารางฝั่งซ้าย scroll ===== */
         .table-main-content{
-          max-height: 520px;       /* 🔧 ปรับได้ตามจอ */
-          overflow-y: auto;
-          padding-right: 6px;      /* กัน scrollbar บัง input */
+          max-height: none !important;
+          overflow: visible !important;
         }
-        
         /* scrollbar สวย ๆ */
         .table-main-content::-webkit-scrollbar{
           width: 6px;
@@ -669,16 +666,28 @@
           background: transparent;
         }
         
-        /* ===== Real-time ขวา สูงเท่ากัน ===== */
         .table-summary-sidebar{
-          max-height: 520px;       /* ต้องเท่ากัน */
+          max-height: 520px;       /* ปรับตามจอ */
           overflow-y: auto;
+          padding-right: 6px;
         }
 
         .custom-table thead th{
           position: sticky;
           top: 0;
           z-index: 5;
+        }
+
+
+        .table-summary-sidebar::-webkit-scrollbar{
+          width: 6px;
+        }
+        .table-summary-sidebar::-webkit-scrollbar-thumb{
+          background: linear-gradient(180deg,#fde68a,#fbbf24);
+          border-radius: 10px;
+        }
+        .table-summary-sidebar::-webkit-scrollbar-track{
+          background: transparent;
         }
 
     
@@ -1004,5 +1013,6 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
