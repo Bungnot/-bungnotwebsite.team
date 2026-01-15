@@ -49,9 +49,9 @@ function updateIndividualTableSummaries() {
                     <span style="display: flex; align-items: center; gap: 6px; color: #94a3b8;">
                         <i class="fas fa-bolt" style="color: #fbbf24;"></i> ยอดเล่น Real-time
                     </span>
-                    <span style="background: #3b82f6; color: #ffffff; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.9rem;">
-                        ค่าย: ${campName}
-                    </span>
+                        <span style="background: #f8fafc; color: #1e293b; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                            ค่าย: ${campName}
+                        </span>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; margin-bottom: 8px; color: #475569; font-size: 0.8rem;">
