@@ -696,72 +696,83 @@ function getPlayerRecordsDetailed(playerName) {
 
 
 
-function capturePlayerRow(playerName, total) {
+function capturePlayerRow(playerName) {
   playSound('popup');
-
   const cleanName = playerName.replace(/^@+/, '');
-  const recordsByCamp = {};
+  const campRecords = {};
+  let grandTotal = 0;
+  let totalRecords = 0; // ✅ เพิ่มตัวนับจำนวนรายการทั้งหมด
 
-  // 🔹 เก็บข้อมูลจากแต่ละค่าย
+  // 🔹 ดึงข้อมูลจากทุกค่าย
   document.querySelectorAll(".table-container").forEach(table => {
     const campName = table.querySelector(".table-title-input")?.value.trim() || "ไม่ระบุค่าย";
-    table.querySelectorAll("tbody tr").forEach(tr => {
+    const rows = table.querySelectorAll("tbody tr");
+    rows.forEach(tr => {
       const inputs = tr.querySelectorAll("input");
       if (inputs.length < 3) return;
+
       const from = inputs[0].value.trim();
       let price = inputs[1].value.trim();
       const to = inputs[2].value.trim();
 
-      // 🔸 ถ้ามีแต่ตัวเลข 3 หลักขึ้นไป และยังไม่มี “ชล” → เพิ่มให้
+      // เพิ่มคำว่า “ชล” ถ้ามีแค่ตัวเลข ≥ 3 หลัก
       if (/^\d{3,}$/.test(price)) price += " ชล";
 
+      // ถ้าผู้เล่นอยู่ในแถวนี้
       if (from.includes(playerName) || to.includes(playerName)) {
-        if (!recordsByCamp[campName]) recordsByCamp[campName] = [];
-        recordsByCamp[campName].push({ from, price, to });
+        if (!campRecords[campName]) campRecords[campName] = [];
+        campRecords[campName].push({ from, price, to });
       }
     });
   });
 
-  // 🔹 แคปทีละค่าย
-  Object.entries(recordsByCamp).forEach(([campName, records]) => {
-    const totalSum = records.reduce((sum, r) => {
-      const match = r.price.match(/\d+/g);
-      if (match) match.forEach(n => sum += parseFloat(n));
-      return sum;
-    }, 0);
+  // 🧾 เริ่มสร้างส่วนแสดงผลทั้งหมด
+  const captureDiv = document.createElement('div');
+  captureDiv.style.width = '900px';
+  captureDiv.style.padding = '40px 50px';
+  captureDiv.style.background = 'linear-gradient(180deg,#fffef7,#fffbea)';
+  captureDiv.style.borderRadius = '20px';
+  captureDiv.style.fontFamily = "'Sarabun',sans-serif";
+  captureDiv.style.textAlign = 'center';
+  captureDiv.style.boxShadow = '0 0 30px rgba(0,0,0,0.08)';
 
-    const recordRows = records.map(r => `
-      <tr>
-        <td style="border:1px solid #facc15;padding:8px;">${r.from}</td>
-        <td style="border:1px solid #facc15;padding:8px;text-align:center;">${r.price}</td>
-        <td style="border:1px solid #facc15;padding:8px;">${r.to}</td>
-      </tr>
-    `).join('');
+  let innerHTML = `
+    <div style="background:linear-gradient(90deg,#fde68a,#fbbf24,#f59e0b);
+                color:#b91c1c;font-weight:700;font-size:1.8rem;
+                padding:15px 0;border-radius:10px;margin-bottom:25px;">
+      ยอดเล่น Real-Time
+    </div>
+    <div style="font-size:1.1rem;color:#334155;margin-bottom:20px;">
+      🧍‍♂️ ${cleanName}
+    </div>
+  `;
 
-    const captureDiv = document.createElement('div');
-    captureDiv.style.width = '820px';
-    captureDiv.style.padding = '40px 50px';
-    captureDiv.style.background = 'linear-gradient(180deg,#fffef7,#fffbea)';
-    captureDiv.style.borderRadius = '20px';
-    captureDiv.style.fontFamily = "'Sarabun',sans-serif";
-    captureDiv.style.textAlign = 'center';
-    captureDiv.style.boxShadow = '0 0 30px rgba(0,0,0,0.08)';
+  // 🔹 วนสร้างทีละค่าย
+  Object.entries(campRecords).forEach(([campName, records]) => {
+    let campTotal = 0;
+    totalRecords += records.length; // ✅ นับจำนวนรายการของค่ายนี้
 
-    captureDiv.innerHTML = `
-      <div style="background:linear-gradient(90deg,#fde68a,#fbbf24,#f59e0b);
-                  color:#b91c1c;font-weight:700;font-size:1.8rem;
-                  padding:15px 0;border-radius:10px;margin-bottom:25px;">
-        ยอดเล่น Real-Time
-      </div>
-      <div style="font-size:1rem;color:#475569;margin-bottom:5px;">
-        👥 ค่าย: <b style="color:#b91c1c;">${campName}</b>
-      </div>
-      <div style="font-size:1.05rem;color:#334155;margin-bottom:20px;">
-        🧍‍♂️ ${cleanName}
-      </div>
+    const rowsHTML = records.map(r => {
+      const nums = r.price.match(/\d+/g);
+      if (nums) {
+        nums.forEach(n => {
+          // ✅ นับเฉพาะตัวเลข 3 หลักขึ้นไปเท่านั้น
+          if (parseInt(n) >= 100) campTotal += parseFloat(n);
+        });
+      }
+      return `
+        <tr>
+          <td style="border:1px solid #facc15;padding:8px;">${r.from}</td>
+          <td style="border:1px solid #facc15;padding:8px;text-align:center;">${r.price}</td>
+          <td style="border:1px solid #facc15;padding:8px;">${r.to}</td>
+        </tr>`;
+    }).join('');
 
-      <table style="width:100%;border-collapse:collapse;margin-bottom:25px;
-                    font-size:1rem;color:#1e293b;border-radius:10px;overflow:hidden;">
+    grandTotal += campTotal;
+
+    innerHTML += `
+      <div style="margin-bottom:15px;font-size:1rem;color:#b91c1c;font-weight:600;">🏕️ ค่าย: ${campName}</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:15px;font-size:1rem;color:#1e293b;">
         <thead style="background:#fef3c7;">
           <tr>
             <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
@@ -769,31 +780,42 @@ function capturePlayerRow(playerName, total) {
             <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
           </tr>
         </thead>
-        <tbody>${recordRows}</tbody>
+        <tbody>${rowsHTML}</tbody>
       </table>
-
-      <div style="font-size:2.5rem;font-weight:bold;color:#111827;">
-        รวม ${totalSum.toLocaleString()}
-      </div>
-      <div style="margin-top:25px;font-size:0.9rem;color:#94a3b8;">
-        ADMIN ROCKET SYSTEM
-      </div>
+      <div style="font-weight:bold;margin-bottom:20px;color:#111827;">รวมค่ายนี้ ${campTotal.toLocaleString()}</div>
     `;
+  });
 
-    document.body.appendChild(captureDiv);
+  // 🔸 รวมทั้งหมดทุกค่าย
+  innerHTML += `
+    <div style="font-size:2.5rem;font-weight:bold;color:#111827;margin-top:25px;">
+      รวมทั้งหมด ${grandTotal.toLocaleString()}
+    </div>
+    <div style="font-size:1rem;color:#475569;margin-top:5px;">
+      รวมทั้งหมด ${totalRecords} รายการ
+    </div>
+    <div style="margin-top:25px;font-size:0.9rem;color:#94a3b8;">
+      ADMIN ROCKET SYSTEM
+    </div>
+  `;
 
-    html2canvas(captureDiv, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
-      canvas.toBlob(blob => {
-        const item = new ClipboardItem({ "image/png": blob });
-        navigator.clipboard.write([item]).then(() => {
-          showToast(`📋 คัดลอกรูปของ ${cleanName} (${campName}) แล้ว!`);
-          playSound('success');
-          captureDiv.remove();
-        });
+  captureDiv.innerHTML = innerHTML;
+  document.body.appendChild(captureDiv);
+
+  // 📸 แคปเป็นรูปและคัดลอกลงคลิปบอร์ด
+  html2canvas(captureDiv, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+    canvas.toBlob(blob => {
+      const item = new ClipboardItem({ "image/png": blob });
+      navigator.clipboard.write([item]).then(() => {
+        showToast(`📋 คัดลอกรูปของ ${cleanName} แล้ว!`);
+        playSound('success');
+        captureDiv.remove();
       });
     });
   });
 }
+
+
 
 
 
