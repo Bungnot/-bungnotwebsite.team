@@ -3,9 +3,8 @@
  */
 function updateIndividualTableSummaries() {
     document.querySelectorAll(".table-container").forEach(tableWrapper => {
-        // 1. ดึงชื่อค่ายจากช่อง Input หัวตาราง
         const tableTitleInput = tableWrapper.querySelector(".table-title-input");
-        const campName = tableTitleInput ? tableTitleInput.value.trim() || "ใส่ชื่อค่ายนำ" : "ใส่ชื่อค่ายนำ";
+        const campName = tableTitleInput ? tableTitleInput.value.trim() || "สรุปยอด" : "สรุปยอด";
         
         const nameSummary = {};
         const rows = tableWrapper.querySelectorAll("tbody tr");
@@ -27,61 +26,78 @@ function updateIndividualTableSummaries() {
             }
 
             if (rowTotal > 0) {
-                if (chaser) {
-                    nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
-                }
-                if (holder && holder !== chaser) { 
-                    nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
-                }
+                if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
+                if (holder && holder !== chaser) nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
             }
         });
 
-        const summaryArea = tableWrapper.querySelector(".name-list-area");
-        if (summaryArea) {
-            const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
-            
-            // 2. ปรับโครงสร้าง HTML: ใส่ชื่อค่ายไว้ที่แถบสีฟ้า (Header)
-            // และแยกชื่อผู้เล่นกับยอดเล่นไว้คนละฝั่ง0
-            // เปลี่ยนโครงสร้าง HTML ภายในฟังก์ชัน updateIndividualTableSummaries ตรงส่วนที่สร้างตัวแปร html
-// 2. ปรับโครงสร้าง HTML: แสดงชื่อได้ยาวขึ้น และปรับสีป้ายค่ายให้อ่านง่าย
-            let html = `
-                <div style="background: #1e293b; color: #f8fafc; padding: 10px 14px; border-radius: 12px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
-                    <span style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #94a3b8;">
-                        <i class="fas fa-bolt" style="color: #fbbf24;"></i> Real-time
-                    </span>
-                    <span style="background: #fff7ed; color: #9a3412; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 1px solid #ffedd5;">
-                        ค่าย: ${campName.length > 15 ? campName.substring(0, 15) + '...' : campName}
-                    </span>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding: 0 5px 8px 5px; margin-bottom: 10px; color: #64748b; font-size: 0.75rem;">
-                    <span style="flex: 1;">ชื่อผู้เล่น</span>
-                    <span style="width: 80px; text-align: right; background: #f1f5f9; padding: 2px 8px; border-radius: 5px;">ยอดรวม</span>
-                </div>`;
-            
-            if (entries.length === 0) {
-                html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px; font-size: 0.85rem;">รอข้อมูล...</p>`;
-            } else {
-                html += entries.map(([name, total]) => {
-                    // จำกัดชื่อผู้เล่น 15 ตัวอักษร (ถ้า 15 พอดีจะแสดงครบ)
-                    const displayName = name.length > 15 ? name.substring(0, 15) + "..." : name;
-                    
-                    return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f8fafc; padding: 4px 5px;">
-                        <span style="flex: 1; color: #334155; font-weight: 500; font-size: 0.85rem; padding-right: 5px; word-break: break-all;">
-                            ${displayName}
-                        </span>
-                        <span style="width: 80px; text-align: right; font-weight: 800; color: #1e293b; font-size: 0.95rem; font-family: 'Inter', sans-serif;">
-                            ${total.toLocaleString()}
-                        </span>
-                    </div>
-                `}).join('');
-            }
-            summaryArea.innerHTML = html;
+        const summaryArea = tableWrapper.querySelector(".summary-area");
+        if (!summaryArea) return;
+
+        // แก้ไข HTML ตรงนี้เพื่อเพิ่มปุ่มกล้อง
+        let summaryHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px;">
+                <h4 style="margin: 0; color: #0a4d34; font-size: 1.1rem;">
+                    <i class="fas fa-user-tag"></i> สรุปยอดรายบุคคล (${campName})
+                </h4>
+                <button onclick="captureSummary(this)" class="btn-capture">
+                    <i class="fas fa-camera"></i> แคปรูปส่งไลน์
+                </button>
+            </div>
+            <div class="capture-target">
+                <table style="width: 100%; border-collapse: collapse; background: #fff; font-family: 'Sarabun', sans-serif;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; color: #333;">ชื่อลูกค้า</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: right; color: #333;">ยอดเล่นรวม</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        for (const [name, total] of Object.entries(nameSummary)) {
+            summaryHTML += `
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; color: #333;">${name}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: #d42426; font-weight: bold;">${total.toLocaleString()}</td>
+                </tr>`;
         }
+
+        if (Object.keys(nameSummary).length === 0) {
+            summaryHTML += `<tr><td colspan="2" style="text-align: center; color: #999; padding: 15px;">ยังไม่มีข้อมูลยอดเล่น</td></tr>`;
+        }
+
+        summaryHTML += `</tbody></table></div>`;
+        summaryArea.innerHTML = summaryHTML;
     });
 }
 
+async function captureSummary(button) {
+    // ระบุส่วนที่จะแคป (capture-target)
+    const container = button.closest('.summary-area');
+    const target = container.querySelector('.capture-target');
+    const campInput = button.closest('.table-container').querySelector('.table-title-input');
+    const campName = campInput ? campInput.value.trim() : "สรุปยอด";
+
+    try {
+        // ใช้ html2canvas สร้างรูปภาพ
+        const canvas = await html2canvas(target, {
+            scale: 2, // เพิ่มความชัด 2 เท่า
+            backgroundColor: "#ffffff",
+            logging: false
+        });
+
+        // แปลงเป็นรูปภาพและดาวน์โหลด
+        const link = document.createElement('a');
+        link.download = `สรุปยอด_${campName}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        
+        // ถ้าใช้บนมือถือ ลิงก์ดาวน์โหลดจะเก็บภาพลงเครื่อง แล้วคุณค่อยกดส่งใน Line
+    } catch (err) {
+        console.error("Capture failed:", err);
+        alert("ไม่สามารถแคปรูปได้ในขณะนี้");
+    }
+}
 
 function updateNameSummary() {
     const nameSummary = {};
