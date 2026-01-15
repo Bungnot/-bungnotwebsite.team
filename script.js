@@ -699,86 +699,103 @@ function getPlayerRecordsDetailed(playerName) {
 function capturePlayerRow(playerName, total) {
   playSound('popup');
 
-  const records = getPlayerRecordsDetailed(playerName);
   const cleanName = playerName.replace(/^@+/, '');
+  const recordsByCamp = {};
 
-  // รวมยอดจากช่องราคาในตารางจริง (เฉพาะตัวเลขเท่านั้น)
-  let totalSum = 0;
-  records.forEach(r => {
-    const match = r.price.match(/\d+/g);
-    if (match) {
-      match.forEach(n => {
-        if (n.length >= 3) totalSum += parseFloat(n);
-      });
-    }
+  // 🔹 เก็บข้อมูลจากแต่ละค่าย
+  document.querySelectorAll(".table-container").forEach(table => {
+    const campName = table.querySelector(".table-title-input")?.value.trim() || "ไม่ระบุค่าย";
+    table.querySelectorAll("tbody tr").forEach(tr => {
+      const inputs = tr.querySelectorAll("input");
+      if (inputs.length < 3) return;
+      const from = inputs[0].value.trim();
+      let price = inputs[1].value.trim();
+      const to = inputs[2].value.trim();
+
+      // 🔸 ถ้ามีแต่ตัวเลข 3 หลักขึ้นไป และยังไม่มี “ชล” → เพิ่มให้
+      if (/^\d{3,}$/.test(price)) price += " ชล";
+
+      if (from.includes(playerName) || to.includes(playerName)) {
+        if (!recordsByCamp[campName]) recordsByCamp[campName] = [];
+        recordsByCamp[campName].push({ from, price, to });
+      }
+    });
   });
 
-  // แสดงรวมแบบไม่บังคับ "ชล"
-  const totalText = totalSum > 0 ? totalSum.toLocaleString() : total.toString();
+  // 🔹 แคปทีละค่าย
+  Object.entries(recordsByCamp).forEach(([campName, records]) => {
+    const totalSum = records.reduce((sum, r) => {
+      const match = r.price.match(/\d+/g);
+      if (match) match.forEach(n => sum += parseFloat(n));
+      return sum;
+    }, 0);
 
-  const recordRows = records.length
-    ? records.map(r => `
-        <tr>
-          <td style="border:1px solid #f0e68c;padding:8px;">${r.from || '-'}</td>
-          <td style="border:1px solid #f0e68c;padding:8px;text-align:center;">${r.price || '-'}</td>
-          <td style="border:1px solid #f0e68c;padding:8px;">${r.to || '-'}</td>
-        </tr>
-      `).join('')
-    : `<tr><td colspan="3" style="color:#94a3b8;padding:10px;text-align:center;">ไม่มีรายการเล่น</td></tr>`;
+    const recordRows = records.map(r => `
+      <tr>
+        <td style="border:1px solid #facc15;padding:8px;">${r.from}</td>
+        <td style="border:1px solid #facc15;padding:8px;text-align:center;">${r.price}</td>
+        <td style="border:1px solid #facc15;padding:8px;">${r.to}</td>
+      </tr>
+    `).join('');
 
-  const captureDiv = document.createElement('div');
-  captureDiv.style.width = '820px';
-  captureDiv.style.padding = '40px 50px';
-  captureDiv.style.background = 'linear-gradient(180deg,#fffef7,#fffbea)';
-  captureDiv.style.borderRadius = '20px';
-  captureDiv.style.fontFamily = "'Sarabun',sans-serif";
-  captureDiv.style.textAlign = 'center';
-  captureDiv.style.boxShadow = '0 0 30px rgba(0,0,0,0.08)';
+    const captureDiv = document.createElement('div');
+    captureDiv.style.width = '820px';
+    captureDiv.style.padding = '40px 50px';
+    captureDiv.style.background = 'linear-gradient(180deg,#fffef7,#fffbea)';
+    captureDiv.style.borderRadius = '20px';
+    captureDiv.style.fontFamily = "'Sarabun',sans-serif";
+    captureDiv.style.textAlign = 'center';
+    captureDiv.style.boxShadow = '0 0 30px rgba(0,0,0,0.08)';
 
-  captureDiv.innerHTML = `
-    <div style="background:linear-gradient(90deg,#fde68a,#fbbf24,#f59e0b);
-                color:#b91c1c;font-weight:700;font-size:1.8rem;
-                padding:15px 0;border-radius:10px;margin-bottom:25px;">
-      ยอดเล่น Real-Time
-    </div>
-    <div style="font-size:1rem;color:#475569;margin-bottom:5px;">
-      👥 ค่าย: <b style="color:#b91c1c;">${records[0]?.campName || 'ไม่ระบุค่าย'}</b>
-    </div>
-    <div style="font-size:1.05rem;color:#334155;margin-bottom:20px;">
-      🧍‍♂️ ${cleanName}
-    </div>
+    captureDiv.innerHTML = `
+      <div style="background:linear-gradient(90deg,#fde68a,#fbbf24,#f59e0b);
+                  color:#b91c1c;font-weight:700;font-size:1.8rem;
+                  padding:15px 0;border-radius:10px;margin-bottom:25px;">
+        ยอดเล่น Real-Time
+      </div>
+      <div style="font-size:1rem;color:#475569;margin-bottom:5px;">
+        👥 ค่าย: <b style="color:#b91c1c;">${campName}</b>
+      </div>
+      <div style="font-size:1.05rem;color:#334155;margin-bottom:20px;">
+        🧍‍♂️ ${cleanName}
+      </div>
 
-    <table style="width:100%;border-collapse:collapse;margin-bottom:25px;font-size:1rem;color:#1e293b;">
-      <thead style="background:#fef3c7;">
-        <tr>
-          <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
-          <th style="border:1px solid #facc15;padding:8px;">ราคา</th>
-          <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
-        </tr>
-      </thead>
-      <tbody>${recordRows}</tbody>
-    </table>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:25px;
+                    font-size:1rem;color:#1e293b;border-radius:10px;overflow:hidden;">
+        <thead style="background:#fef3c7;">
+          <tr>
+            <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
+            <th style="border:1px solid #facc15;padding:8px;">ราคา</th>
+            <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
+          </tr>
+        </thead>
+        <tbody>${recordRows}</tbody>
+      </table>
 
-    <div style="font-size:2.5rem;font-weight:bold;color:#111827;">
-      รวม ${totalText}
-    </div>
-    <div style="margin-top:25px;font-size:0.9rem;color:#94a3b8;">
-      ADMIN ROCKET SYSTEM
-    </div>
-  `;
-  document.body.appendChild(captureDiv);
+      <div style="font-size:2.5rem;font-weight:bold;color:#111827;">
+        รวม ${totalSum.toLocaleString()}
+      </div>
+      <div style="margin-top:25px;font-size:0.9rem;color:#94a3b8;">
+        ADMIN ROCKET SYSTEM
+      </div>
+    `;
 
-  html2canvas(captureDiv,{scale:3,backgroundColor:"#ffffff"}).then(canvas=>{
-    canvas.toBlob(blob=>{
-      const item=new ClipboardItem({"image/png":blob});
-      navigator.clipboard.write([item]).then(()=>{
-        showToast(`📋 คัดลอกรูปของ ${cleanName} แล้ว! กด Ctrl + V เพื่อวางใน LINE ได้เลย`);
-        playSound('success');
-        captureDiv.remove();
+    document.body.appendChild(captureDiv);
+
+    html2canvas(captureDiv, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+      canvas.toBlob(blob => {
+        const item = new ClipboardItem({ "image/png": blob });
+        navigator.clipboard.write([item]).then(() => {
+          showToast(`📋 คัดลอกรูปของ ${cleanName} (${campName}) แล้ว!`);
+          playSound('success');
+          captureDiv.remove();
+        });
       });
     });
   });
 }
+
+
 
 
 
