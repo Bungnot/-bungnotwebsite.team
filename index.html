@@ -716,6 +716,16 @@
           padding-right: 8px;
         }
 
+        @media (max-width: 900px) {
+          .table-container {
+            flex-direction: column;
+          }
+          .table-summary-sidebar {
+            width: 100% !important;
+            height: auto !important;
+          }
+        }
+
 
     </style>
 </head>
@@ -850,9 +860,44 @@ function balanceSidebarHeight() {
   });
 }
 
-// เรียกใช้เมื่อหน้าจอเปลี่ยนขนาด หรือมีการเพิ่มข้อมูลใหม่
-window.addEventListener('resize', balanceSidebarHeight);
-setInterval(balanceSidebarHeight, 1000);
+// ✅ Sync ความสูง Sidebar ให้เท่าฝั่งตารางแบบ Real-Time (ไม่ต้อง setInterval)
+function syncOneSidebar(container) {
+  const main = container.querySelector('.table-main-content');
+  const side = container.querySelector('.table-summary-sidebar');
+  if (!main || !side) return;
+
+  // ใช้ scrollHeight จะชัวร์กว่ากรณีมีความสูงภายในเปลี่ยน
+  side.style.height = main.scrollHeight + "px";
+}
+
+function initSidebarAutoHeight() {
+  const containers = document.querySelectorAll('.table-container');
+
+  containers.forEach(container => {
+    syncOneSidebar(container);
+
+    const main = container.querySelector('.table-main-content');
+    if (!main) return;
+
+    const ro = new ResizeObserver(() => {
+      syncOneSidebar(container);
+    });
+
+    ro.observe(main);
+
+    // เก็บไว้เผื่ออยาก disconnect ภายหลัง
+    container.__ro = ro;
+  });
+}
+
+// ✅ เรียกทันทีเมื่อโหลดเสร็จ
+window.addEventListener('DOMContentLoaded', () => {
+  initSidebarAutoHeight();
+});
+
+// ✅ เผื่อมีการเพิ่มตารางใหม่ (addTable)
+// ให้คุณเรียก initSidebarAutoHeight() หลัง addTable สร้าง table เสร็จด้วย
+
 
     
 // 1. ฟังก์ชันเปลี่ยนธีม (หัวใจหลักของระบบ)
@@ -1054,6 +1099,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
