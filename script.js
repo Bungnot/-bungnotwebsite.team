@@ -43,37 +43,35 @@ function updateIndividualTableSummaries() {
             // 2. ปรับโครงสร้าง HTML: ใส่ชื่อค่ายไว้ที่แถบสีฟ้า (Header)
             // และแยกชื่อผู้เล่นกับยอดเล่นไว้คนละฝั่ง0
             // เปลี่ยนโครงสร้าง HTML ภายในฟังก์ชัน updateIndividualTableSummaries ตรงส่วนที่สร้างตัวแปร html
-// 2. ปรับโครงสร้าง HTML: สไตล์ใหม่ สบายตา ไม่แสบตา
-// 2. ปรับโครงสร้าง HTML: จำกัดความกว้างและตัดชื่อที่ยาวเกินไป
-// 2. ปรับโครงสร้าง HTML: จำกัด 15 ตัวอักษร และปรับสีให้สบายตา
+// 2. ปรับโครงสร้าง HTML: แสดงชื่อได้ยาวขึ้น และปรับสีป้ายค่ายให้อ่านง่าย
             let html = `
                 <div style="background: #1e293b; color: #f8fafc; padding: 10px 14px; border-radius: 12px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
                     <span style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #94a3b8;">
                         <i class="fas fa-bolt" style="color: #fbbf24;"></i> Real-time
                     </span>
-                    <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ค่าย: ${campName.substring(0, 15)}${campName.length > 15 ? '...' : ''}
+                    <span style="background: #fff7ed; color: #9a3412; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 1px solid #ffedd5;">
+                        ค่าย: ${campName.length > 15 ? campName.substring(0, 15) + '...' : campName}
                     </span>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding: 0 5px 8px 5px; margin-bottom: 10px; color: #64748b; font-size: 0.75rem;">
                     <span style="flex: 1;">ชื่อผู้เล่น</span>
-                    <span style="width: 90px; text-align: right; background: #f1f5f9; padding: 2px 8px; border-radius: 5px;">ยอดเงินรวม</span>
+                    <span style="width: 80px; text-align: right; background: #f1f5f9; padding: 2px 8px; border-radius: 5px;">ยอดรวม</span>
                 </div>`;
             
             if (entries.length === 0) {
                 html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px; font-size: 0.85rem;">รอข้อมูล...</p>`;
             } else {
                 html += entries.map(([name, total]) => {
-                    // จำกัดชื่อผู้เล่น 15 ตัวอักษร
-                    const shortName = name.length > 15 ? name.substring(0, 15) + "..." : name;
+                    // จำกัดชื่อผู้เล่น 15 ตัวอักษร (ถ้า 15 พอดีจะแสดงครบ)
+                    const displayName = name.length > 15 ? name.substring(0, 15) + "..." : name;
                     
                     return `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f8fafc; padding: 4px 5px;">
-                        <span style="flex: 1; color: #334155; font-weight: 500; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${shortName}
+                        <span style="flex: 1; color: #334155; font-weight: 500; font-size: 0.85rem; padding-right: 5px; word-break: break-all;">
+                            ${displayName}
                         </span>
-                        <span style="width: 90px; text-align: right; font-weight: 800; color: #1e293b; font-size: 0.95rem; font-family: 'Inter', sans-serif;">
+                        <span style="width: 80px; text-align: right; font-weight: 800; color: #1e293b; font-size: 0.95rem; font-family: 'Inter', sans-serif;">
                             ${total.toLocaleString()}
                         </span>
                     </div>
