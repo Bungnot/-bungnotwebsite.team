@@ -743,7 +743,7 @@ function capturePlayerRow(playerName) {
       ยอดเล่น Real-Time
     </div>
     <div style="font-size:1.1rem;color:#334155;margin-bottom:10px;">
-      คุณ🧍‍♂️ ${cleanName}
+      🧍‍♂️ <b>คุณ ${cleanName}</b>
     </div>
   `;
 
@@ -777,26 +777,32 @@ function capturePlayerRow(playerName) {
       grandTotal += campTotal;
 
       innerHTML += `
-        <div style="margin:25px 0 10px 0;font-size:1rem;color:#b91c1c;font-weight:600;">
-          🏕️ ค่าย: ${campName}
-        </div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:1rem;color:#1e293b;">
-          <thead style="background:#fef3c7;">
-            <tr>
-              <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
-              <th style="border:1px solid #facc15;padding:8px;">ราคา</th>
-              <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
-            </tr>
-          </thead>
-          <tbody>${rowsHTML}</tbody>
-        </table>
-        <div style="font-weight:bold;margin-bottom:20px;color:#111827;">รวมค่ายนี้ ${campTotal.toLocaleString()}</div>
-        ${
-          idx < campEntries.length - 1
-            ? `<div style="height:2px;background:linear-gradient(90deg,#fef08a,#facc15,#fef08a);margin:25px 0;"></div>`
-            : ""
-        }
-      `;
+          <div style="margin:25px auto 10px auto;font-size:1rem;color:#b91c1c;
+                      font-weight:600;width:85%;text-align:left;">
+            🏕️ ค่าย: ${campName}
+          </div>
+          <table style="width:85%;margin:0 auto 10px auto;border-collapse:collapse;
+                        font-size:1rem;color:#1e293b;">
+            <thead style="background:#fef3c7;">
+              <tr>
+                <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
+                <th style="border:1px solid #facc15;padding:8px;">ราคา</th>
+                <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHTML}</tbody>
+          </table>
+          <div style="font-weight:bold;margin:10px auto 25px auto;
+                      color:#111827;text-align:center;width:85%;">
+            รวมค่ายนี้ ${campTotal.toLocaleString()}
+          </div>
+          ${
+            idx < campEntries.length - 1
+              ? `<div style="width:85%;height:2px;margin:25px auto;
+                             background:linear-gradient(90deg,#fef08a,#facc15,#fef08a);"></div>`
+              : ""
+          }
+        `;
     });
   }
 
