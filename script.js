@@ -684,6 +684,8 @@ function getPlayerRecordsDetailed(playerName) {
       const from = inputs[0].value.trim();
       const price = inputs[1].value.trim();
       const to = inputs[2].value.trim();
+
+      // ถ้าชื่อผู้เล่นอยู่ในฝั่งคนไล่หรือคนยั้ง ให้ดึงแถวนี้มาทั้งหมด
       if (from.includes(playerName) || to.includes(playerName)) {
         records.push({ campName, from, price, to });
       }
@@ -693,12 +695,26 @@ function getPlayerRecordsDetailed(playerName) {
 }
 
 
+
 function capturePlayerRow(playerName, total) {
   playSound('popup');
 
   const records = getPlayerRecordsDetailed(playerName);
   const cleanName = playerName.replace(/^@+/, '');
-  const totalText = /^\d+(\.\d+)?$/.test(total) ? `${total} ชล` : total;
+
+  // รวมยอดจากช่องราคาในตารางจริง (เฉพาะตัวเลขเท่านั้น)
+  let totalSum = 0;
+  records.forEach(r => {
+    const match = r.price.match(/\d+/g);
+    if (match) {
+      match.forEach(n => {
+        if (n.length >= 3) totalSum += parseFloat(n);
+      });
+    }
+  });
+
+  // แสดงรวมแบบไม่บังคับ "ชล"
+  const totalText = totalSum > 0 ? totalSum.toLocaleString() : total.toString();
 
   const recordRows = records.length
     ? records.map(r => `
