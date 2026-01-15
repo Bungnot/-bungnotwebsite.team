@@ -63,7 +63,6 @@ function updateIndividualTableSummaries() {
                 html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px; font-size: 0.85rem;">รอข้อมูล...</p>`;
             } else {
                 html += entries.map(([name, total]) => {
-                    // จำกัดชื่อผู้เล่น 15 ตัวอักษร (ถ้า 15 พอดีจะแสดงครบ)
                     const displayName = name.length > 15 ? name.substring(0, 15) + "..." : name;
                     
                     return `
@@ -71,11 +70,16 @@ function updateIndividualTableSummaries() {
                         <span style="flex: 1; color: #334155; font-weight: 500; font-size: 0.85rem; padding-right: 5px; word-break: break-all;">
                             ${displayName}
                         </span>
-                        <span style="width: 80px; text-align: right; font-weight: 800; color: #1e293b; font-size: 0.95rem; font-family: 'Inter', sans-serif;">
+                        <span style="width: 80px; text-align: right; font-weight: 800; color: #1e293b; font-size: 0.95rem;">
                             ${total.toLocaleString()}
                         </span>
-                    </div>
-                `}).join('');
+                        <button class="btn-capture-player" onclick="capturePlayerRow('${name}', ${total})" 
+                            style="background:#f1f5f9; border:none; color:#475569; border-radius:6px; margin-left:6px; cursor:pointer; padding:3px 6px;">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>`;
+                }).join('');
+
             }
             summaryArea.innerHTML = html;
         }
@@ -653,6 +657,35 @@ function copyTableAsImage(tableElement) {
         setTimeout(() => alertBox.style.opacity = "0", 2000);
     });
 }
+
+
+function capturePlayerRow(playerName, total) {
+    playSound('popup');
+    const captureDiv = document.createElement('div');
+    captureDiv.style.padding = '30px';
+    captureDiv.style.background = '#ffffff';
+    captureDiv.style.borderRadius = '20px';
+    captureDiv.style.boxShadow = '0 0 15px rgba(0,0,0,0.1)';
+    captureDiv.innerHTML = `
+        <div style="font-family:'Sarabun',sans-serif;text-align:center;">
+            <h2 style="color:#d42426;">ยอดเล่น Real-Time</h2>
+            <p style="font-size:1.1rem;font-weight:bold;color:#334155;">@${playerName}</p>
+            <p style="font-size:2rem;color:#1e293b;">${total.toLocaleString()} บาท</p>
+        </div>
+    `;
+    document.body.appendChild(captureDiv);
+
+    html2canvas(captureDiv, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `ยอดเล่น-${playerName}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        playSound('success');
+        showToast(`📸 บันทึกภาพของ ${playerName} เรียบร้อยแล้ว!`);
+        captureDiv.remove();
+    });
+}
+
 
 function removeTable(button) {
     const tableContainer = button.closest('.table-container');
