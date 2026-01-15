@@ -44,28 +44,33 @@ function updateIndividualTableSummaries() {
             // และแยกชื่อผู้เล่นกับยอดเล่นไว้คนละฝั่ง0
             // เปลี่ยนโครงสร้าง HTML ภายในฟังก์ชัน updateIndividualTableSummaries ตรงส่วนที่สร้างตัวแปร html
 // 2. ปรับโครงสร้าง HTML: สไตล์ใหม่ สบายตา ไม่แสบตา
+// 2. ปรับโครงสร้าง HTML: จำกัดความกว้างและตัดชื่อที่ยาวเกินไป
             let html = `
-                <div style="background: #1e293b; color: #f8fafc; padding: 10px 14px; border-radius: 10px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                    <span style="display: flex; align-items: center; gap: 6px; color: #94a3b8;">
+                <div style="background: #1e293b; color: #f8fafc; padding: 10px 14px; border-radius: 10px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <span style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #94a3b8;">
                         <i class="fas fa-bolt" style="color: #fbbf24;"></i> ยอดเล่น Real-time
                     </span>
-                        <span style="background: #f8fafc; color: #1e293b; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                            ค่าย: ${campName}
-                        </span>
+                    <span style="background: #bae6fd; color: #0369a1; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${campName}">
+                        ค่าย: ${campName}
+                    </span>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; margin-bottom: 8px; color: #475569; font-size: 0.8rem;">
-                    <span>ชื่อผู้เล่น</span>
-                    <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px;">ยอดเงินรวม</span>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; margin-bottom: 8px; color: #64748b; font-size: 0.75rem;">
+                    <span style="flex: 1;">ชื่อผู้เล่น</span>
+                    <span style="width: 80px; text-align: right; background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">ยอดรวม</span>
                 </div>`;
             
             if (entries.length === 0) {
-                html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 10px;">รอข้อมูล...</p>`;
+                html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 10px; font-size: 0.85rem;">รอข้อมูล...</p>`;
             } else {
                 html += entries.map(([name, total]) => `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px; font-size: 0.9rem;">
-                        <span style="color: #334155; font-weight: 500;">${name}</span>
-                        <span style="font-weight: bold; color: #0f172a; font-family: 'Courier New', monospace;">${total.toLocaleString()}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;">
+                        <span style="flex: 1; color: #334155; font-weight: 500; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;">
+                            ${name}
+                        </span>
+                        <span style="width: 85px; text-align: right; font-weight: bold; color: #0f172a; font-size: 0.9rem; font-family: 'Inter', sans-serif;">
+                            ${total.toLocaleString()}
+                        </span>
                     </div>
                 `).join('');
             }
