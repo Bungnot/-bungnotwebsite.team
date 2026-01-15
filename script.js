@@ -701,7 +701,7 @@ function capturePlayerRow(playerName) {
   const cleanName = playerName.replace(/^@+/, '');
   const campRecords = {};
   let grandTotal = 0;
-  let totalRecords = 0; // ✅ เพิ่มตัวนับจำนวนรายการทั้งหมด
+  let totalRecords = 0; // ✅ นับจำนวนรายการทั้งหมด
 
   // 🔹 ดึงข้อมูลจากทุกค่าย
   document.querySelectorAll(".table-container").forEach(table => {
@@ -726,10 +726,10 @@ function capturePlayerRow(playerName) {
     });
   });
 
-  // 🧾 เริ่มสร้างส่วนแสดงผลทั้งหมด
+  // 🧾 กล่องรวมผลทั้งหมด
   const captureDiv = document.createElement('div');
-  captureDiv.style.width = '900px';
-  captureDiv.style.padding = '40px 50px';
+  captureDiv.style.width = '950px';
+  captureDiv.style.padding = '45px 55px';
   captureDiv.style.background = 'linear-gradient(180deg,#fffef7,#fffbea)';
   captureDiv.style.borderRadius = '20px';
   captureDiv.style.fontFamily = "'Sarabun',sans-serif";
@@ -738,55 +738,69 @@ function capturePlayerRow(playerName) {
 
   let innerHTML = `
     <div style="background:linear-gradient(90deg,#fde68a,#fbbf24,#f59e0b);
-                color:#b91c1c;font-weight:700;font-size:1.8rem;
+                color:#b91c1c;font-weight:700;font-size:1.9rem;
                 padding:15px 0;border-radius:10px;margin-bottom:25px;">
       ยอดเล่น Real-Time
     </div>
-    <div style="font-size:1.1rem;color:#334155;margin-bottom:20px;">
+    <div style="font-size:1.1rem;color:#334155;margin-bottom:10px;">
       🧍‍♂️ ${cleanName}
     </div>
   `;
 
-  // 🔹 วนสร้างทีละค่าย
-  Object.entries(campRecords).forEach(([campName, records]) => {
-    let campTotal = 0;
-    totalRecords += records.length; // ✅ นับจำนวนรายการของค่ายนี้
-
-    const rowsHTML = records.map(r => {
-      const nums = r.price.match(/\d+/g);
-      if (nums) {
-        nums.forEach(n => {
-          // ✅ นับเฉพาะตัวเลข 3 หลักขึ้นไปเท่านั้น
-          if (parseInt(n) >= 100) campTotal += parseFloat(n);
-        });
-      }
-      return `
-        <tr>
-          <td style="border:1px solid #facc15;padding:8px;">${r.from}</td>
-          <td style="border:1px solid #facc15;padding:8px;text-align:center;">${r.price}</td>
-          <td style="border:1px solid #facc15;padding:8px;">${r.to}</td>
-        </tr>`;
-    }).join('');
-
-    grandTotal += campTotal;
-
+  // 🔹 สร้างทีละค่ายพร้อมเส้นคั่น
+  const campEntries = Object.entries(campRecords);
+  if (campEntries.length === 0) {
     innerHTML += `
-      <div style="margin-bottom:15px;font-size:1rem;color:#b91c1c;font-weight:600;">🏕️ ค่าย: ${campName}</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:15px;font-size:1rem;color:#1e293b;">
-        <thead style="background:#fef3c7;">
-          <tr>
-            <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
-            <th style="border:1px solid #facc15;padding:8px;">ราคา</th>
-            <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
-          </tr>
-        </thead>
-        <tbody>${rowsHTML}</tbody>
-      </table>
-      <div style="font-weight:bold;margin-bottom:20px;color:#111827;">รวมค่ายนี้ ${campTotal.toLocaleString()}</div>
-    `;
-  });
+      <div style="margin-top:40px;color:#94a3b8;font-style:italic;">
+        ยังไม่มีรายการเล่นในระบบ
+      </div>`;
+  } else {
+    campEntries.forEach(([campName, records], idx) => {
+      let campTotal = 0;
+      totalRecords += records.length;
 
-  // 🔸 รวมทั้งหมดทุกค่าย
+      const rowsHTML = records.map(r => {
+        const nums = r.price.match(/\d+/g);
+        if (nums) {
+          nums.forEach(n => {
+            if (parseInt(n) >= 100) campTotal += parseFloat(n); // ✅ นับเฉพาะ 3 หลักขึ้นไป
+          });
+        }
+        return `
+          <tr>
+            <td style="border:1px solid #facc15;padding:8px;">${r.from}</td>
+            <td style="border:1px solid #facc15;padding:8px;text-align:center;">${r.price}</td>
+            <td style="border:1px solid #facc15;padding:8px;">${r.to}</td>
+          </tr>`;
+      }).join('');
+
+      grandTotal += campTotal;
+
+      innerHTML += `
+        <div style="margin:25px 0 10px 0;font-size:1rem;color:#b91c1c;font-weight:600;">
+          🏕️ ค่าย: ${campName}
+        </div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:1rem;color:#1e293b;">
+          <thead style="background:#fef3c7;">
+            <tr>
+              <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
+              <th style="border:1px solid #facc15;padding:8px;">ราคา</th>
+              <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHTML}</tbody>
+        </table>
+        <div style="font-weight:bold;margin-bottom:20px;color:#111827;">รวมค่ายนี้ ${campTotal.toLocaleString()}</div>
+        ${
+          idx < campEntries.length - 1
+            ? `<div style="height:2px;background:linear-gradient(90deg,#fef08a,#facc15,#fef08a);margin:25px 0;"></div>`
+            : ""
+        }
+      `;
+    });
+  }
+
+  // 🔸 รวมทั้งหมด
   innerHTML += `
     <div style="font-size:2.5rem;font-weight:bold;color:#111827;margin-top:25px;">
       รวมทั้งหมด ${grandTotal.toLocaleString()}
@@ -802,7 +816,7 @@ function capturePlayerRow(playerName) {
   captureDiv.innerHTML = innerHTML;
   document.body.appendChild(captureDiv);
 
-  // 📸 แคปเป็นรูปและคัดลอกลงคลิปบอร์ด
+  // 📸 แคปและคัดลอกลงคลิปบอร์ด
   html2canvas(captureDiv, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
     canvas.toBlob(blob => {
       const item = new ClipboardItem({ "image/png": blob });
@@ -814,7 +828,6 @@ function capturePlayerRow(playerName) {
     });
   });
 }
-
 
 
 
