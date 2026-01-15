@@ -2,89 +2,105 @@
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
 function updateIndividualTableSummaries() {
-    document.querySelectorAll(".table-container").forEach(tableWrapper => {
-        // 1. ดึงชื่อค่ายจากช่อง Input หัวตาราง
-        const tableTitleInput = tableWrapper.querySelector(".table-title-input");
-        const campName = tableTitleInput ? tableTitleInput.value.trim() || "ใส่ชื่อค่ายนำ" : "ใส่ชื่อค่ายนำ";
-        
-        const nameSummary = {};
-        const rows = tableWrapper.querySelectorAll("tbody tr");
-        
-        rows.forEach(tr => {
-            const inputs = tr.querySelectorAll("input");
-            if (inputs.length < 3) return;
+  document.querySelectorAll(".table-container").forEach(tableWrapper => {
 
-            const chaser = inputs[0].value.trim(); 
-            const priceText = inputs[1].value.replace(/[Oo]/g, '0'); 
-            const holder = inputs[2].value.trim(); 
+    /* ===== 1. ชื่อค่าย ===== */
+    const tableTitleInput = tableWrapper.querySelector(".table-title-input");
+    const campName = tableTitleInput
+      ? tableTitleInput.value.trim() || "ไม่ระบุค่าย"
+      : "ไม่ระบุค่าย";
 
-            const matches = priceText.match(/\d+/g);
-            let rowTotal = 0;
-            if (matches) {
-                matches.forEach(num => {
-                    if (num.length >= 3) rowTotal += parseFloat(num);
-                });
-            }
+    /* ===== 2. รวมยอดแต่ละคน ===== */
+    const nameSummary = {};
+    const rows = tableWrapper.querySelectorAll("tbody tr");
 
-            if (rowTotal > 0) {
-                if (chaser) {
-                    nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
-                }
-                if (holder && holder !== chaser) { 
-                    nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
-                }
-            }
+    rows.forEach(tr => {
+      const inputs = tr.querySelectorAll("input");
+      if (inputs.length < 3) return;
+
+      const chaser = inputs[0].value.trim();
+      const priceText = inputs[1].value.replace(/[Oo]/g, '0');
+      const holder = inputs[2].value.trim();
+
+      const matches = priceText.match(/\d+/g);
+      let rowTotal = 0;
+
+      if (matches) {
+        matches.forEach(num => {
+          if (num.length >= 3) rowTotal += parseInt(num, 10);
         });
+      }
 
-        const summaryArea = tableWrapper.querySelector(".name-list-area");
-        if (summaryArea) {
-            const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
-            
-            // 2. ปรับโครงสร้าง HTML: ใส่ชื่อค่ายไว้ที่แถบสีฟ้า (Header)
-            // และแยกชื่อผู้เล่นกับยอดเล่นไว้คนละฝั่ง0
-            // เปลี่ยนโครงสร้าง HTML ภายในฟังก์ชัน updateIndividualTableSummaries ตรงส่วนที่สร้างตัวแปร html
-// 2. ปรับโครงสร้าง HTML: แสดงชื่อได้ยาวขึ้น และปรับสีป้ายค่ายให้อ่านง่าย
-            let html = `
-                <div style="background: #1e293b; color: #f8fafc; padding: 10px 14px; border-radius: 12px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
-                    <span style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #94a3b8;">
-                        <i class="fas fa-bolt" style="color: #fbbf24;"></i> Real-time
-                    </span>
-                    <span style="background: #fff7ed; color: #9a3412; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 1px solid #ffedd5;">
-                        ค่าย: ${campName.length > 15 ? campName.substring(0, 15) + '...' : campName}
-                    </span>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding: 0 5px 8px 5px; margin-bottom: 10px; color: #64748b; font-size: 0.75rem;">
-                    <span style="flex: 1;">ชื่อผู้เล่น</span>
-                    <span style="width: 80px; text-align: right; background: #f1f5f9; padding: 2px 8px; border-radius: 5px;">ยอดรวม</span>
-                </div>`;
-            
-            if (entries.length === 0) {
-                html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px; font-size: 0.85rem;">รอข้อมูล...</p>`;
-            } else {
-                html += entries.map(([name, total]) => {
-                    const cleanName = name.replace(/^@+/, '');
-                    const displayName = cleanName.length > 15 ? cleanName.substring(0, 15) + "..." : cleanName;
-                
-                  return `
-                    <div class="player-row">
-                        <div class="player-info">
-                            <span class="player-name">${displayName}</span>
-                        </div>
-                             <div class="player-total">
-                                <span>${total.toLocaleString()}</span>
-                                <button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})">
-                                    <i class="fas fa-camera"></i>
-                            </button>
-                        </div>
-                    </div>
-                  `;
-                }).join('');
-            }
-            summaryArea.innerHTML = html;
+      if (rowTotal > 0) {
+        if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
+        if (holder && holder !== chaser) {
+          nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
         }
+      }
     });
+
+    /* ===== 3. เรียงจากมากไปน้อย ===== */
+    const entries = Object.entries(nameSummary)
+      .sort((a, b) => b[1] - a[1]);
+
+    const summaryArea = tableWrapper.querySelector(".name-list-area");
+    if (!summaryArea) return;
+
+    /* ===== 4. Header (Live) ===== */
+    let html = `
+      <div class="summary-header">
+        <div class="live-dot"></div>
+        <span>ยอดเล่น Real-Time</span>
+        <span class="camp-badge">ค่าย: ${campName}</span>
+      </div>
+    `;
+
+    /* ===== 5. ไม่มีข้อมูล ===== */
+    if (entries.length === 0) {
+      html += `
+        <p style="
+          color:#94a3b8;
+          font-style:italic;
+          text-align:center;
+          margin-top:15px;
+          font-size:.85rem;">
+          รอข้อมูล...
+        </p>
+      `;
+      summaryArea.innerHTML = html;
+      return;
+    }
+
+    /* ===== 6. รายชื่อ + Rank ===== */
+    html += entries.map(([name, total], index) => {
+      const cleanName = name.replace(/^@+/, '');
+      const displayName =
+        cleanName.length > 15 ? cleanName.substring(0, 15) + "…" : cleanName;
+
+      let rankClass = "";
+      if (index === 0) rankClass = "gold";
+      else if (index === 1) rankClass = "silver";
+      else if (index === 2) rankClass = "bronze";
+
+      return `
+        <div class="player-row">
+          <div class="rank ${rankClass}">#${index + 1}</div>
+          <div class="player-name">${displayName}</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span class="amount">${total.toLocaleString()}</span>
+            <button class="btn-capture-player"
+              onclick="capturePlayerRow('${cleanName}', ${total})">
+              <i class="fas fa-camera"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    summaryArea.innerHTML = html;
+  });
 }
+
 
 
 function updateNameSummary() {
