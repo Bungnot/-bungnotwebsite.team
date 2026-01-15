@@ -565,6 +565,92 @@
             50% { transform: translate(15px, -25px) rotate(10deg); opacity: 0.7; }
         }
 
+        /* ===== Real-time Header ===== */
+        .summary-header{
+          display:flex;
+          align-items:center;
+          gap:8px;
+          padding:10px 12px;
+          background:linear-gradient(135deg,#1e293b,#020617);
+          color:#f8fafc;
+          border-radius:14px;
+          box-shadow:0 4px 12px rgba(0,0,0,.25);
+          margin-bottom:10px;
+        }
+        .live-dot{
+          width:8px;height:8px;
+          background:#22c55e;
+          border-radius:50%;
+          animation:pulse 1.5s infinite;
+        }
+        @keyframes pulse{
+          0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}
+          100%{box-shadow:0 0 0 10px rgba(34,197,94,0)}
+        }
+        .camp-badge{
+          margin-left:auto;
+          background:#fff7ed;
+          color:#9a3412;
+          padding:4px 10px;
+          border-radius:999px;
+          font-weight:700;
+          font-size:.75rem;
+        }
+        
+        /* ===== Player Row ===== */
+        .player-row{
+          display:flex;
+          align-items:center;
+          gap:8px;
+          padding:8px 6px;
+          border-radius:12px;
+          transition:.25s;
+        }
+        .player-row:hover{
+          background:#f8fafc;
+          transform:translateX(4px);
+        }
+        .rank{
+          width:26px;
+          text-align:center;
+          font-weight:800;
+          font-size:.75rem;
+        }
+        .rank.gold{color:#f59e0b}
+        .rank.silver{color:#94a3b8}
+        .rank.bronze{color:#b45309}
+        
+        .player-name{
+          flex:1;
+          font-weight:600;
+          color:#1e293b;
+        }
+        
+        /* ===== Amount + Capture ===== */
+        .amount{
+          font-weight:800;
+          color:#16a34a;
+          background:#ecfdf5;
+          padding:4px 10px;
+          border-radius:8px;
+        }
+        .btn-capture-player{
+          border:none;
+          background:linear-gradient(135deg,#fde68a,#fbbf24);
+          color:#78350f;
+          width:32px;
+          height:32px;
+          border-radius:10px;
+          cursor:pointer;
+          box-shadow:0 2px 6px rgba(0,0,0,.2);
+          transition:.2s;
+        }
+        .btn-capture-player:hover{
+          transform:scale(1.1) rotate(-5deg);
+        }
+
+    
+
     </style>
 </head>
 <body class="theme-christmas">
@@ -886,3 +972,4 @@ function initSnow() {
 </script>
 </body>
 </html>
+
