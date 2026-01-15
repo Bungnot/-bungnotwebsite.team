@@ -45,34 +45,39 @@ function updateIndividualTableSummaries() {
             // เปลี่ยนโครงสร้าง HTML ภายในฟังก์ชัน updateIndividualTableSummaries ตรงส่วนที่สร้างตัวแปร html
 // 2. ปรับโครงสร้าง HTML: สไตล์ใหม่ สบายตา ไม่แสบตา
 // 2. ปรับโครงสร้าง HTML: จำกัดความกว้างและตัดชื่อที่ยาวเกินไป
+// 2. ปรับโครงสร้าง HTML: จำกัด 15 ตัวอักษร และปรับสีให้สบายตา
             let html = `
-                <div style="background: #1e293b; color: #f8fafc; padding: 10px 14px; border-radius: 10px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="background: #1e293b; color: #f8fafc; padding: 10px 14px; border-radius: 12px; margin: -10px -5px 15px -5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
                     <span style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #94a3b8;">
-                        <i class="fas fa-bolt" style="color: #fbbf24;"></i> ยอดเล่น Real-time
+                        <i class="fas fa-bolt" style="color: #fbbf24;"></i> Real-time
                     </span>
-                    <span style="background: #bae6fd; color: #0369a1; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${campName}">
-                        ค่าย: ${campName}
+                    <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ค่าย: ${campName.substring(0, 15)}${campName.length > 15 ? '...' : ''}
                     </span>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; margin-bottom: 8px; color: #64748b; font-size: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding: 0 5px 8px 5px; margin-bottom: 10px; color: #64748b; font-size: 0.75rem;">
                     <span style="flex: 1;">ชื่อผู้เล่น</span>
-                    <span style="width: 80px; text-align: right; background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">ยอดรวม</span>
+                    <span style="width: 90px; text-align: right; background: #f1f5f9; padding: 2px 8px; border-radius: 5px;">ยอดเงินรวม</span>
                 </div>`;
             
             if (entries.length === 0) {
-                html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 10px; font-size: 0.85rem;">รอข้อมูล...</p>`;
+                html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px; font-size: 0.85rem;">รอข้อมูล...</p>`;
             } else {
-                html += entries.map(([name, total]) => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;">
-                        <span style="flex: 1; color: #334155; font-weight: 500; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;">
-                            ${name}
+                html += entries.map(([name, total]) => {
+                    // จำกัดชื่อผู้เล่น 15 ตัวอักษร
+                    const shortName = name.length > 15 ? name.substring(0, 15) + "..." : name;
+                    
+                    return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f8fafc; padding: 4px 5px;">
+                        <span style="flex: 1; color: #334155; font-weight: 500; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${shortName}
                         </span>
-                        <span style="width: 85px; text-align: right; font-weight: bold; color: #0f172a; font-size: 0.9rem; font-family: 'Inter', sans-serif;">
+                        <span style="width: 90px; text-align: right; font-weight: 800; color: #1e293b; font-size: 0.95rem; font-family: 'Inter', sans-serif;">
                             ${total.toLocaleString()}
                         </span>
                     </div>
-                `).join('');
+                `}).join('');
             }
             summaryArea.innerHTML = html;
         }
