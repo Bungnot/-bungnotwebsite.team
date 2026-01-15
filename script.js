@@ -63,17 +63,18 @@ function updateIndividualTableSummaries() {
                 html += `<p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px; font-size: 0.85rem;">รอข้อมูล...</p>`;
             } else {
                 html += entries.map(([name, total]) => {
-                  const displayName = name.length > 15 ? name.substring(0, 15) + "..." : name;
+                    const cleanName = name.replace(/^@+/, '');
+                    const displayName = cleanName.length > 15 ? cleanName.substring(0, 15) + "..." : cleanName;
                 
                   return `
                     <div class="player-row">
                         <div class="player-info">
-                            <span class="player-name">@${displayName}</span>
+                            <span class="player-name">${displayName}</span>
                         </div>
-                        <div class="player-total">
-                            <span>${total.toLocaleString()}</span>
-                            <button class="btn-capture-player" onclick="capturePlayerRow('${name}', ${total})">
-                                <i class="fas fa-camera"></i>
+                             <div class="player-total">
+                                <span>${total.toLocaleString()}</span>
+                                <button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})">
+                                    <i class="fas fa-camera"></i>
                             </button>
                         </div>
                     </div>
