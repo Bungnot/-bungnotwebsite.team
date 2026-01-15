@@ -743,7 +743,7 @@ function capturePlayerRow(playerName) {
       ยอดเล่น Real-Time
     </div>
     <div style="font-size:1.1rem;color:#334155;margin-bottom:10px;">
-      🧍‍♂️ ${cleanName}
+      คุณ🧍‍♂️ ${cleanName}
     </div>
   `;
 
