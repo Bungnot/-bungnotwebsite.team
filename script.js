@@ -102,6 +102,37 @@ function updateIndividualTableSummaries() {
 }
 
 
+function syncRealtimeSummary() {
+  const liveTables = {};
+
+  tables.forEach((table, index) => {
+    const map = {};
+
+    table.rows.forEach(r => {
+      const nums = r.price?.match(/\d+/g);
+      if (!nums) return;
+
+      let sum = 0;
+      nums.forEach(n => {
+        if (n.length >= 3) sum += parseInt(n);
+      });
+
+      if (sum > 0) {
+        if (r.chaser) map[r.chaser] = (map[r.chaser] || 0) + sum;
+        if (r.holder && r.holder !== r.chaser)
+          map[r.holder] = (map[r.holder] || 0) + sum;
+      }
+    });
+
+    liveTables["table_" + index] = {
+      title: table.title || `บั้งที่ ${index + 1}`,
+      summary: map
+    };
+  });
+
+  firebase.database().ref("liveTables").set(liveTables);
+}
+
 
 function updateNameSummary() {
     const nameSummary = {};
