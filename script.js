@@ -133,6 +133,29 @@ function syncRealtimeSummary() {
   firebase.database().ref("liveTables").set(liveTables);
 }
 
+// 🔥 เคลียร์ยอดทั้งหมดของคน ๆ เดียว
+function clearPlayerTotal(playerName) {
+  if (!playerName) return;
+  if (!confirm(`ต้องการเคลียร์ยอดทั้งหมดของ ${playerName} ใช่หรือไม่?`)) return;
+
+  db.ref("realtimeSummary/" + playerName).remove()
+    .then(() => showToast(`เคลียร์ยอดของ ${playerName} แล้ว`))
+    .catch(err => console.error(err));
+}
+
+// ➖ หักยอดบางส่วน
+function deductPlayerTotal(playerName, amount) {
+  if (!playerName || !amount || amount <= 0) return;
+
+  db.ref("realtimeSummary/" + playerName + "/total")
+    .transaction(current => {
+      if (!current) return 0;
+      return Math.max(current - amount, 0);
+    })
+    .then(() => showToast(`หักยอด ${playerName} จำนวน ${amount.toLocaleString()}`))
+    .catch(err => console.error(err));
+}
+
 
 function updateNameSummary() {
     const nameSummary = {};
