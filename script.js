@@ -1,3 +1,25 @@
+// 🔥 Firebase Init
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+db.ref("liveTables").on("value", snapshot => {
+  const data = snapshot.val();
+  if (!data) return;
+
+  const container = document.getElementById("tables-container");
+  container.innerHTML = "";
+
+  data.forEach(t => addTable(t.title, t.rows, true));
+
+  // 🔥 เพิ่ม 3 บรรทัดนี้
+  updateIndividualTableSummaries();
+  updateNameSummary();
+  refreshAllBadges();
+});
+
+
+
+
 /**
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
@@ -479,7 +501,7 @@ document.addEventListener("DOMContentLoaded", () => {
         historyData = JSON.parse(savedHistory);
         totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
     }
-    loadData(); 
+   //  loadData(); 
     document.addEventListener('keydown', handleGlobalKeyDown);
 });
 
@@ -520,43 +542,37 @@ function refreshAllBadges() {
 }
 
 // --- 1. เพิ่มเสียงตอนพิมพ์ (Auto Save) ---
-function saveData() {
-    const data = [];
-    document.querySelectorAll(".table-container").forEach(table => {
-        const titleInput = table.querySelector(".table-title-input");
-        const title = titleInput ? titleInput.value : "";
-        const rows = [];
-        table.querySelectorAll("tbody tr").forEach(r => {
-            const cells = r.querySelectorAll("input");
-            if (cells.length >= 3) {
-                rows.push([cells[0].value, cells[1].value, cells[2].value]);
-            }
-        });
-        data.push({ title, rows });
+function saveDataRealtime() {
+  const tables = [];
+
+  document.querySelectorAll(".table-container").forEach(table => {
+    const title = table.querySelector(".table-title-input").value;
+    const rows = [];
+
+    table.querySelectorAll("tbody tr").forEach(tr => {
+      const inputs = tr.querySelectorAll("input");
+      rows.push({
+        chaser: inputs[0].value,
+        price: inputs[1].value,
+        holder: inputs[2].value
+      });
     });
-    localStorage.setItem("savedTables", JSON.stringify(data));
-    refreshAllBadges();
-    updateDashboardStats();
 
-    updateNameSummary(); // <--- เพิ่มบรรทัดนี้
-    updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
-    
-    // แสดง Badge แจ้งเตือน และเล่นเสียงเบาๆ ตอนบันทึก
-    const badge = document.getElementById("auto-save-alert");
-    if(badge) { 
-        badge.style.opacity = "1"; 
-        setTimeout(() => badge.style.opacity = "0", 1500); 
-    }
+    tables.push({ title, rows });
+  });
+
+  db.ref("liveTables").set(tables);
 }
 
-function loadData() {
-    const raw = localStorage.getItem("savedTables");
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    const container = document.getElementById("tables-container");
-    container.innerHTML = "";
-    data.forEach(t => addTable(t.title, t.rows, true));
-}
+
+// function loadData() {
+//     const raw = localStorage.getItem("savedTables");
+//     if (!raw) return;
+//     const data = JSON.parse(raw);
+//     const container = document.getElementById("tables-container");
+//     container.innerHTML = "";
+//     data.forEach(t => addTable(t.title, t.rows, true));
+// }
 
 // 3. ฟังก์ชันการทำงานของตาราง
 // 3. ฟังก์ชันการทำงานของตาราง (ฉบับแก้ไขตำแหน่ง Sidebar)
@@ -576,9 +592,9 @@ function addTable(title = "", rows = null, isSilent = false) {
 
     const generateRowHtml = (r = ["", "", ""]) => `
         <tr>
-            <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
-            <td><input type="text" value="${r[1]}" oninput="saveData()" style="color:#2e7d32;"></td>
-            <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
+            <td><input type="text" value="${r[0]}" oninput="saveDataRealtime()"></td>
+            <td><input type="text" value="${r[1]}" oninput="saveDataRealtime()" style="color:#2e7d32;"></td>
+            <td><input type="text" value="${r[2]}" oninput="saveDataRealtime()"></td>
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
@@ -591,7 +607,7 @@ function addTable(title = "", rows = null, isSilent = false) {
                 <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
                 <button class="btn-close-table" onclick="removeTable(this)" style="position:static;"><i class="fas fa-times"></i></button>
             </div>
-            <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()" style="width: 80%;">
+            <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveDataRealtime()" style="width: 80%;">
             <table class="custom-table">
                 <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr></thead>
                 <tbody>${rowsHtml}</tbody>
@@ -615,7 +631,7 @@ function addTable(title = "", rows = null, isSilent = false) {
         newTableWrapper.style.opacity = '1';
         newTableWrapper.style.transform = 'translateY(0)';
     }, 50);
-    saveData();
+    saveDataRealtime();
 }
 
 function handleClosingSuccess() {
@@ -628,18 +644,18 @@ function addRow(table) {
     const tbody = table.querySelector("tbody");
     const tr = document.createElement("tr");
     tr.innerHTML = `
-        <td><input type="text" oninput="saveData()"></td>
-        <td><input type="text" oninput="saveData()" style="color:#2e7d32;"></td>
-        <td><input type="text" oninput="saveData()"></td>
+        <td><input type="text" oninput="saveDataRealtime()"></td>
+        <td><input type="text" oninput="saveDataRealtime()" style="color:#2e7d32;"></td>
+        <td><input type="text" oninput="saveDataRealtime()"></td>
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
     tbody.appendChild(tr);
-    saveData();
+    saveDataRealtime();
 }
 
 function removeRow(btn) { 
     playSound('delete'); // <--- มั่นใจว่ามีบรรทัดนี้
     btn.closest('tr').remove(); 
-    saveData(); 
+    saveDataRealtime(); 
 }
 
 function copyTableAsImage(tableElement) {
@@ -890,7 +906,7 @@ function removeTable(button) {
         tableContainer.remove();
         playSound('chime'); // เสียง https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3
         
-        saveData();
+        saveDataRealtime();
     });
 }
 
