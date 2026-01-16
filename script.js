@@ -608,32 +608,34 @@ function buildSummary(rows) {
 }
 
 function pushToRealtime() {
-  const tables = [];
+  const ref = db.ref("realtimeEvents");
 
   document.querySelectorAll(".table-container").forEach(table => {
-    const title = table.querySelector(".table-title-input")?.value || "ไม่ระบุ";
-    const rows = [];
-
     table.querySelectorAll("tbody tr").forEach(tr => {
       const inputs = tr.querySelectorAll("input");
-      if (inputs.length >= 3) {
-        rows.push([
-          inputs[0].value.trim(),
-          inputs[1].value.trim(),
-          inputs[2].value.trim()
-        ]);
-      }
+      if (inputs.length < 3) return;
+
+      const chaser = inputs[0].value.trim();
+      const price  = inputs[1].value.replace(/[Oo]/g,'0');
+      const holder = inputs[2].value.trim();
+
+      const nums = price.match(/\d+/g);
+      if (!nums) return;
+
+      nums.forEach(n => {
+        if (n.length >= 3) {
+          ref.push({
+            chaser,
+            holder,
+            amount: parseInt(n),
+            ts: Date.now()
+          });
+        }
+      });
     });
-
-    const summary = buildSummary(rows);
-    tables.push({ title, rows, summary });
-  });
-
-  firebase.database().ref("realtimeTables").update({
-    updatedAt: Date.now(),
-    tables
   });
 }
+
 
 
 function loadData() {
