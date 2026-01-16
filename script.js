@@ -537,6 +537,7 @@ function saveData() {
     localStorage.setItem("savedTables", JSON.stringify(data));
     refreshAllBadges();
     updateDashboardStats();
+    pushToRealtime(); // 👈 เพิ่มบรรทัดนี้
 
     updateNameSummary(); // <--- เพิ่มบรรทัดนี้
     updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
@@ -548,6 +549,34 @@ function saveData() {
         setTimeout(() => badge.style.opacity = "0", 1500); 
     }
 }
+
+function pushToRealtime() {
+  const data = [];
+
+  document.querySelectorAll(".table-container").forEach(table => {
+    const title = table.querySelector(".table-title-input")?.value || "";
+    const rows = [];
+
+    table.querySelectorAll("tbody tr").forEach(tr => {
+      const inputs = tr.querySelectorAll("input");
+      if (inputs.length >= 3) {
+        rows.push([
+          inputs[0].value,
+          inputs[1].value,
+          inputs[2].value
+        ]);
+      }
+    });
+
+    data.push({ title, rows });
+  });
+
+  db.ref("realtimeTables").set({
+    updatedAt: Date.now(),
+    tables: data
+  });
+}
+
 
 function loadData() {
     const raw = localStorage.getItem("savedTables");
