@@ -568,6 +568,7 @@ function saveData() {
     localStorage.setItem("savedTables", JSON.stringify(data));
     refreshAllBadges();
     updateDashboardStats();
+  
     pushToRealtime(); // 👈 เพิ่มบรรทัดนี้
 
     updateNameSummary(); // <--- เพิ่มบรรทัดนี้
@@ -581,30 +582,56 @@ function saveData() {
     }
 }
 
+function buildSummary(rows) {
+  const players = {};
+  let total = 0;
+
+  rows.forEach(r => {
+    const priceText = (r[1] || "").replace(/[Oo]/g, "0");
+    const nums = priceText.match(/\d+/g);
+    if (!nums) return;
+
+    nums.forEach(n => {
+      if (n.length >= 3) {
+        const val = parseInt(n, 10);
+        total += val;
+
+        if (r[0]) players[r[0]] = (players[r[0]] || 0) + val;
+        if (r[2] && r[2] !== r[0]) {
+          players[r[2]] = (players[r[2]] || 0) + val;
+        }
+      }
+    });
+  });
+
+  return { total, players };
+}
+
 function pushToRealtime() {
-  const data = [];
+  const tables = [];
 
   document.querySelectorAll(".table-container").forEach(table => {
-    const title = table.querySelector(".table-title-input")?.value || "";
+    const title = table.querySelector(".table-title-input")?.value || "ไม่ระบุ";
     const rows = [];
 
     table.querySelectorAll("tbody tr").forEach(tr => {
       const inputs = tr.querySelectorAll("input");
       if (inputs.length >= 3) {
         rows.push([
-          inputs[0].value,
-          inputs[1].value,
-          inputs[2].value
+          inputs[0].value.trim(),
+          inputs[1].value.trim(),
+          inputs[2].value.trim()
         ]);
       }
     });
 
-    data.push({ title, rows });
+    const summary = buildSummary(rows);
+    tables.push({ title, rows, summary });
   });
 
-  db.ref("realtimeTables").set({
+  firebase.database().ref("realtimeTables").update({
     updatedAt: Date.now(),
-    tables: data
+    tables
   });
 }
 
