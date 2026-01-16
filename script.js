@@ -82,42 +82,24 @@ function updateIndividualTableSummaries() {
       else if (index === 1) rankClass = "silver";
       else if (index === 2) rankClass = "bronze";
 
-  return `
-    <div class="player-row">
-      <div class="rank ${rankClass}">#${index + 1}</div>
-      <div class="player-name">${displayName}</div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <span class="amount">${total.toLocaleString()}</span>
-  
-        <!-- ปุ่มกล้อง (เดิม) -->
-        <button class="btn-capture-player"
-          onclick="capturePlayerRow('${cleanName}', ${total})">
-          <i class="fas fa-camera"></i>
-        </button>
-  
-        <!-- ✅ ปุ่มเคลียร์ยอดทั้งหมด -->
-        <button
-          onclick="clearPlayerTotal('${cleanName}')"
-          style="background:#dc2626;color:white;border-radius:6px;padding:4px 6px;">
-          เคลียร์
-        </button>
-  
-        <!-- ✅ ปุ่มหักยอด (ตัวอย่าง -100) -->
-        <button
-          onclick="deductPlayerTotal('${cleanName}', 100)"
-          style="background:#f59e0b;color:black;border-radius:6px;padding:4px 6px;">
-          -100
-        </button>
-      </div>
-    </div>
-  `;
-
+      return `
+        <div class="player-row">
+          <div class="rank ${rankClass}">#${index + 1}</div>
+          <div class="player-name">${displayName}</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span class="amount">${total.toLocaleString()}</span>
+            <button class="btn-capture-player"
+              onclick="capturePlayerRow('${cleanName}', ${total})">
+              <i class="fas fa-camera"></i>
+            </button>
+          </div>
+        </div>
+      `;
     }).join("");
 
     summaryArea.innerHTML = html;
   });
 }
-
 
 
 function syncRealtimeSummary() {
@@ -151,29 +133,6 @@ function syncRealtimeSummary() {
   firebase.database().ref("liveTables").set(liveTables);
 }
 
-// 🔥 เคลียร์ยอดทั้งหมดของคน ๆ เดียว
-function clearPlayerTotal(playerName) {
-  if (!playerName) return;
-  if (!confirm(`ต้องการเคลียร์ยอดทั้งหมดของ ${playerName} ใช่หรือไม่?`)) return;
-
-  db.ref("realtimeSummary/" + playerName).remove()
-    .then(() => showToast(`เคลียร์ยอดของ ${playerName} แล้ว`))
-    .catch(err => console.error(err));
-}
-
-// ➖ หักยอดบางส่วน
-function deductPlayerTotal(playerName, amount) {
-  if (!playerName || !amount || amount <= 0) return;
-
-  db.ref("realtimeSummary/" + playerName + "/total")
-    .transaction(current => {
-      if (!current) return 0;
-      return Math.max(current - amount, 0);
-    })
-    .then(() => showToast(`หักยอด ${playerName} จำนวน ${amount.toLocaleString()}`))
-    .catch(err => console.error(err));
-}
-
 
 function updateNameSummary() {
     const nameSummary = {};
@@ -200,12 +159,10 @@ function updateNameSummary() {
                 // รวมยอดฝั่งคนไล่
                 if (chaserName) {
                     nameSummary[chaserName] = (nameSummary[chaserName] || 0) + rowTotal;
-                    addRealtime(chaser, rowTotal);   // ✅ เพิ่ม
                 }
                 // แก้ไข: รวมยอดฝั่งคนยั้ง โดยเช็คว่าชื่อไม่ซ้ำกับคนไล่ เพื่อป้องกันยอดเบิ้ล
                 if (holderName && holderName !== chaserName) {
                     nameSummary[holderName] = (nameSummary[holderName] || 0) + rowTotal;
-                    addRealtime(chaser, rowTotal);   // ✅ เพิ่ม
                 }
             }
         });
@@ -612,12 +569,10 @@ function saveData() {
     refreshAllBadges();
     updateDashboardStats();
   
-   // pushToRealtime(); // 👈 เพิ่มบรรทัดนี้
+    pushToRealtime(); // 👈 เพิ่มบรรทัดนี้
 
     updateNameSummary(); // <--- เพิ่มบรรทัดนี้
     updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
-    
-  
     
     // แสดง Badge แจ้งเตือน และเล่นเสียงเบาๆ ตอนบันทึก
     const badge = document.getElementById("auto-save-alert");
@@ -651,22 +606,6 @@ function buildSummary(rows) {
 
   return { total, players };
 }
-
-function addRealtime(playerName, amount) {
-  if (!playerName || !amount) return;
-
-  const ref = db.ref("realtimeSummary/" + playerName);
-  ref.transaction(data => {
-    if (!data) {
-      return { total: amount, updatedAt: Date.now() };
-    }
-    return {
-      total: data.total + amount,
-      updatedAt: Date.now()
-    };
-  });
-}
-
 
 function pushToRealtime() {
   const ref = db.ref("realtimeEvents");
