@@ -1009,25 +1009,24 @@ function removeTable(button) {
 // --- 4. เพิ่มเสียงตอนกู้คืนข้อมูล ---
 function restoreLastDeleted() {
     if (isRestoring) return;
-    if (historyData.length === 0) {
-        playSound('alert'); // เสียงเตือนถ้าไม่มีข้อมูลให้กู้
-        return showSimpleModal("แจ้งเตือน", "ไม่มีข้อมูลให้กู้คืน");
-    }
+    if (historyData.length === 0) return;
 
     isRestoring = true;
-    
-    // --- แก้ไขบรรทัดด้านล่างนี้ ---
-    playSound('alert'); // เปลี่ยนจาก playSound('success') เป็น 'alert'
-    // --------------------------
-    
+
     const last = historyData.pop();
     totalDeletedProfit -= last.profit;
+
+    // ✅ ลดจำนวนค่ายที่ปิด
+    closedCampCount = Math.max(0, closedCampCount - 1);
+    updateClosedCampDisplay();
+
     addTable(last.title, last.rows, true);
-    
     localStorage.setItem("historyData", JSON.stringify(historyData));
     updateDashboardStats();
+
     setTimeout(() => { isRestoring = false; }, 500);
 }
+
 
 function handleGlobalKeyDown(e) {
     if (e.target.tagName !== "INPUT") return;
@@ -1278,28 +1277,20 @@ function closeModal() {
 
 // แก้ไขฟังก์ชันล้างข้อมูลให้ใช้ Modal สวยๆ
 function clearAllHistory() {
-    // 1. เล่นเสียงเตือนก่อน (Alert)
     playSound('clear');
 
-    // 2. เรียกใช้ Custom Modal ที่สร้างไว้แล้ว
-    showConfirmModal("ยืนยันการล้างข้อมูล", 0, (confirmed) => {
-        // ในที่นี้เราไม่ได้ใช้ค่า profit แต่ใช้เช็คว่ามีการตอบตกลงไหม
-        // ถ้าผู้ใช้กด 'ตกลง' หรือ 'ไม่คิดยอด' (ที่ส่งค่ามา) ให้ทำการล้างข้อมูล
-        
+    showConfirmModal("ยืนยันการล้างข้อมูล", 0, () => {
         localStorage.clear();
-        
-        // เล่นเสียงแจ้งเตือนความสำเร็จก่อนรีโหลด
-        playSound('success');
-        
-        setTimeout(() => {
-            location.reload();
-        }, 500);
-    });
 
-    // ปรับแต่งข้อความใน Modal ให้เหมาะกับการล้างข้อมูล
-    document.getElementById('modal-msg').innerHTML = 
-        `<span style="color:#e74c3c; font-weight:bold;">คำเตือน!</span><br>ข้อมูลตารางและประวัติทั้งหมดจะถูกลบถาวร`;
+        // ✅ รีเซ็ตค่าทาง Logic
+        closedCampCount = 0;
+        updateClosedCampDisplay();
+
+        playSound('success');
+        setTimeout(() => location.reload(), 500);
+    });
 }
+
 
 function openStopwatchWindow() {
     const win = window.open("", "_blank", "width=550,height=700");
