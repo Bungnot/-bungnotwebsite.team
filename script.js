@@ -614,6 +614,9 @@ function saveData() {
 
     updateNameSummary(); // <--- เพิ่มบรรทัดนี้
     updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
+
+        // ✅ เพิ่มบรรทัดนี้
+    updateBungAndCampSummary();
     
     // แสดง Badge แจ้งเตือน และเล่นเสียงเบาๆ ตอนบันทึก
     const badge = document.getElementById("auto-save-alert");
