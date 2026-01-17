@@ -523,7 +523,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (savedHistory) {
         historyData = JSON.parse(savedHistory);
         totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
+                // ✅ นับจำนวนค่ายจากประวัติที่ปิดไปแล้ว
+        closedCampCount = historyData.length;
     }
+    updateClosedCampDisplay(); // ✅ แสดงผลทันทีตอนเข้าเว็บ
     loadData(); 
     document.addEventListener('keydown', handleGlobalKeyDown);
 });
