@@ -2,46 +2,6 @@
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
 
-function updateBungAndCampSummary() {
-    const tables = document.querySelectorAll(".table-container");
-
-    let bungCount = tables.length; // จำนวนบั้งทั้งหมด
-    let campSet = new Set();       // เก็บชื่อค่ายไม่ให้ซ้ำ
-
-    tables.forEach(table => {
-        const campName =
-            table.querySelector(".table-title-input")?.value.trim();
-
-        let hasValidPlay = false;
-
-        table.querySelectorAll("tbody tr").forEach(tr => {
-            const priceInput = tr.querySelectorAll("input")[1];
-            if (!priceInput) return;
-
-            const nums = priceInput.value.replace(/[Oo]/g,'0').match(/\d+/g);
-            if (!nums) return;
-
-            nums.forEach(n => {
-                if (n.length >= 3) hasValidPlay = true;
-            });
-        });
-
-        if (hasValidPlay && campName) {
-            campSet.add(campName);
-        }
-    });
-
-    const display = document.getElementById("bung-camp-summary");
-    if (display) {
-        display.innerHTML = `
-            🔥 บั้งทั้งหมด: <b>${bungCount}</b> บั้ง |
-            🏕️ ค่ายที่คิดยอด: <b>${campSet.size}</b> ค่าย
-            <span style="font-size:0.75rem;color:#64748b;">(อัปเดตล่าสุด)</span>
-        `;
-    }
-}
-
-
 function updateClosedCampDisplay() {
     const el = document.getElementById("bung-camp-summary");
     if (!el) return;
@@ -555,6 +515,8 @@ let totalDeletedProfit = 0;
 let currentModalKeyHandler = null;
 let isProcessingModal = false; // ป้องกันปิดยอดเบิ้ล
 let isRestoring = false;      // ป้องกันกู้คืนเบิ้ล
+let closedCampCount = 0; // ✅ จำนวนค่ายที่ปิดยอดแล้ว
+
 
 document.addEventListener("DOMContentLoaded", () => {
     const savedHistory = localStorage.getItem("historyData");
