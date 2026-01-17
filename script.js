@@ -6,7 +6,7 @@ function updateBungAndCampSummary() {
     const tables = document.querySelectorAll(".table-container");
 
     let bungCount = tables.length; // จำนวนบั้งทั้งหมด
-    let campSet = new Set();       // ใช้ Set กันชื่อค่ายซ้ำ
+    let campSet = new Set();       // เก็บชื่อค่ายไม่ให้ซ้ำ
 
     tables.forEach(table => {
         const campName =
@@ -31,7 +31,6 @@ function updateBungAndCampSummary() {
         }
     });
 
-    // แสดงผล
     const display = document.getElementById("bung-camp-summary");
     if (display) {
         display.innerHTML = `
@@ -41,6 +40,7 @@ function updateBungAndCampSummary() {
         `;
     }
 }
+
 
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
