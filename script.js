@@ -42,6 +42,17 @@ function updateBungAndCampSummary() {
 }
 
 
+function updateClosedCampDisplay() {
+    const el = document.getElementById("bung-camp-summary");
+    if (!el) return;
+
+    el.innerHTML = `
+        🏕️ ปิดยอดแล้ว <b>${closedCampCount}</b> ค่าย
+        <span style="font-size:0.75rem;color:#64748b;">(นับจากการกดปิดยอด)</span>
+    `;
+}
+
+
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
 
@@ -616,7 +627,7 @@ function saveData() {
     updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
 
         // ✅ เพิ่มบรรทัดนี้
-    updateBungAndCampSummary();
+  //  updateBungAndCampSummary();
     
     // แสดง Badge แจ้งเตือน และเล่นเสียงเบาๆ ตอนบันทึก
     const badge = document.getElementById("auto-save-alert");
@@ -1020,8 +1031,11 @@ function removeTable(button) {
         totalDeletedProfit += finalProfit;
         
         // --- จังหวะที่ 2: ปิดยอดเสร็จสิ้น (ลบตารางออกจากจอ) ---
+        closedCampCount++;                 // ✅ นับค่ายที่ปิดยอด
+        updateClosedCampDisplay();         // ✅ อัปเดต Dashboard
+        
         tableContainer.remove();
-        playSound('chime'); // เสียง https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3
+        playSound('chime');
         
         saveData();
     });
