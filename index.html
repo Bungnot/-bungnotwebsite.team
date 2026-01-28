@@ -679,35 +679,46 @@
 
 
 
-        /* กำหนดให้ช่องราคา (td ที่ 2) เป็นจุดอ้างอิง */
+        /* ตั้งค่าช่อง TD ราคา (ช่องที่ 2) */
         .custom-table td:nth-child(2) {
             position: relative;
-            padding: 0 !important; /* ล้าง padding เพื่อให้ตัวเลขอยู่ขอบพอดี */
+            padding: 0 !important;
         }
         
-        /* ช่อง Input ราคาหลัก */
+        /* ปรับแต่งกรอบ Input ราคา */
         .custom-table td:nth-child(2) input {
-            padding-right: 50px !important; /* เว้นที่ด้านขวาในกรอบไว้สำหรับตัวเลขสุทธิ */
-            width: 100%;
-            box-sizing: border-box;
+            padding-right: 75px !important; /* เว้นที่ให้พอสำหรับคำว่า "สุทธิ 000" */
+            font-weight: bold;
+            color: #2e7d32;
         }
         
-        /* ตัวเลขสุทธิที่ฝังอยู่ข้างในกรอบ */
+        /* ป้ายกำกับ "สุทธิ" และตัวเลขสีเหลืองทอง */
         .net-inside-label {
             position: absolute;
-            right: 5px; /* ชิดขวาภายในกรอบ */
+            right: 6px;
             top: 50%;
             transform: translateY(-50%);
-            background: #1e293b; /* พื้นหลังสีเข้มแยกสัดส่วน */
-            color: #2ecc71; /* ตัวเลขสุทธิสีเขียวสว่าง */
-            font-size: 11px;
-            padding: 2px 5px;
+            background: #000000; /* พื้นหลังดำสนิท */
+            color: #facc15; /* ตัวเลขสีเหลืองทองชัดเจน */
+            font-size: 12px;
+            padding: 2px 6px;
             border-radius: 4px;
             font-weight: bold;
-            pointer-events: none; /* พิมพ์ทะลุได้ ไม่ขวางเมาส์ */
-            border: 1px solid rgba(46, 125, 50, 0.4);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            border: 1px solid #444;
             z-index: 10;
             line-height: 1;
+        }
+        
+        /* ใส่คำว่า สุทธิ ข้างหน้าตัวเลข */
+        .net-inside-label::before {
+            content: "สุทธิ";
+            font-size: 10px;
+            color: #ffffff; /* คำว่าสุทธิสีขาว */
+            font-weight: normal;
         }
     
     
@@ -1059,6 +1070,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
