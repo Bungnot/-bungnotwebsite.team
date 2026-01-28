@@ -20,7 +20,7 @@ function updateIndividualTableSummaries() {
     const tableTitleInput = tableWrapper.querySelector(".table-title-input");
     const campName = tableTitleInput ? tableTitleInput.value.trim() || "ไม่ระบุค่าย" : "ไม่ระบุค่าย";
 
-    /* ===== 2. จัดการข้อมูลแต่ละแถว ===== */
+    /* ===== 2. ประมวลผลแต่ละแถว ===== */
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
@@ -32,7 +32,7 @@ function updateIndividualTableSummaries() {
       const priceInput = inputs[1]; // ช่องราคา
       const holder = inputs[2].value.trim();
 
-      // ดึงตัวเลขและคำนวณยอดรวม (เฉพาะ 3 หลักขึ้นไป)
+      // คำนวณยอด (ล้างค่า O เป็น 0 และหาตัวเลข 3 หลักขึ้นไป)
       const priceText = priceInput.value.replace(/[Oo]/g, '0');
       const matches = priceText.match(/\d+/g);
       let rowTotal = 0;
@@ -43,7 +43,7 @@ function updateIndividualTableSummaries() {
         });
       }
 
-      /* --- [หัวใจหลัก] ฝังยอดสุทธิเข้าไปในช่องราคา --- */
+      /* --- [ส่วนที่ต้องการ] ฝังยอดสุทธิเข้าไปในกรอบราคา --- */
       const priceTd = priceInput.parentElement;
       let netBadge = priceTd.querySelector(".net-inside-label");
 
@@ -52,14 +52,15 @@ function updateIndividualTableSummaries() {
         if (!netBadge) {
           netBadge = document.createElement("div");
           netBadge.className = "net-inside-label";
-          priceTd.appendChild(netBadge); // ใส่เข้าไปในช่อง td ตรงๆ
+          priceTd.appendChild(netBadge); // ฝังเข้าไปใน td โดยตรง
         }
         netBadge.innerText = netAmount.toLocaleString();
       } else {
         if (netBadge) netBadge.remove();
       }
-      /* ----------------------------------------- */
+      /* ----------------------------------------------- */
 
+      // เก็บข้อมูลสำหรับ Sidebar (Real-time)
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
         if (holder && holder !== chaser) {
@@ -68,7 +69,7 @@ function updateIndividualTableSummaries() {
       }
     });
 
-    /* ===== 3. ส่วนแสดงผล Sidebar ด้านข้าง (คงเดิม) ===== */
+    /* ===== 3. แสดงผล Sidebar ยอดเล่น Real-Time ===== */
     const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
@@ -99,7 +100,8 @@ function updateIndividualTableSummaries() {
                 <i class="fas fa-camera"></i>
               </button>
             </div>
-          </div>`;
+          </div>
+        `;
       }).join("");
     }
     summaryArea.innerHTML = html;
