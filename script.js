@@ -16,13 +16,13 @@ function updateClosedCampDisplay() {
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
 
-    /* ===== 1. ชื่อค่าย ===== */
+    /* ===== 1. ดึงชื่อค่าย ===== */
     const tableTitleInput = tableWrapper.querySelector(".table-title-input");
     const campName = tableTitleInput
       ? tableTitleInput.value.trim() || "ไม่ระบุค่าย"
       : "ไม่ระบุค่าย";
 
-    /* ===== 2. ประมวลผลแต่ละแถวในตาราง ===== */
+    /* ===== 2. ประมวลผลแต่ละแถว (ราคา/ยอดสุทธิ) ===== */
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
@@ -34,7 +34,7 @@ function updateIndividualTableSummaries() {
       const priceInput = inputs[1]; // ช่องราคา
       const holder = inputs[2].value.trim(); // คนยั้ง
 
-      // ล้างค่า O เป็น 0 และหาตัวเลข
+      // จัดการตัวเลขในช่องราคา
       const priceText = priceInput.value.replace(/[Oo]/g, '0');
       const matches = priceText.match(/\d+/g);
       let rowTotal = 0;
@@ -45,8 +45,8 @@ function updateIndividualTableSummaries() {
         });
       }
 
-      /* --- [ส่วนที่เพิ่ม] จัดการยอดสุทธิ (หัก 10%) ภายในกรอบราคา --- */
-      // สร้าง Wrapper ถ้ายังไม่มี
+      /* --- ส่วนที่ต้องการ: ฝังยอดสุทธิหัก 10% เข้าไปในกรอบ --- */
+      // สร้าง wrapper ครอบช่อง input (ถ้ายังไม่มี)
       let wrapper = priceInput.parentElement;
       if (!wrapper.classList.contains('price-input-wrapper')) {
           wrapper = document.createElement('div');
@@ -55,10 +55,10 @@ function updateIndividualTableSummaries() {
           wrapper.appendChild(priceInput);
       }
 
-      // แสดง Badge ยอดสุทธิ
+      // ตรวจสอบและแสดงผล Badge
       let netBadge = wrapper.querySelector(".net-inside-label");
       if (rowTotal > 0) {
-        const netAmount = Math.floor(rowTotal * 0.9); // คำนวณหักกำไร 10%
+        const netAmount = Math.floor(rowTotal * 0.9); // หักกำไรออก 10%
         if (!netBadge) {
           netBadge = document.createElement("div");
           netBadge.className = "net-inside-label";
@@ -68,9 +68,9 @@ function updateIndividualTableSummaries() {
       } else {
         if (netBadge) netBadge.remove();
       }
-      /* ------------------------------------------------------ */
+      /* ----------------------------------------------- */
 
-      // เก็บข้อมูลสรุปยอดรายบุคคล
+      // เก็บยอดรวมรายชื่อ (สำหรับ Sidebar)
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
         if (holder && holder !== chaser) {
@@ -79,10 +79,11 @@ function updateIndividualTableSummaries() {
       }
     });
 
-    /* ===== 3. จัดการ Sidebar (ยอดเล่น Real-Time) ===== */
-    const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
+    /* ===== 3. แสดงผล Sidebar ยอดเล่น Real-Time (คงเดิม) ===== */
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
+
+    const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
 
     let html = `
       <div class="summary-header">
@@ -93,7 +94,11 @@ function updateIndividualTableSummaries() {
     `;
 
     if (entries.length === 0) {
-      html += `<p style="color:#94a3b8; font-style:italic; text-align:center; margin-top:15px; font-size:.85rem;">รอข้อมูล...</p>`;
+      html += `
+        <p style="color:#94a3b8; font-style:italic; text-align:center; margin-top:15px; font-size:.85rem;">
+          รอข้อมูล...
+        </p>
+      `;
     } else {
       html += entries.map(([name, total], index) => {
         const cleanName = name.replace(/^@+/, '');
@@ -110,7 +115,8 @@ function updateIndividualTableSummaries() {
             <div class="player-name">${displayName}</div>
             <div style="display:flex;gap:6px;align-items:center;">
               <span class="amount">${total.toLocaleString()}</span>
-              <button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})">
+              <button class="btn-capture-player"
+                onclick="capturePlayerRow('${cleanName}', ${total})">
                 <i class="fas fa-camera"></i>
               </button>
             </div>
