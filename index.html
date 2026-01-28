@@ -720,6 +720,30 @@
             color: #ffffff; /* คำว่าสุทธิสีขาว */
             font-weight: normal;
         }
+
+
+
+        /* ปุ่มสลับเปิด-ปิดยอดสุทธิ */
+        .net-toggle-btn {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            cursor: pointer;
+            margin-left: 5px;
+            transition: 0.2s;
+        }
+        .net-toggle-btn.active {
+            background: var(--theme-accent);
+            color: white;
+            border-color: var(--theme-accent);
+        }
+        
+        /* ซ่อนยอดสุทธิเมื่อไม่ได้เปิดใช้งาน */
+        .net-inside-label.hidden {
+            display: none !important;
+        }
     
     
     </style>
@@ -1070,6 +1094,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
