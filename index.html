@@ -683,43 +683,37 @@
         }
         
 
-        /* คอนเทนเนอร์สำหรับช่องราคา */
+        /* คอนเทนเนอร์สำหรับช่องราคาเพื่อให้ยอดสุทธิฝังตัวได้ */
         .price-input-wrapper {
             position: relative;
             display: flex;
             align-items: center;
             width: 100%;
+            background: transparent;
         }
         
-        /* กรอบยอดสุทธิ (หัก 10%) ที่ฝังอยู่ในช่องราคา */
+        /* ยอดสุทธิ (หัก 10%) ที่ฝังอยู่ในกรอบราคา */
         .net-inside-label {
             position: absolute;
-            right: 5px;
+            right: 4px; /* ชิดขวาภายในกรอบ */
             top: 50%;
             transform: translateY(-50%);
-            background: #1e293b; /* สีเข้มพรีเมียม */
-            color: #00ff7f; /* สีเขียวนีออน (สุทธิ) */
-            font-size: 10px;
+            background: #1e293b; /* พื้นหลังสีเข้มแยกสัดส่วน */
+            color: #2ecc71; /* ตัวเลขสีเขียวสว่าง */
+            font-size: 11px; /* ขนาดกำลังดี */
             padding: 2px 6px;
             border-radius: 4px;
             font-weight: bold;
-            pointer-events: none;
-            box-shadow: 0 0 8px rgba(0, 255, 127, 0.2);
-            border: 1px solid rgba(0, 255, 127, 0.5);
-            z-index: 5;
-            line-height: 1;
+            pointer-events: none; /* กดทะลุไปพิมพ์เลขข้างล่างได้ */
+            border: 1px solid rgba(46, 125, 50, 0.4);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            z-index: 2;
         }
         
-        /* ปรับ Input ราคาให้มีที่ว่างด้านขวาสำหรับตัวเลขสุทธิ */
+        /* ปรับช่องราคาให้ตัวหนังสือหลักไม่ไปทับยอดสุทธิ */
         .price-input-wrapper input {
-            padding-right: 52px !important; 
+            padding-right: 55px !important; /* เว้นที่ด้านขวาไว้ */
             font-weight: bold;
-            transition: all 0.2s;
-        }
-        
-        /* เมื่อมีการพิมพ์ ราคาจะดูโดดเด่นขึ้น */
-        .price-input-wrapper input:focus {
-            background: rgba(46, 125, 50, 0.05);
         }
     
     
@@ -1071,6 +1065,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
