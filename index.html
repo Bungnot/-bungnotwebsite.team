@@ -676,44 +676,33 @@
           background: transparent;
         }
 
-        /* ปรับแต่งช่องราคาให้เป็นระเบียบ */
+        /* ช่อง TD ราคาต้องเป็นจุดอ้างอิง */
         .custom-table td:nth-child(2) {
             position: relative;
-            padding-bottom: 20px !important; /* เพิ่มพื้นที่ด้านล่างช่องเพื่อให้วางตัวเลขสุทธิได้สวยๆ */
+            padding-right: 5px !important;
         }
         
-
-        /* คอนเทนเนอร์สำหรับช่องราคาเพื่อให้ยอดสุทธิฝังตัวได้ */
-        .price-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            width: 100%;
-            background: transparent;
-        }
-        
-        /* ยอดสุทธิ (หัก 10%) ที่ฝังอยู่ในกรอบราคา */
+        /* ยอดสุทธิที่ฝังเข้าไปข้างในกรอบ */
         .net-inside-label {
             position: absolute;
-            right: 4px; /* ชิดขวาภายในกรอบ */
+            right: 8px; /* เว้นจากขอบกรอบขวาเล็กน้อย */
             top: 50%;
             transform: translateY(-50%);
-            background: #1e293b; /* พื้นหลังสีเข้มแยกสัดส่วน */
-            color: #2ecc71; /* ตัวเลขสีเขียวสว่าง */
-            font-size: 11px; /* ขนาดกำลังดี */
-            padding: 2px 6px;
+            background: rgba(15, 23, 42, 0.85); /* พื้นหลังดำโปร่งแสงเพื่อให้เห็นตัวเลขชัด */
+            color: #00ff7f; /* สีเขียวนีออน */
+            font-size: 11px;
+            padding: 1px 5px;
             border-radius: 4px;
             font-weight: bold;
-            pointer-events: none; /* กดทะลุไปพิมพ์เลขข้างล่างได้ */
-            border: 1px solid rgba(46, 125, 50, 0.4);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            z-index: 2;
+            pointer-events: none; /* พิมพ์ทะลุได้ ไม่ขวางเมาส์ */
+            border: 1px solid rgba(0, 255, 127, 0.3);
+            z-index: 10;
         }
         
-        /* ปรับช่องราคาให้ตัวหนังสือหลักไม่ไปทับยอดสุทธิ */
-        .price-input-wrapper input {
-            padding-right: 55px !important; /* เว้นที่ด้านขวาไว้ */
-            font-weight: bold;
+        /* ปรับ Input ให้พิมพ์ได้ปกติแต่เว้นที่ขวาไว้ */
+        .custom-table td:nth-child(2) input {
+            padding-right: 50px !important; /* กันตัวเลขที่พิมพ์ไปทับยอดสุทธิ */
+            box-sizing: border-box;
         }
     
     
@@ -1065,6 +1054,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
