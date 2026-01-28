@@ -20,7 +20,7 @@ function updateIndividualTableSummaries() {
     const tableTitleInput = tableWrapper.querySelector(".table-title-input");
     const campName = tableTitleInput ? tableTitleInput.value.trim() || "ไม่ระบุค่าย" : "ไม่ระบุค่าย";
 
-    /* ===== 2. ประมวลผลแต่ละแถว ===== */
+    /* ===== 2. จัดการข้อมูลในแต่ละแถว ===== */
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
@@ -32,7 +32,7 @@ function updateIndividualTableSummaries() {
       const priceInput = inputs[1]; // ช่องราคา
       const holder = inputs[2].value.trim();
 
-      // คำนวณยอด (ล้างค่า O เป็น 0 และหาตัวเลข 3 หลักขึ้นไป)
+      // คำนวณยอดรวมจากราคา (เฉพาะ 3 หลักขึ้นไป)
       const priceText = priceInput.value.replace(/[Oo]/g, '0');
       const matches = priceText.match(/\d+/g);
       let rowTotal = 0;
@@ -43,7 +43,7 @@ function updateIndividualTableSummaries() {
         });
       }
 
-      /* --- [ส่วนที่ต้องการ] ฝังยอดสุทธิเข้าไปในกรอบราคา --- */
+      /* --- [ส่วนที่แก้ไข] แสดงป้าย "สุทธิ" ในกรอบราคา --- */
       const priceTd = priceInput.parentElement;
       let netBadge = priceTd.querySelector(".net-inside-label");
 
@@ -52,15 +52,16 @@ function updateIndividualTableSummaries() {
         if (!netBadge) {
           netBadge = document.createElement("div");
           netBadge.className = "net-inside-label";
-          priceTd.appendChild(netBadge); // ฝังเข้าไปใน td โดยตรง
+          priceTd.appendChild(netBadge); // ฝังลงในช่อง td
         }
+        // แสดงตัวเลขสุทธิ
         netBadge.innerText = netAmount.toLocaleString();
       } else {
         if (netBadge) netBadge.remove();
       }
       /* ----------------------------------------------- */
 
-      // เก็บข้อมูลสำหรับ Sidebar (Real-time)
+      // เก็บยอดสะสมสำหรับ Real-Time Sidebar
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
         if (holder && holder !== chaser) {
@@ -69,18 +70,12 @@ function updateIndividualTableSummaries() {
       }
     });
 
-    /* ===== 3. แสดงผล Sidebar ยอดเล่น Real-Time ===== */
-    const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
+    /* ===== 3. แสดงผล Sidebar (Real-Time) คงเดิม ===== */
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
 
-    let html = `
-      <div class="summary-header">
-        <div class="live-dot"></div>
-        <span>ยอดเล่น Real-Time</span>
-        <span class="camp-badge">ค่าย: ${campName}</span>
-      </div>
-    `;
+    const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
+    let html = `<div class="summary-header"><div class="live-dot"></div><span>ยอดเล่น Real-Time</span><span class="camp-badge">ค่าย: ${campName}</span></div>`;
 
     if (entries.length === 0) {
       html += `<p style="color:#94a3b8; font-style:italic; text-align:center; margin-top:15px; font-size:.85rem;">รอข้อมูล...</p>`;
@@ -89,19 +84,7 @@ function updateIndividualTableSummaries() {
         const cleanName = name.replace(/^@+/, '');
         const displayName = cleanName.length > 15 ? cleanName.substring(0, 15) + "…" : cleanName;
         let rankClass = (index === 0) ? "gold" : (index === 1) ? "silver" : (index === 2) ? "bronze" : "";
-
-        return `
-          <div class="player-row">
-            <div class="rank ${rankClass}">#${index + 1}</div>
-            <div class="player-name">${displayName}</div>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <span class="amount">${total.toLocaleString()}</span>
-              <button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})">
-                <i class="fas fa-camera"></i>
-              </button>
-            </div>
-          </div>
-        `;
+        return `<div class="player-row"><div class="rank ${rankClass}">#${index + 1}</div><div class="player-name">${displayName}</div><div style="display:flex;gap:6px;align-items:center;"><span class="amount">${total.toLocaleString()}</span><button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})"><i class="fas fa-camera"></i></button></div></div>`;
       }).join("");
     }
     summaryArea.innerHTML = html;
