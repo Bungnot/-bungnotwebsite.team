@@ -13,12 +13,40 @@ function updateClosedCampDisplay() {
 }
 
 
+// เพิ่มตัวแปร global เพื่อเก็บสถานะการเปิด/ปิดยอดสุทธิ (เริ่มต้นให้เปิดไว้)
+let showNetLabel = true;
+
+// ฟังก์ชันสำหรับสลับการแสดงผลยอดสุทธิ
+function toggleNetDisplay(btn) {
+    showNetLabel = !showNetLabel;
+    // เปลี่ยนสถานะปุ่มและไอคอน
+    if (showNetLabel) {
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-eye"></i> สุทธิ: เปิด';
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-eye-slash"></i> สุทธิ: ปิด';
+    }
+    // สั่งอัปเดตตารางทั้งหมดทันที
+    updateIndividualTableSummaries();
+}
+
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
 
-    /* ===== 1. ชื่อค่าย ===== */
+    /* ===== 1. ชื่อค่าย และการเพิ่มปุ่ม Toggle (ถ้ายังไม่มี) ===== */
     const tableTitleInput = tableWrapper.querySelector(".table-title-input");
     const campName = tableTitleInput ? tableTitleInput.value.trim() || "ไม่ระบุค่าย" : "ไม่ระบุค่าย";
+    
+    // ตรวจสอบและเพิ่มปุ่มเปิด-ปิดยอดสุทธิในส่วนหัวของแต่ละตาราง
+    let tableActions = tableWrapper.querySelector(".table-actions");
+    if (tableActions && !tableActions.querySelector(".net-toggle-btn")) {
+        const toggleBtn = document.createElement("button");
+        toggleBtn.className = `net-toggle-btn ${showNetLabel ? 'active' : ''}`;
+        toggleBtn.innerHTML = showNetLabel ? '<i class="fas fa-eye"></i> สุทธิ: เปิด' : '<i class="fas fa-eye-slash"></i> สุทธิ: ปิด';
+        toggleBtn.onclick = () => toggleNetDisplay(toggleBtn);
+        tableActions.appendChild(toggleBtn);
+    }
 
     /* ===== 2. จัดการข้อมูลในแต่ละแถว ===== */
     const nameSummary = {};
@@ -35,13 +63,12 @@ function updateIndividualTableSummaries() {
       const chaser = chaserInput.value.trim();
       const holder = holderInput.value.trim();
 
-      /* ===== ส่วนที่เพิ่มเติม: ตรวจสอบชื่อซ้ำในแถวเดียวกัน ===== */
+      /* --- ส่วนที่เพิ่ม: ตรวจสอบชื่อซ้ำในแถวเดียวกัน --- */
       if (chaser !== "" && holder !== "" && chaser === holder) {
         alert(`⚠️ ชื่อซ้ำกัน: "${chaser}" ไม่สามารถเป็นทั้งคนไล่และคนยั้งในแถวเดียวกันได้`);
-        holderInput.value = ""; // ล้างค่าในช่องคนยั้งออกเพื่อป้องกันข้อมูลผิดพลาด
+        holderInput.value = ""; // ล้างค่าในช่องคนยั้งออก
         return; 
       }
-      /* ============================================== */
 
       // คำนวณยอดรวมจากราคา (เฉพาะ 3 หลักขึ้นไป)
       const priceText = priceInput.value.replace(/[Oo]/g, '0');
@@ -54,7 +81,7 @@ function updateIndividualTableSummaries() {
         });
       }
 
-      /* --- แสดงป้าย "สุทธิ" ในกรอบราคา --- */
+      /* --- ส่วนจัดการป้าย "สุทธิ" --- */
       const priceTd = priceInput.parentElement;
       let netBadge = priceTd.querySelector(".net-inside-label");
 
@@ -63,9 +90,16 @@ function updateIndividualTableSummaries() {
         if (!netBadge) {
           netBadge = document.createElement("div");
           netBadge.className = "net-inside-label";
-          priceTd.appendChild(netBadge); 
+          priceTd.appendChild(netBadge);
         }
         netBadge.innerText = netAmount.toLocaleString();
+        
+        // ควบคุมการแสดงผลตามค่า showNetLabel
+        if (showNetLabel) {
+            netBadge.style.display = "block";
+        } else {
+            netBadge.style.display = "none";
+        }
       } else {
         if (netBadge) netBadge.remove();
       }
