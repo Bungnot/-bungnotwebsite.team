@@ -723,26 +723,31 @@
 
 
 
-        /* ปุ่มสลับเปิด-ปิดยอดสุทธิ */
+        /* สไตล์สำหรับปุ่มเปิด-ปิดยอดสุทธิ */
         .net-toggle-btn {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 15px;
             border: 1px solid #cbd5e1;
-            background: #f8fafc;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 0.75rem;
             cursor: pointer;
-            margin-left: 5px;
-            transition: 0.2s;
+            transition: all 0.3s;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
+        
         .net-toggle-btn.active {
             background: var(--theme-accent);
             color: white;
             border-color: var(--theme-accent);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
-        /* ซ่อนยอดสุทธิเมื่อไม่ได้เปิดใช้งาน */
-        .net-inside-label.hidden {
-            display: none !important;
+        .net-toggle-btn:hover {
+            filter: brightness(0.9);
         }
     
     
@@ -1094,6 +1099,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
