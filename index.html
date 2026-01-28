@@ -676,6 +676,19 @@
           background: transparent;
         }
 
+
+        .profit-label {
+            opacity: 0.7;
+            font-family: 'Sarabun', sans-serif;
+            pointer-events: none; /* ป้องกันไม่ให้เผลอไปคลิก */
+        }
+        
+        /* ทำให้ช่อง input กับตัวกำไรอยู่ด้วยกันสวยๆ */
+        .price-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
     
     </style>
 </head>
@@ -1025,5 +1038,6 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
