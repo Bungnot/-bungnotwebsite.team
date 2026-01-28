@@ -15,12 +15,9 @@ function updateClosedCampDisplay() {
 
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
-
-    /* ===== 1. ชื่อค่าย (คงเดิม) ===== */
     const tableTitleInput = tableWrapper.querySelector(".table-title-input");
     const campName = tableTitleInput ? tableTitleInput.value.trim() || "ไม่ระบุค่าย" : "ไม่ระบุค่าย";
 
-    /* ===== 2. วนลูปคำนวณและแสดงผลในช่องราคา ===== */
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
@@ -29,7 +26,7 @@ function updateIndividualTableSummaries() {
       if (inputs.length < 3) return;
 
       const chaser = inputs[0].value.trim();
-      const priceInput = inputs[1]; // ช่องราคา
+      const priceInput = inputs[1]; 
       const priceText = priceInput.value.replace(/[Oo]/g, '0');
       const holder = inputs[2].value.trim();
 
@@ -42,22 +39,22 @@ function updateIndividualTableSummaries() {
         });
       }
 
-      // --- ส่วนจัดการ Badge ยอดสุทธิ (อยู่ในกรอบราคา) ---
+      // --- ส่วนจัดการยอดสุทธิ (แสดงในช่องราคา) ---
       const priceTd = priceInput.parentElement;
-      let netBadge = priceTd.querySelector(".net-profit-badge");
+      let netLabel = priceTd.querySelector(".net-profit-label");
 
       if (rowTotal > 0) {
-        const netAmount = Math.floor(rowTotal * 0.9); // หัก 10%
-        if (!netBadge) {
-            netBadge = document.createElement("div");
-            netBadge.className = "net-profit-badge";
-            priceTd.appendChild(netBadge); // ใส่เข้าไปใน td ของราคา
+        const netAmount = Math.floor(rowTotal * 0.9); // หักกำไร 10%
+        if (!netLabel) {
+            netLabel = document.createElement("div");
+            netLabel.className = "net-profit-label";
+            priceTd.appendChild(netLabel);
         }
-        netBadge.innerText = netAmount.toLocaleString();
+        netLabel.innerHTML = netAmount.toLocaleString();
       } else {
-        if (netBadge) netBadge.remove();
+        if (netLabel) netLabel.remove();
       }
-      // -------------------------------------------
+      // ---------------------------------------
 
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
@@ -67,43 +64,22 @@ function updateIndividualTableSummaries() {
       }
     });
 
-    /* ===== ส่วนแสดงผล Sidebar (คงเดิมเพื่อให้ Real-time ปกติ) ===== */
+    // --- ส่วนแสดงผล Sidebar ด้านข้าง (คงเดิมเพื่อความสม่ำเสมอของระบบ) ---
     const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
 
-    let html = `
-      <div class="summary-header">
-        <div class="live-dot"></div>
-        <span>ยอดเล่น Real-Time</span>
-        <span class="camp-badge">ค่าย: ${campName}</span>
-      </div>
-    `;
-
+    let html = `<div class="summary-header"><div class="live-dot"></div><span>ยอดเล่น Real-Time</span><span class="camp-badge">ค่าย: ${campName}</span></div>`;
     if (entries.length === 0) {
       html += `<p style="color:#94a3b8; font-style:italic; text-align:center; margin-top:15px; font-size:.85rem;">รอข้อมูล...</p>`;
-      summaryArea.innerHTML = html;
-      return;
+    } else {
+      html += entries.map(([name, total], index) => {
+        const cleanName = name.replace(/^@+/, '');
+        const displayName = cleanName.length > 15 ? cleanName.substring(0, 15) + "…" : cleanName;
+        let rankClass = (index === 0) ? "gold" : (index === 1) ? "silver" : (index === 2) ? "bronze" : "";
+        return `<div class="player-row"><div class="rank ${rankClass}">#${index + 1}</div><div class="player-name">${displayName}</div><div style="display:flex;gap:6px;align-items:center;"><span class="amount">${total.toLocaleString()}</span><button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})"><i class="fas fa-camera"></i></button></div></div>`;
+      }).join("");
     }
-
-    html += entries.map(([name, total], index) => {
-      const cleanName = name.replace(/^@+/, '');
-      const displayName = cleanName.length > 15 ? cleanName.substring(0, 15) + "…" : cleanName;
-      let rankClass = (index === 0) ? "gold" : (index === 1) ? "silver" : (index === 2) ? "bronze" : "";
-
-      return `
-        <div class="player-row">
-          <div class="rank ${rankClass}">#${index + 1}</div>
-          <div class="player-name">${displayName}</div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <span class="amount">${total.toLocaleString()}</span>
-            <button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})">
-              <i class="fas fa-camera"></i>
-            </button>
-          </div>
-        </div>`;
-    }).join("");
-
     summaryArea.innerHTML = html;
   });
 }
