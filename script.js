@@ -16,13 +16,11 @@ function updateClosedCampDisplay() {
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
 
-    /* ===== 1. ชื่อค่าย ===== */
+    /* ===== 1. ชื่อค่าย (คงเดิม) ===== */
     const tableTitleInput = tableWrapper.querySelector(".table-title-input");
-    const campName = tableTitleInput
-      ? tableTitleInput.value.trim() || "ไม่ระบุค่าย"
-      : "ไม่ระบุค่าย";
+    const campName = tableTitleInput ? tableTitleInput.value.trim() || "ไม่ระบุค่าย" : "ไม่ระบุค่าย";
 
-    /* ===== 2. รวมยอดแต่ละคน ===== */
+    /* ===== 2. วนลูปคำนวณและแสดงผลในช่องราคา ===== */
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
@@ -44,20 +42,22 @@ function updateIndividualTableSummaries() {
         });
       }
 
-      // --- ส่วนเพิ่มใหม่: แสดงยอดหักกำไร 10% (สุทธิ) ใต้ช่องราคา ---
-      let netBadge = tr.querySelector(".net-profit-badge");
+      // --- ส่วนจัดการ Badge ยอดสุทธิ (อยู่ในกรอบราคา) ---
+      const priceTd = priceInput.parentElement;
+      let netBadge = priceTd.querySelector(".net-profit-badge");
+
       if (rowTotal > 0) {
-        const netAmount = Math.floor(rowTotal * 0.9); // หักกำไร 10%
+        const netAmount = Math.floor(rowTotal * 0.9); // หัก 10%
         if (!netBadge) {
             netBadge = document.createElement("div");
             netBadge.className = "net-profit-badge";
-            priceInput.parentNode.appendChild(netBadge);
+            priceTd.appendChild(netBadge); // ใส่เข้าไปใน td ของราคา
         }
         netBadge.innerText = netAmount.toLocaleString();
       } else {
         if (netBadge) netBadge.remove();
       }
-      // -------------------------------------------------------
+      // -------------------------------------------
 
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
@@ -67,7 +67,7 @@ function updateIndividualTableSummaries() {
       }
     });
 
-    /* ===== ส่วนการแสดงผล Summary (คงเดิมเพื่อให้ Real-time ทำงานปกติ) ===== */
+    /* ===== ส่วนแสดงผล Sidebar (คงเดิมเพื่อให้ Real-time ปกติ) ===== */
     const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
@@ -89,10 +89,7 @@ function updateIndividualTableSummaries() {
     html += entries.map(([name, total], index) => {
       const cleanName = name.replace(/^@+/, '');
       const displayName = cleanName.length > 15 ? cleanName.substring(0, 15) + "…" : cleanName;
-      let rankClass = "";
-      if (index === 0) rankClass = "gold";
-      else if (index === 1) rankClass = "silver";
-      else if (index === 2) rankClass = "bronze";
+      let rankClass = (index === 0) ? "gold" : (index === 1) ? "silver" : (index === 2) ? "bronze" : "";
 
       return `
         <div class="player-row">
@@ -104,8 +101,7 @@ function updateIndividualTableSummaries() {
               <i class="fas fa-camera"></i>
             </button>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join("");
 
     summaryArea.innerHTML = html;
