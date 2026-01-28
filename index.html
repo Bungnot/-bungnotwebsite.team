@@ -676,32 +676,45 @@
           background: transparent;
         }
 
-    
-        /* ปรับแต่งช่องตารางราคาให้รองรับยอดสุทธิ */
+        /* ปรับแต่งช่องราคาให้เป็นระเบียบ */
         .custom-table td:nth-child(2) {
-            position: relative; /* เพื่อให้ยอดสุทธิอ้างอิงตำแหน่งในช่องนี้ */
+            position: relative;
+            padding-bottom: 20px !important; /* เพิ่มพื้นที่ด้านล่างช่องเพื่อให้วางตัวเลขสุทธิได้สวยๆ */
         }
         
-        .net-profit-badge {
+        /* กรอบตัวเลขสุทธิเวอร์ชัน Pro */
+        .net-profit-label {
             position: absolute;
-            right: 4px;
-            bottom: 4px;
-            background: rgba(0, 0, 0, 0.5); /* พื้นหลังดำโปร่งแสง */
-            color: #00ff7f; /* สีเขียวสว่าง */
-            font-size: 9px; /* ขนาดจิ๋วแต่คมชัด */
-            padding: 1px 4px;
-            border-radius: 3px;
-            border: 0.5px solid rgba(0, 255, 127, 0.3);
-            font-weight: bold;
+            right: 8px;
+            bottom: 6px;
+            background: #1e293b; /* พื้นหลังสีน้ำเงินเข้มเกือบดำ */
+            color: #facc15; /* ตัวเลขสีเหลืองทอง (มองเห็นชัดมาก) */
+            font-size: 12px; /* ขยายขนาดให้มองเห็นถนัด */
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            font-weight: 700;
             pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            gap: 4px;
             line-height: 1;
-            letter-spacing: 0.5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
         
-        /* ปรับ Input ราคาให้มีที่ว่างสำหรับ Badge */
+        /* เติมคำว่า สุทธิ เข้าไปข้างหน้าตัวเลข */
+        .net-profit-label::before {
+            content: "สุทธิ:";
+            font-size: 9px;
+            color: #94a3b8; /* สีเทาอ่อน */
+            font-weight: 400;
+            text-transform: uppercase;
+        }
+        
+        /* ปรับ Input ราคาให้ตัวหนังสือหลักไม่ไปทับยอดสุทธิ */
         .custom-table td:nth-child(2) input {
-            padding-bottom: 12px !important; /* เว้นที่ด้านล่างให้ Badge */
+            font-weight: bold;
+            padding-bottom: 5px;
         }
 
     
@@ -1054,6 +1067,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
