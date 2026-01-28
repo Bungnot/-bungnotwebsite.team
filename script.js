@@ -28,9 +28,20 @@ function updateIndividualTableSummaries() {
       const inputs = tr.querySelectorAll("input");
       if (inputs.length < 3) return;
 
-      const chaser = inputs[0].value.trim();
-      const priceInput = inputs[1]; // ช่องราคา
-      const holder = inputs[2].value.trim();
+      const chaserInput = inputs[0]; // ช่องคนไล่
+      const priceInput = inputs[1];  // ช่องราคา
+      const holderInput = inputs[2]; // ช่องคนยั้ง
+      
+      const chaser = chaserInput.value.trim();
+      const holder = holderInput.value.trim();
+
+      /* ===== ส่วนที่เพิ่มเติม: ตรวจสอบชื่อซ้ำในแถวเดียวกัน ===== */
+      if (chaser !== "" && holder !== "" && chaser === holder) {
+        alert(`⚠️ ชื่อซ้ำกัน: "${chaser}" ไม่สามารถเป็นทั้งคนไล่และคนยั้งในแถวเดียวกันได้`);
+        holderInput.value = ""; // ล้างค่าในช่องคนยั้งออกเพื่อป้องกันข้อมูลผิดพลาด
+        return; 
+      }
+      /* ============================================== */
 
       // คำนวณยอดรวมจากราคา (เฉพาะ 3 หลักขึ้นไป)
       const priceText = priceInput.value.replace(/[Oo]/g, '0');
@@ -43,7 +54,7 @@ function updateIndividualTableSummaries() {
         });
       }
 
-      /* --- [ส่วนที่แก้ไข] แสดงป้าย "สุทธิ" ในกรอบราคา --- */
+      /* --- แสดงป้าย "สุทธิ" ในกรอบราคา --- */
       const priceTd = priceInput.parentElement;
       let netBadge = priceTd.querySelector(".net-inside-label");
 
@@ -52,14 +63,12 @@ function updateIndividualTableSummaries() {
         if (!netBadge) {
           netBadge = document.createElement("div");
           netBadge.className = "net-inside-label";
-          priceTd.appendChild(netBadge); // ฝังลงในช่อง td
+          priceTd.appendChild(netBadge); 
         }
-        // แสดงตัวเลขสุทธิ
         netBadge.innerText = netAmount.toLocaleString();
       } else {
         if (netBadge) netBadge.remove();
       }
-      /* ----------------------------------------------- */
 
       // เก็บยอดสะสมสำหรับ Real-Time Sidebar
       if (rowTotal > 0) {
@@ -70,7 +79,7 @@ function updateIndividualTableSummaries() {
       }
     });
 
-    /* ===== 3. แสดงผล Sidebar (Real-Time) คงเดิม ===== */
+    /* ===== 3. แสดงผล Sidebar (Real-Time) ===== */
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
 
