@@ -15,9 +15,14 @@ function updateClosedCampDisplay() {
 
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
-    const tableTitleInput = tableWrapper.querySelector(".table-title-input");
-    const campName = tableTitleInput ? tableTitleInput.value.trim() || "ไม่ระบุค่าย" : "ไม่ระบุค่าย";
 
+    /* ===== 1. ชื่อค่าย ===== */
+    const tableTitleInput = tableWrapper.querySelector(".table-title-input");
+    const campName = tableTitleInput
+      ? tableTitleInput.value.trim() || "ไม่ระบุค่าย"
+      : "ไม่ระบุค่าย";
+
+    /* ===== 2. ประมวลผลแต่ละแถวในตาราง ===== */
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
@@ -25,11 +30,12 @@ function updateIndividualTableSummaries() {
       const inputs = tr.querySelectorAll("input");
       if (inputs.length < 3) return;
 
-      const chaser = inputs[0].value.trim();
-      const priceInput = inputs[1]; 
-      const priceText = priceInput.value.replace(/[Oo]/g, '0');
-      const holder = inputs[2].value.trim();
+      const chaser = inputs[0].value.trim(); // คนไล่
+      const priceInput = inputs[1]; // ช่องราคา
+      const holder = inputs[2].value.trim(); // คนยั้ง
 
+      // ล้างค่า O เป็น 0 และหาตัวเลข
+      const priceText = priceInput.value.replace(/[Oo]/g, '0');
       const matches = priceText.match(/\d+/g);
       let rowTotal = 0;
 
@@ -39,23 +45,32 @@ function updateIndividualTableSummaries() {
         });
       }
 
-      // --- ส่วนจัดการยอดสุทธิ (แสดงในช่องราคา) ---
-      const priceTd = priceInput.parentElement;
-      let netLabel = priceTd.querySelector(".net-profit-label");
-
-      if (rowTotal > 0) {
-        const netAmount = Math.floor(rowTotal * 0.9); // หักกำไร 10%
-        if (!netLabel) {
-            netLabel = document.createElement("div");
-            netLabel.className = "net-profit-label";
-            priceTd.appendChild(netLabel);
-        }
-        netLabel.innerHTML = netAmount.toLocaleString();
-      } else {
-        if (netLabel) netLabel.remove();
+      /* --- [ส่วนที่เพิ่ม] จัดการยอดสุทธิ (หัก 10%) ภายในกรอบราคา --- */
+      // สร้าง Wrapper ถ้ายังไม่มี
+      let wrapper = priceInput.parentElement;
+      if (!wrapper.classList.contains('price-input-wrapper')) {
+          wrapper = document.createElement('div');
+          wrapper.className = 'price-input-wrapper';
+          priceInput.parentNode.insertBefore(wrapper, priceInput);
+          wrapper.appendChild(priceInput);
       }
-      // ---------------------------------------
 
+      // แสดง Badge ยอดสุทธิ
+      let netBadge = wrapper.querySelector(".net-inside-label");
+      if (rowTotal > 0) {
+        const netAmount = Math.floor(rowTotal * 0.9); // คำนวณหักกำไร 10%
+        if (!netBadge) {
+          netBadge = document.createElement("div");
+          netBadge.className = "net-inside-label";
+          wrapper.appendChild(netBadge);
+        }
+        netBadge.innerText = netAmount.toLocaleString();
+      } else {
+        if (netBadge) netBadge.remove();
+      }
+      /* ------------------------------------------------------ */
+
+      // เก็บข้อมูลสรุปยอดรายบุคคล
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
         if (holder && holder !== chaser) {
@@ -64,20 +79,43 @@ function updateIndividualTableSummaries() {
       }
     });
 
-    // --- ส่วนแสดงผล Sidebar ด้านข้าง (คงเดิมเพื่อความสม่ำเสมอของระบบ) ---
+    /* ===== 3. จัดการ Sidebar (ยอดเล่น Real-Time) ===== */
     const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
 
-    let html = `<div class="summary-header"><div class="live-dot"></div><span>ยอดเล่น Real-Time</span><span class="camp-badge">ค่าย: ${campName}</span></div>`;
+    let html = `
+      <div class="summary-header">
+        <div class="live-dot"></div>
+        <span>ยอดเล่น Real-Time</span>
+        <span class="camp-badge">ค่าย: ${campName}</span>
+      </div>
+    `;
+
     if (entries.length === 0) {
       html += `<p style="color:#94a3b8; font-style:italic; text-align:center; margin-top:15px; font-size:.85rem;">รอข้อมูล...</p>`;
     } else {
       html += entries.map(([name, total], index) => {
         const cleanName = name.replace(/^@+/, '');
         const displayName = cleanName.length > 15 ? cleanName.substring(0, 15) + "…" : cleanName;
-        let rankClass = (index === 0) ? "gold" : (index === 1) ? "silver" : (index === 2) ? "bronze" : "";
-        return `<div class="player-row"><div class="rank ${rankClass}">#${index + 1}</div><div class="player-name">${displayName}</div><div style="display:flex;gap:6px;align-items:center;"><span class="amount">${total.toLocaleString()}</span><button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})"><i class="fas fa-camera"></i></button></div></div>`;
+
+        let rankClass = "";
+        if (index === 0) rankClass = "gold";
+        else if (index === 1) rankClass = "silver";
+        else if (index === 2) rankClass = "bronze";
+
+        return `
+          <div class="player-row">
+            <div class="rank ${rankClass}">#${index + 1}</div>
+            <div class="player-name">${displayName}</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span class="amount">${total.toLocaleString()}</span>
+              <button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})">
+                <i class="fas fa-camera"></i>
+              </button>
+            </div>
+          </div>
+        `;
       }).join("");
     }
     summaryArea.innerHTML = html;
