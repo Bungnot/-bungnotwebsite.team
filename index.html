@@ -677,25 +677,24 @@
         }
 
     
-        .net-profit-display {
-            margin-top: 5px;
-            background: rgba(0, 255, 127, 0.1); /* พื้นหลังเขียวอ่อนๆ */
-            border: 1px solid rgba(0, 255, 127, 0.5); /* กรอบสีเขียว */
-            border-radius: 4px;
-            padding: 2px 8px;
-            font-size: 0.85rem;
-            color: #00ff7f; /* สีตัวเลขเน้นให้เห็นชัด */
-            font-weight: bold;
+        /* กรอบยอดสุทธิขนาดเล็ก (Compact Badge) */
+        .net-profit-badge {
             display: inline-block;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background: rgba(46, 125, 50, 0.1); /* สีเขียวจางๆ */
+            border: 1px solid rgba(46, 125, 50, 0.4);
+            color: #2e7d32; /* สีเขียวเข้มแบบที่ใช้ในช่องราคา */
+            font-size: 11px; /* ขนาดเล็กตามต้องการ */
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin-top: 3px;
+            font-weight: bold;
+            pointer-events: none; /* กันการคลิกพลาด */
         }
         
-        .net-profit-display span {
-            font-weight: normal;
-            font-size: 0.7rem;
-            color: #ccc;
-            margin-right: 5px;
-            text-transform: uppercase;
+        /* ปรับระยะห่างในช่องตารางให้รองรับตัวเลขข้างล่าง */
+        .custom-table td {
+            vertical-align: top;
+            padding-bottom: 8px;
         }
 
     
@@ -1048,6 +1047,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
