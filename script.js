@@ -686,18 +686,8 @@ function addTable(title = "", rows = null, isSilent = false) {
     const generateRowHtml = (r = ["", "", ""]) => `
         <tr>
             <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
-            <td>
-              <input type="text" value="${r[1]}" 
-                     oninput="saveData(); updateNetPrice(this)" 
-                     style="color:#2e7d32;">
-            </td>
-            
-            <td>
-              <input type="text" class="net-price-input" readonly>
-            </td>
-            
+            <td><input type="text" value="${r[1]}" oninput="saveData()" style="color:#2e7d32;"></td>
             <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
-
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
@@ -712,7 +702,7 @@ function addTable(title = "", rows = null, isSilent = false) {
             </div>
             <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()" style="width: 80%;">
             <table class="custom-table">
-                <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-orange">สุทธิ</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr></thead>
+                <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr></thead>
                 <tbody>${rowsHtml}</tbody>
             </table>
             <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผล</button>
@@ -736,29 +726,6 @@ function addTable(title = "", rows = null, isSilent = false) {
     }, 50);
     saveData();
 }
-
-function calcNetPriceFromText(text) {
-    if (!text) return "";
-
-    const clean = text.replace(/[Oo]/g, '0');
-    const nums = clean.match(/\d+/g);
-    if (!nums) return "";
-
-    // ใช้เลข "ตัวสุดท้าย" ตามที่คุณต้องการ
-    const price = parseInt(nums[nums.length - 1], 10);
-    return Math.floor(price * 0.9); // หัก 10%
-}
-
-function updateNetPrice(priceInput) {
-    const tr = priceInput.closest("tr");
-    if (!tr) return;
-
-    const netInput = tr.querySelector(".net-price-input");
-    if (!netInput) return;
-
-    netInput.value = calcNetPriceFromText(priceInput.value);
-}
-
 
 function handleClosingSuccess() {
     playSound('fanfare'); // เรียกผ่าน playSound
