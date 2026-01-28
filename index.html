@@ -683,34 +683,44 @@
         }
         
 
-        /* สร้าง Container สำหรับช่องราคา */
+        /* คอนเทนเนอร์สำหรับช่องราคา */
         .price-input-wrapper {
             position: relative;
             display: flex;
             align-items: center;
+            width: 100%;
         }
         
-        /* ปรับแต่งยอดสุทธิให้ดูเหมือนเป็น Label ในช่อง */
+        /* กรอบยอดสุทธิ (หัก 10%) ที่ฝังอยู่ในช่องราคา */
         .net-inside-label {
             position: absolute;
             right: 5px;
-            background: #2e7d32; /* สีเขียวเดียวกับตัวหนังสือราคา */
-            color: #ffffff;
-            font-size: 11px;
-            padding: 1px 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1e293b; /* สีเข้มพรีเมียม */
+            color: #00ff7f; /* สีเขียวนีออน (สุทธิ) */
+            font-size: 10px;
+            padding: 2px 6px;
             border-radius: 4px;
             font-weight: bold;
-            pointer-events: none; /* เพื่อให้ยังกดคลิกที่ช่อง input ได้ */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
+            box-shadow: 0 0 8px rgba(0, 255, 127, 0.2);
+            border: 1px solid rgba(0, 255, 127, 0.5);
+            z-index: 5;
+            line-height: 1;
         }
         
-        /* ปรับแต่ง Input ให้มีที่ว่างทางขวาสำหรับยอดสุทธิ */
+        /* ปรับ Input ราคาให้มีที่ว่างด้านขวาสำหรับตัวเลขสุทธิ */
         .price-input-wrapper input {
-            padding-right: 50px !important; /* กันตัวเลขราคาหลักไปทับยอดสุทธิ */
-            text-align: left;
+            padding-right: 52px !important; 
+            font-weight: bold;
+            transition: all 0.2s;
         }
-
+        
+        /* เมื่อมีการพิมพ์ ราคาจะดูโดดเด่นขึ้น */
+        .price-input-wrapper input:focus {
+            background: rgba(46, 125, 50, 0.05);
+        }
     
     
     </style>
@@ -1061,6 +1071,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
