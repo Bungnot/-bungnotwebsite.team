@@ -13,13 +13,11 @@ function updateClosedCampDisplay() {
 }
 
 
-// เพิ่มตัวแปร global เพื่อเก็บสถานะการเปิด/ปิดยอดสุทธิ (เริ่มต้นให้เปิดไว้)
+// ต้องมีตัวแปรนี้ไว้นอกฟังก์ชัน (บนสุดของไฟล์ script.js)
 let showNetLabel = true;
 
-// ฟังก์ชันสำหรับสลับการแสดงผลยอดสุทธิ
 function toggleNetDisplay(btn) {
     showNetLabel = !showNetLabel;
-    // เปลี่ยนสถานะปุ่มและไอคอน
     if (showNetLabel) {
         btn.classList.add('active');
         btn.innerHTML = '<i class="fas fa-eye"></i> สุทธิ: เปิด';
@@ -27,18 +25,17 @@ function toggleNetDisplay(btn) {
         btn.classList.remove('active');
         btn.innerHTML = '<i class="fas fa-eye-slash"></i> สุทธิ: ปิด';
     }
-    // สั่งอัปเดตตารางทั้งหมดทันที
     updateIndividualTableSummaries();
 }
 
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
 
-    /* ===== 1. ชื่อค่าย และการเพิ่มปุ่ม Toggle (ถ้ายังไม่มี) ===== */
+    /* ===== 1. ชื่อค่าย และการจัดการปุ่ม Toggle ===== */
     const tableTitleInput = tableWrapper.querySelector(".table-title-input");
     const campName = tableTitleInput ? tableTitleInput.value.trim() || "ไม่ระบุค่าย" : "ไม่ระบุค่าย";
     
-    // ตรวจสอบและเพิ่มปุ่มเปิด-ปิดยอดสุทธิในส่วนหัวของแต่ละตาราง
+    // จัดการปุ่มเปิด-ปิด
     let tableActions = tableWrapper.querySelector(".table-actions");
     if (tableActions && !tableActions.querySelector(".net-toggle-btn")) {
         const toggleBtn = document.createElement("button");
@@ -56,55 +53,46 @@ function updateIndividualTableSummaries() {
       const inputs = tr.querySelectorAll("input");
       if (inputs.length < 3) return;
 
-      const chaserInput = inputs[0]; // ช่องคนไล่
-      const priceInput = inputs[1];  // ช่องราคา
-      const holderInput = inputs[2]; // ช่องคนยั้ง
+      const chaserInput = inputs[0]; 
+      const priceInput = inputs[1];  
+      const holderInput = inputs[2]; 
       
       const chaser = chaserInput.value.trim();
       const holder = holderInput.value.trim();
 
-      /* --- ส่วนที่เพิ่ม: ตรวจสอบชื่อซ้ำในแถวเดียวกัน --- */
+      /* --- เช็คชื่อซ้ำ --- */
       if (chaser !== "" && holder !== "" && chaser === holder) {
-        alert(`⚠️ ชื่อซ้ำกัน: "${chaser}" ไม่สามารถเป็นทั้งคนไล่และคนยั้งในแถวเดียวกันได้`);
-        holderInput.value = ""; // ล้างค่าในช่องคนยั้งออก
+        alert(`⚠️ ชื่อซ้ำกัน: "${chaser}" ไม่สามารถเป็นทั้งคนไล่และคนยั้งได้`);
+        holderInput.value = ""; 
         return; 
       }
 
-      // คำนวณยอดรวมจากราคา (เฉพาะ 3 หลักขึ้นไป)
+      // คำนวณยอด
       const priceText = priceInput.value.replace(/[Oo]/g, '0');
       const matches = priceText.match(/\d+/g);
       let rowTotal = 0;
-
       if (matches) {
-        matches.forEach(num => {
-          if (num.length >= 3) rowTotal += parseInt(num, 10);
-        });
+        matches.forEach(num => { if (num.length >= 3) rowTotal += parseInt(num, 10); });
       }
 
-      /* --- ส่วนจัดการป้าย "สุทธิ" --- */
+      /* --- จัดการป้าย "สุทธิ" --- */
       const priceTd = priceInput.parentElement;
       let netBadge = priceTd.querySelector(".net-inside-label");
 
       if (rowTotal > 0) {
-        const netAmount = Math.floor(rowTotal * 0.9); // หักกำไร 10%
+        const netAmount = Math.floor(rowTotal * 0.9);
         if (!netBadge) {
           netBadge = document.createElement("div");
           netBadge.className = "net-inside-label";
           priceTd.appendChild(netBadge);
         }
         netBadge.innerText = netAmount.toLocaleString();
-        
-        // ควบคุมการแสดงผลตามค่า showNetLabel
-        if (showNetLabel) {
-            netBadge.style.display = "block";
-        } else {
-            netBadge.style.display = "none";
-        }
+        netBadge.style.display = showNetLabel ? "block" : "none"; // สลับการแสดงผล
       } else {
         if (netBadge) netBadge.remove();
       }
 
-      // เก็บยอดสะสมสำหรับ Real-Time Sidebar
+      // เก็บยอดสะสม Sidebar
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
         if (holder && holder !== chaser) {
