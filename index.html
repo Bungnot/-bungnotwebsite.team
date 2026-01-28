@@ -676,33 +676,38 @@
           background: transparent;
         }
 
-        /* ช่อง TD ราคาต้องเป็นจุดอ้างอิง */
+
+
+
+        /* กำหนดให้ช่องราคา (td ที่ 2) เป็นจุดอ้างอิง */
         .custom-table td:nth-child(2) {
             position: relative;
-            padding-right: 5px !important;
+            padding: 0 !important; /* ล้าง padding เพื่อให้ตัวเลขอยู่ขอบพอดี */
         }
         
-        /* ยอดสุทธิที่ฝังเข้าไปข้างในกรอบ */
+        /* ช่อง Input ราคาหลัก */
+        .custom-table td:nth-child(2) input {
+            padding-right: 50px !important; /* เว้นที่ด้านขวาในกรอบไว้สำหรับตัวเลขสุทธิ */
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* ตัวเลขสุทธิที่ฝังอยู่ข้างในกรอบ */
         .net-inside-label {
             position: absolute;
-            right: 8px; /* เว้นจากขอบกรอบขวาเล็กน้อย */
+            right: 5px; /* ชิดขวาภายในกรอบ */
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(15, 23, 42, 0.85); /* พื้นหลังดำโปร่งแสงเพื่อให้เห็นตัวเลขชัด */
-            color: #00ff7f; /* สีเขียวนีออน */
+            background: #1e293b; /* พื้นหลังสีเข้มแยกสัดส่วน */
+            color: #2ecc71; /* ตัวเลขสุทธิสีเขียวสว่าง */
             font-size: 11px;
-            padding: 1px 5px;
+            padding: 2px 5px;
             border-radius: 4px;
             font-weight: bold;
             pointer-events: none; /* พิมพ์ทะลุได้ ไม่ขวางเมาส์ */
-            border: 1px solid rgba(0, 255, 127, 0.3);
+            border: 1px solid rgba(46, 125, 50, 0.4);
             z-index: 10;
-        }
-        
-        /* ปรับ Input ให้พิมพ์ได้ปกติแต่เว้นที่ขวาไว้ */
-        .custom-table td:nth-child(2) input {
-            padding-right: 50px !important; /* กันตัวเลขที่พิมพ์ไปทับยอดสุทธิ */
-            box-sizing: border-box;
+            line-height: 1;
         }
     
     
@@ -1054,6 +1059,7 @@ function initSnow() {
 </script>
 </body>
 </html>
+
 
 
 
