@@ -26,51 +26,52 @@ function updateIndividualTableSummaries() {
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
-    // ค้นหาแถวทั้งหมดในตาราง
     rows.forEach(tr => {
-        const inputs = tr.querySelectorAll("input");
-        if (inputs.length < 3) return;
-    
-        const priceInput = inputs[1]; // ช่องราคา
-        const priceText = priceInput.value.replace(/[Oo]/g, '0');
-        const matches = priceText.match(/\d+/g);
-        let rowTotal = 0;
-    
-        if (matches) {
-            matches.forEach(num => {
-                if (num.length >= 3) rowTotal += parseInt(num, 10);
-            });
+      const inputs = tr.querySelectorAll("input");
+      if (inputs.length < 3) return;
+
+      const chaser = inputs[0].value.trim();
+      const priceInput = inputs[1]; // ช่องราคา
+      const priceText = priceInput.value.replace(/[Oo]/g, '0');
+      const holder = inputs[2].value.trim();
+
+      const matches = priceText.match(/\d+/g);
+      let rowTotal = 0;
+
+      if (matches) {
+        matches.forEach(num => {
+          if (num.length >= 3) rowTotal += parseInt(num, 10);
+        });
+      }
+
+      // --- ส่วนเพิ่มใหม่: แสดงยอดหักกำไร 10% (สุทธิ) ใต้ช่องราคา ---
+      let netBadge = tr.querySelector(".net-profit-badge");
+      if (rowTotal > 0) {
+        const netAmount = Math.floor(rowTotal * 0.9); // หักกำไร 10%
+        if (!netBadge) {
+            netBadge = document.createElement("div");
+            netBadge.className = "net-profit-badge";
+            priceInput.parentNode.appendChild(netBadge);
         }
-    
-        // --- ส่วนที่เพิ่มใหม่: คำนวณยอดหัก 10% และแสดงผล ---
-        let netAmount = Math.floor(rowTotal * 0.9); // หัก 10% (เหลือ 90%)
-        
-        // ตรวจสอบว่ามีช่องแสดงผลยอดสุทธิหรือยัง ถ้าไม่มีให้สร้างใหม่
-        let netDisplay = tr.querySelector(".net-profit-display");
-        if (!netDisplay) {
-            netDisplay = document.createElement("div");
-            netDisplay.className = "net-profit-display";
-            // นำไปวางต่อท้ายช่องราคา หรือในจุดที่เหมาะสม
-            priceInput.parentNode.appendChild(netDisplay);
+        netBadge.innerText = netAmount.toLocaleString();
+      } else {
+        if (netBadge) netBadge.remove();
+      }
+      // -------------------------------------------------------
+
+      if (rowTotal > 0) {
+        if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
+        if (holder && holder !== chaser) {
+          nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
         }
-    
-        if (rowTotal > 0) {
-            netDisplay.innerHTML = `<span>สุทธิ:</span> ${netAmount.toLocaleString()}`;
-            netDisplay.style.display = "block";
-        } else {
-            netDisplay.style.display = "none";
-        }
-        // ----------------------------------------------
+      }
     });
 
-    /* ===== 3. เรียงจากมากไปน้อย ===== */
-    const entries = Object.entries(nameSummary)
-      .sort((a, b) => b[1] - a[1]);
-
+    /* ===== ส่วนการแสดงผล Summary (คงเดิมเพื่อให้ Real-time ทำงานปกติ) ===== */
+    const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
 
-    /* ===== 4. Header (Live) ===== */
     let html = `
       <div class="summary-header">
         <div class="live-dot"></div>
@@ -79,28 +80,15 @@ function updateIndividualTableSummaries() {
       </div>
     `;
 
-    /* ===== 5. ไม่มีข้อมูล ===== */
     if (entries.length === 0) {
-      html += `
-        <p style="
-          color:#94a3b8;
-          font-style:italic;
-          text-align:center;
-          margin-top:15px;
-          font-size:.85rem;">
-          รอข้อมูล...
-        </p>
-      `;
+      html += `<p style="color:#94a3b8; font-style:italic; text-align:center; margin-top:15px; font-size:.85rem;">รอข้อมูล...</p>`;
       summaryArea.innerHTML = html;
       return;
     }
 
-    /* ===== 6. รายชื่อ + Rank ===== */
     html += entries.map(([name, total], index) => {
       const cleanName = name.replace(/^@+/, '');
-      const displayName =
-        cleanName.length > 15 ? cleanName.substring(0, 15) + "…" : cleanName;
-
+      const displayName = cleanName.length > 15 ? cleanName.substring(0, 15) + "…" : cleanName;
       let rankClass = "";
       if (index === 0) rankClass = "gold";
       else if (index === 1) rankClass = "silver";
@@ -112,8 +100,7 @@ function updateIndividualTableSummaries() {
           <div class="player-name">${displayName}</div>
           <div style="display:flex;gap:6px;align-items:center;">
             <span class="amount">${total.toLocaleString()}</span>
-            <button class="btn-capture-player"
-              onclick="capturePlayerRow('${cleanName}', ${total})">
+            <button class="btn-capture-player" onclick="capturePlayerRow('${cleanName}', ${total})">
               <i class="fas fa-camera"></i>
             </button>
           </div>
