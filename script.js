@@ -13,39 +13,32 @@ function updateClosedCampDisplay() {
 }
 
 
-// ต้องมีตัวแปรนี้ไว้นอกฟังก์ชัน (บนสุดของไฟล์ script.js)
+// 1. ตัวแปรเก็บสถานะ (ไว้นอกฟังก์ชัน)
 let showNetLabel = true;
 
+// 2. ฟังก์ชันสลับการแสดงผล (ใช้กับปุ่มใน Action Bar)
 function toggleNetDisplay(btn) {
     showNetLabel = !showNetLabel;
+    
     if (showNetLabel) {
         btn.classList.add('active');
-        btn.innerHTML = '<i class="fas fa-eye"></i> สุทธิ: เปิด';
+        btn.innerHTML = '<span class="flare"></span><i class="fas fa-eye"></i> สุทธิ: เปิด';
     } else {
         btn.classList.remove('active');
-        btn.innerHTML = '<i class="fas fa-eye-slash"></i> สุทธิ: ปิด';
+        btn.innerHTML = '<span class="flare"></span><i class="fas fa-eye-slash"></i> สุทธิ: ปิด';
     }
+    
+    // สั่งให้อัปเดตทุกตารางทันที
     updateIndividualTableSummaries();
 }
 
+// 3. ฟังก์ชันหลัก (รวมเช็คชื่อซ้ำ และ เปิด/ปิดยอด)
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
 
-    /* ===== 1. ชื่อค่าย และการจัดการปุ่ม Toggle ===== */
     const tableTitleInput = tableWrapper.querySelector(".table-title-input");
     const campName = tableTitleInput ? tableTitleInput.value.trim() || "ไม่ระบุค่าย" : "ไม่ระบุค่าย";
-    
-    // จัดการปุ่มเปิด-ปิด
-    let tableActions = tableWrapper.querySelector(".table-actions");
-    if (tableActions && !tableActions.querySelector(".net-toggle-btn")) {
-        const toggleBtn = document.createElement("button");
-        toggleBtn.className = `net-toggle-btn ${showNetLabel ? 'active' : ''}`;
-        toggleBtn.innerHTML = showNetLabel ? '<i class="fas fa-eye"></i> สุทธิ: เปิด' : '<i class="fas fa-eye-slash"></i> สุทธิ: ปิด';
-        toggleBtn.onclick = () => toggleNetDisplay(toggleBtn);
-        tableActions.appendChild(toggleBtn);
-    }
 
-    /* ===== 2. จัดการข้อมูลในแต่ละแถว ===== */
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
@@ -60,7 +53,7 @@ function updateIndividualTableSummaries() {
       const chaser = chaserInput.value.trim();
       const holder = holderInput.value.trim();
 
-      /* --- เช็คชื่อซ้ำ --- */
+      /* --- เช็คชื่อซ้ำ (Alert) --- */
       if (chaser !== "" && holder !== "" && chaser === holder) {
         alert(`⚠️ ชื่อซ้ำกัน: "${chaser}" ไม่สามารถเป็นทั้งคนไล่และคนยั้งได้`);
         holderInput.value = ""; 
@@ -75,7 +68,7 @@ function updateIndividualTableSummaries() {
         matches.forEach(num => { if (num.length >= 3) rowTotal += parseInt(num, 10); });
       }
 
-      /* --- จัดการป้าย "สุทธิ" --- */
+      /* --- แสดง/ซ่อน ยอดสุทธิ --- */
       const priceTd = priceInput.parentElement;
       let netBadge = priceTd.querySelector(".net-inside-label");
 
@@ -87,12 +80,14 @@ function updateIndividualTableSummaries() {
           priceTd.appendChild(netBadge);
         }
         netBadge.innerText = netAmount.toLocaleString();
-        netBadge.style.display = showNetLabel ? "block" : "none"; // สลับการแสดงผล
+        
+        // แสดงหรือซ่อนตามสถานะของปุ่มด้านบน
+        netBadge.style.display = showNetLabel ? "block" : "none";
       } else {
         if (netBadge) netBadge.remove();
       }
 
-      // เก็บยอดสะสม Sidebar
+      // สรุปยอด Sidebar
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
         if (holder && holder !== chaser) {
@@ -101,13 +96,11 @@ function updateIndividualTableSummaries() {
       }
     });
 
-    /* ===== 3. แสดงผล Sidebar (Real-Time) ===== */
+    /* ===== ส่วนแสดง Sidebar (คงเดิม) ===== */
     const summaryArea = tableWrapper.querySelector(".name-list-area");
     if (!summaryArea) return;
-
     const entries = Object.entries(nameSummary).sort((a, b) => b[1] - a[1]);
     let html = `<div class="summary-header"><div class="live-dot"></div><span>ยอดเล่น Real-Time</span><span class="camp-badge">ค่าย: ${campName}</span></div>`;
-
     if (entries.length === 0) {
       html += `<p style="color:#94a3b8; font-style:italic; text-align:center; margin-top:15px; font-size:.85rem;">รอข้อมูล...</p>`;
     } else {
@@ -121,7 +114,6 @@ function updateIndividualTableSummaries() {
     summaryArea.innerHTML = html;
   });
 }
-
 
 function syncRealtimeSummary() {
   const liveTables = {};
