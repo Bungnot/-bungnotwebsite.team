@@ -2,6 +2,25 @@
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
 
+// ค้นหาจุดที่คำนวณ rowTotal แล้วเพิ่มส่วนนี้เข้าไป
+const profit = Math.floor(rowTotal * 0.10); // คำนวณกำไร 10%
+
+// ในส่วนการแสดงผล HTML ของช่องราคา ให้ปรับเป็นประมาณนี้:
+const priceCellHTML = `
+    <div style="position: relative; display: flex; flex-direction: column;">
+        <input type="text" class="price-input" value="${priceText}">
+        <span class="profit-label" style="
+            font-size: 0.65rem; 
+            color: #888; 
+            margin-top: -2px;
+            font-weight: normal;
+        ">
+            กำไร: ${profit.toLocaleString()}
+        </span>
+    </div>
+`;
+
+
 function updateClosedCampDisplay() {
     const el = document.getElementById("bung-camp-summary");
     if (!el) return;
