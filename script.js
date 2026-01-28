@@ -26,29 +26,41 @@ function updateIndividualTableSummaries() {
     const nameSummary = {};
     const rows = tableWrapper.querySelectorAll("tbody tr");
 
+    // ค้นหาแถวทั้งหมดในตาราง
     rows.forEach(tr => {
-      const inputs = tr.querySelectorAll("input");
-      if (inputs.length < 3) return;
-
-      const chaser = inputs[0].value.trim();
-      const priceText = inputs[1].value.replace(/[Oo]/g, '0');
-      const holder = inputs[2].value.trim();
-
-      const matches = priceText.match(/\d+/g);
-      let rowTotal = 0;
-
-      if (matches) {
-        matches.forEach(num => {
-          if (num.length >= 3) rowTotal += parseInt(num, 10);
-        });
-      }
-
-      if (rowTotal > 0) {
-        if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
-        if (holder && holder !== chaser) {
-          nameSummary[holder] = (nameSummary[holder] || 0) + rowTotal;
+        const inputs = tr.querySelectorAll("input");
+        if (inputs.length < 3) return;
+    
+        const priceInput = inputs[1]; // ช่องราคา
+        const priceText = priceInput.value.replace(/[Oo]/g, '0');
+        const matches = priceText.match(/\d+/g);
+        let rowTotal = 0;
+    
+        if (matches) {
+            matches.forEach(num => {
+                if (num.length >= 3) rowTotal += parseInt(num, 10);
+            });
         }
-      }
+    
+        // --- ส่วนที่เพิ่มใหม่: คำนวณยอดหัก 10% และแสดงผล ---
+        let netAmount = Math.floor(rowTotal * 0.9); // หัก 10% (เหลือ 90%)
+        
+        // ตรวจสอบว่ามีช่องแสดงผลยอดสุทธิหรือยัง ถ้าไม่มีให้สร้างใหม่
+        let netDisplay = tr.querySelector(".net-profit-display");
+        if (!netDisplay) {
+            netDisplay = document.createElement("div");
+            netDisplay.className = "net-profit-display";
+            // นำไปวางต่อท้ายช่องราคา หรือในจุดที่เหมาะสม
+            priceInput.parentNode.appendChild(netDisplay);
+        }
+    
+        if (rowTotal > 0) {
+            netDisplay.innerHTML = `<span>สุทธิ:</span> ${netAmount.toLocaleString()}`;
+            netDisplay.style.display = "block";
+        } else {
+            netDisplay.style.display = "none";
+        }
+        // ----------------------------------------------
     });
 
     /* ===== 3. เรียงจากมากไปน้อย ===== */
