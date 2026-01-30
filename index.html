@@ -3,8 +3,6 @@
 <head>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://openfpcdn.io/fingerprintjs/v3"></script>
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -820,81 +818,11 @@
    
     
     
-    
-/* ===== Access Gate (Lock Screen) ===== */
-#gate-screen{
-  position:fixed; inset:0;
-  background: radial-gradient(circle, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.92) 100%);
-  z-index: 100000; display:flex; align-items:center; justify-content:center;
-  padding: 20px;
-}
-#gate-screen.hidden{ display:none; }
-.gate-box{
-  width: min(520px, 96vw);
-  background: rgba(255,255,255,0.96);
-  border-radius: 28px;
-  border: 3px solid #bf953f;
-  box-shadow: 0 25px 70px rgba(0,0,0,0.45);
-  padding: 30px 26px;
-  text-align:center;
-}
-.gate-title{ font-size:1.4rem; font-weight:800; color:#1e293b; margin:0 0 6px 0; }
-.gate-sub{ color:#64748b; margin:0 0 18px 0; line-height:1.5; }
-.gate-row{ display:flex; gap:10px; margin: 12px 0; }
-.gate-row input{
-  flex:1;
-  font-size: 1.25rem;
-  padding: 14px 14px;
-  border-radius: 16px;
-  border: 2px solid #cbd5e1;
-  background: #f8fafc;
-  text-align:center;
-  letter-spacing: 4px;
-  font-weight: 800;
-}
-.gate-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top: 14px; }
-.gate-actions button{ flex:1; min-width: 200px; justify-content:center; }
-.gate-status{
-  margin-top: 12px;
-  font-size: 0.95rem;
-  color:#0f172a;
-  background:#f1f5f9;
-  border:1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 10px 12px;
-  text-align:left;
-}
-.gate-status small{ color:#64748b; }
-
-</style>
+    </style>
 </head>
 <body class="theme-christmas">
-
-<div id="gate-screen">
-  <div class="gate-box">
-    <div style="display:flex;justify-content:center;margin-bottom:14px;">
-      <img src="https://img5.pic.in.th/file/secure-sv1/66ba7a4b-0bda-4791-b489-3f1556d69a9d.jpg" alt="Rocket" style="width:84px;height:84px;border-radius:50%;border:4px solid #bf953f;"/>
-    </div>
-    <h1 class="gate-title">เข้าสู่ระบบด้วยรหัสที่กำหนด</h1>
-    <p class="gate-sub">
-      ระบบอนุญาตได้ <b>1 หน้า/1 แท็บ</b> เท่านั้น และ <b>รหัสเดียวกัน</b> หากมีคนเข้าซ้ำ คนที่เข้าก่อนจะถูกเด้งทันที
-    </p>
-
-    <label class="gate-label" for="gate-user">User</label>
-    <input id="gate-user" class="gate-input" type="text" placeholder="เช่น DO, YO, BOOM, NOT" autocomplete="off" />
-
-    <label class="gate-label" for="gate-pass">Pass</label>
-    <input id="gate-pass" class="gate-input" type="password" placeholder="ใส่รหัสผ่าน" autocomplete="off" />
-
-    <button id="btn-login-gate" class="gate-btn primary">เข้าสู่ระบบ</button>
-
-    <div id="gate-status" class="gate-status">
-      <div><b>สถานะ:</b> รอการเข้าสู่ระบบ</div>
-      <small>หมายเหตุ: เวอร์ชันนี้ไม่ใช้ Firebase Auth (เพื่อให้รันบนเครื่องได้ง่าย) ต้องตั้ง Realtime Database Rules ให้ .read/.write เป็น true หากต้องการความปลอดภัยจริงต้องทำ backend</small>
-    </div>
-  </div>
-</div>
-
+    <canvas id="confetti-canvas"></canvas>
+    <canvas class="snow-canvas" id="snowCanvas"></canvas>
 <div id="welcome-screen">
     <div class="welcome-box" style="padding: 40px 30px; border-radius: 50px; background: rgba(255,255,255,0.95); backdrop-filter: blur(25px);">
         <div class="logo-wrapper">
@@ -1242,3 +1170,19 @@ function initSnow() {
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
