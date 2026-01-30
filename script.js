@@ -1356,9 +1356,9 @@ function openStopwatchWindow() {
             let timerCount = 0;
 
             function formatTime(ms) {
-                const totalSeconds = Math.floor(ms / 1000);
-                const tenths = Math.floor((ms % 1000) / 100);
-                return `${totalSeconds.toString().padStart(2, '0')}.${tenths}`;
+              const totalSeconds = Math.floor(ms / 1000);
+              const tenths = Math.floor((ms % 1000) / 100);
+              return totalSeconds.toString().padStart(2, '0') + "." + tenths;
             }
 
             function createNewTimer() {
@@ -1423,7 +1423,7 @@ function openStopwatchWindow() {
                     intervalId = null;
                     startTime = 0;
                     elapsedTime = 0;
-                    display.innerText = "00:00.0";
+                    display.innerText = "00.0";
                     btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
                     btnStart.className = 'btn-start';
                 };
