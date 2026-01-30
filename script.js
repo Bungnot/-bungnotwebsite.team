@@ -35,6 +35,14 @@ function toggleNetDisplay(btn) {
 // 3. ฟังก์ชันหลัก (รวมเช็คชื่อซ้ำ และ เปิด/ปิดยอด)
 
 // ===== ผลแพ้/ชนะ (ย้ายป้ายสุทธิไปหลังชื่อ) =====
+
+// ใส่สีให้ป้ายสุทธิหลังชื่อ (ชนะ=เขียว / แพ้=แดง)
+function setNameNetBadgeState(badgeEl, state) {
+  if (!badgeEl) return;
+  badgeEl.classList.remove('badge-win', 'badge-lose');
+  if (state === 'win') badgeEl.classList.add('badge-win');
+  if (state === 'lose') badgeEl.classList.add('badge-lose');
+}
 // outcome: 'C' = คนไล่ชนะ, 'H' = คนยั้งชนะ
 function setOutcomeForTable(btn, outcome) {
     playSound('click');
@@ -136,16 +144,30 @@ if (rowTotal > 0) {
       // คนไล่ชนะ: คนไล่ได้สุทธิ, คนยั้งได้เต็ม
       if (chaserBadge) chaserBadge.innerText = netAmount.toLocaleString();
       if (holderBadge) holderBadge.innerText = rowTotal.toLocaleString();
+
+      setNameNetBadgeState(chaserBadge, 'win');
+      setNameNetBadgeState(holderBadge, 'lose');
     } else {
       // คนยั้งชนะ: คนยั้งได้สุทธิ, คนไล่ได้เต็ม
       if (chaserBadge) chaserBadge.innerText = rowTotal.toLocaleString();
       if (holderBadge) holderBadge.innerText = netAmount.toLocaleString();
+
+      setNameNetBadgeState(chaserBadge, 'lose');
+      setNameNetBadgeState(holderBadge, 'win');
     }
 
     if (chaserBadge) chaserBadge.style.display = showNetLabel ? "inline-flex" : "none";
     if (holderBadge) holderBadge.style.display = showNetLabel ? "inline-flex" : "none";
   } else {
     // โหมดเดิม: แสดงสุทธิในช่องราคา
+    // ล้างสีป้ายหลังชื่อ (ถ้ามี)
+    const chaserTd = chaserInput.parentElement;
+    const holderTd = holderInput.parentElement;
+    const existingChaserBadge = chaserTd?.querySelector?.('.name-net-badge');
+    const existingHolderBadge = holderTd?.querySelector?.('.name-net-badge');
+    setNameNetBadgeState(existingChaserBadge, '');
+    setNameNetBadgeState(existingHolderBadge, '');
+
     if (!netInside) {
       netInside = document.createElement("div");
       netInside.className = "net-inside-label";
