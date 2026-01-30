@@ -33,6 +33,52 @@ function toggleNetDisplay(btn) {
 }
 
 // 3. ฟังก์ชันหลัก (รวมเช็คชื่อซ้ำ และ เปิด/ปิดยอด)
+
+// ===== ผลแพ้/ชนะ (ย้ายป้ายสุทธิไปหลังชื่อ) =====
+// outcome: 'C' = คนไล่ชนะ, 'H' = คนยั้งชนะ
+function setOutcomeForTable(btn, outcome) {
+    playSound('click');
+    const tableWrapper = btn.closest('.table-container');
+    if (!tableWrapper) return;
+
+    tableWrapper.querySelectorAll('tbody tr').forEach(tr => {
+        tr.dataset.outcome = outcome || "";
+    });
+
+    // อัปเดตป้ายสุทธิทันที + เซฟลง localStorage
+    updateIndividualTableSummaries();
+    saveData();
+}
+
+function getRowTotal(priceText) {
+    const clean = (priceText || "").replace(/[Oo]/g, '0');
+    const nums = clean.match(/\d+/g);
+    let total = 0;
+    if (nums) nums.forEach(n => { if (n.length >= 3) total += parseInt(n, 10); });
+    return total;
+}
+
+function clearNameNetBadges(tr) {
+    tr.querySelectorAll('.name-net-badge').forEach(el => el.remove());
+    const inputs = tr.querySelectorAll('input');
+    if (inputs[0]) inputs[0].style.paddingRight = "";
+    if (inputs[2]) inputs[2].style.paddingRight = "";
+}
+
+function ensureNameNetBadge(nameTd, inputEl) {
+    if (!nameTd) return null;
+    nameTd.style.position = "relative";
+    if (inputEl) inputEl.style.paddingRight = "70px";
+
+    let badge = nameTd.querySelector('.name-net-badge');
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'name-net-badge';
+        nameTd.appendChild(badge);
+    }
+    return badge;
+}
+
 function updateIndividualTableSummaries() {
   document.querySelectorAll(".table-container").forEach(tableWrapper => {
 
@@ -61,33 +107,59 @@ function updateIndividualTableSummaries() {
       }
 
       // คำนวณยอด
-      const priceText = priceInput.value.replace(/[Oo]/g, '0');
-      const matches = priceText.match(/\d+/g);
-      let rowTotal = 0;
-      if (matches) {
-        matches.forEach(num => { if (num.length >= 3) rowTotal += parseInt(num, 10); });
-      }
+const rowTotal = getRowTotal(priceInput.value);
 
-      /* --- แสดง/ซ่อน ยอดสุทธิ --- */
-      const priceTd = priceInput.parentElement;
-      let netBadge = priceTd.querySelector(".net-inside-label");
+// ค่า "สุทธิ" = 90% (ปัดลง)
+const netAmount = rowTotal > 0 ? Math.floor(rowTotal * 0.9) : 0;
 
-      if (rowTotal > 0) {
-        const netAmount = Math.floor(rowTotal * 0.9);
-        if (!netBadge) {
-          netBadge = document.createElement("div");
-          netBadge.className = "net-inside-label";
-          priceTd.appendChild(netBadge);
-        }
-        netBadge.innerText = netAmount.toLocaleString();
-        
-        // แสดงหรือซ่อนตามสถานะของปุ่มด้านบน
-        netBadge.style.display = showNetLabel ? "block" : "none";
-      } else {
-        if (netBadge) netBadge.remove();
-      }
+// เคลียร์ป้ายเดิมทุกครั้ง
+clearNameNetBadges(tr);
 
-      // สรุปยอด Sidebar
+// ถ้ามีการกด "ชนะ/แพ้" ให้ย้ายป้ายไปหลังชื่อ
+const outcome = tr.dataset.outcome || "";
+
+const priceTd = priceInput.parentElement;
+let netInside = priceTd.querySelector(".net-inside-label");
+
+if (rowTotal > 0) {
+  if (outcome === "C" || outcome === "H") {
+    // ซ่อน/ลบป้ายสุทธิในช่องราคา
+    if (netInside) netInside.remove();
+
+    const chaserTd = chaserInput.parentElement;
+    const holderTd = holderInput.parentElement;
+
+    const chaserBadge = ensureNameNetBadge(chaserTd, chaserInput);
+    const holderBadge = ensureNameNetBadge(holderTd, holderInput);
+
+    if (outcome === "C") {
+      // คนไล่ชนะ: คนไล่ได้สุทธิ, คนยั้งได้เต็ม
+      if (chaserBadge) chaserBadge.innerText = netAmount.toLocaleString();
+      if (holderBadge) holderBadge.innerText = rowTotal.toLocaleString();
+    } else {
+      // คนยั้งชนะ: คนยั้งได้สุทธิ, คนไล่ได้เต็ม
+      if (chaserBadge) chaserBadge.innerText = rowTotal.toLocaleString();
+      if (holderBadge) holderBadge.innerText = netAmount.toLocaleString();
+    }
+
+    if (chaserBadge) chaserBadge.style.display = showNetLabel ? "inline-flex" : "none";
+    if (holderBadge) holderBadge.style.display = showNetLabel ? "inline-flex" : "none";
+  } else {
+    // โหมดเดิม: แสดงสุทธิในช่องราคา
+    if (!netInside) {
+      netInside = document.createElement("div");
+      netInside.className = "net-inside-label";
+      priceTd.appendChild(netInside);
+    }
+    netInside.innerText = netAmount.toLocaleString();
+    netInside.style.display = showNetLabel ? "block" : "none";
+  }
+} else {
+  if (netInside) netInside.remove();
+}
+
+// สรุปยอด Sidebar
+
       if (rowTotal > 0) {
         if (chaser) nameSummary[chaser] = (nameSummary[chaser] || 0) + rowTotal;
         if (holder && holder !== chaser) {
@@ -578,7 +650,7 @@ function saveData() {
         table.querySelectorAll("tbody tr").forEach(r => {
             const cells = r.querySelectorAll("input");
             if (cells.length >= 3) {
-                rows.push([cells[0].value, cells[1].value, cells[2].value]);
+                rows.push([cells[0].value, cells[1].value, cells[2].value, (r.dataset.outcome || "")]);
             }
         });
         data.push({ title, rows });
@@ -684,8 +756,8 @@ function addTable(title = "", rows = null, isSilent = false) {
     newTableWrapper.style.opacity = '0';
     newTableWrapper.style.transform = 'translateY(20px)';
 
-    const generateRowHtml = (r = ["", "", ""]) => `
-        <tr>
+    const generateRowHtml = (r = ["", "", "", ""]) => `
+        <tr data-outcome="${r[3] || ''}">
             <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
             <td><input type="text" value="${r[1]}" oninput="saveData()" style="color:#2e7d32;"></td>
             <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
@@ -703,7 +775,15 @@ function addTable(title = "", rows = null, isSilent = false) {
             </div>
             <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()" style="width: 80%;">
             <table class="custom-table">
-                <thead><tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr></thead>
+                <thead>
+                    <tr class="winlose-row">
+                        <th colspan="4" class="th-winlose">
+                            <button class="btn-winlose btn-win" onclick="setOutcomeForTable(this, 'C')"><i class="fas fa-trophy"></i> ชนะ</button>
+                            <button class="btn-winlose btn-lose" onclick="setOutcomeForTable(this, 'H')"><i class="fas fa-skull"></i> แพ้</button>
+                        </th>
+                    </tr>
+                    <tr><th class="th-green">คนไล่</th><th class="th-orange">ราคา</th><th class="th-red">คนยั้ง</th><th class="th-purple">ลบ</th></tr>
+                </thead>
                 <tbody>${rowsHtml}</tbody>
             </table>
             <button class="btn-main" onclick="addRow(this.previousElementSibling)" style="width:100%; margin-top:10px; border: 1px dashed #2e7d32;">+ เพิ่มแผล</button>
@@ -737,6 +817,7 @@ function addRow(table) {
     playSound('click');
     const tbody = table.querySelector("tbody");
     const tr = document.createElement("tr");
+    tr.dataset.outcome = "";
     tr.innerHTML = `
         <td><input type="text" oninput="saveData()"></td>
         <td><input type="text" oninput="saveData()" style="color:#2e7d32;"></td>
