@@ -3,6 +3,8 @@
 <head>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://openfpcdn.io/fingerprintjs/v3"></script>
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -818,9 +820,85 @@
    
     
     
-    </style>
+    
+/* ===== Access Gate (Lock Screen) ===== */
+#gate-screen{
+  position:fixed; inset:0;
+  background: radial-gradient(circle, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.92) 100%);
+  z-index: 100000; display:flex; align-items:center; justify-content:center;
+  padding: 20px;
+}
+#gate-screen.hidden{ display:none; }
+.gate-box{
+  width: min(520px, 96vw);
+  background: rgba(255,255,255,0.96);
+  border-radius: 28px;
+  border: 3px solid #bf953f;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.45);
+  padding: 30px 26px;
+  text-align:center;
+}
+.gate-title{ font-size:1.4rem; font-weight:800; color:#1e293b; margin:0 0 6px 0; }
+.gate-sub{ color:#64748b; margin:0 0 18px 0; line-height:1.5; }
+.gate-row{ display:flex; gap:10px; margin: 12px 0; }
+.gate-row input{
+  flex:1;
+  font-size: 1.25rem;
+  padding: 14px 14px;
+  border-radius: 16px;
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+  text-align:center;
+  letter-spacing: 4px;
+  font-weight: 800;
+}
+.gate-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top: 14px; }
+.gate-actions button{ flex:1; min-width: 200px; justify-content:center; }
+.gate-status{
+  margin-top: 12px;
+  font-size: 0.95rem;
+  color:#0f172a;
+  background:#f1f5f9;
+  border:1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  text-align:left;
+}
+.gate-status small{ color:#64748b; }
+
+</style>
 </head>
 <body class="theme-christmas">
+
+<div id="gate-screen">
+  <div class="gate-box">
+    <div style="display:flex;justify-content:center;margin-bottom:14px;">
+      <img src="https://img5.pic.in.th/file/secure-sv1/66ba7a4b-0bda-4791-b489-3f1556d69a9d.jpg" alt="Rocket" style="width:84px;height:84px;border-radius:50%;border:4px solid #bf953f;"/>
+    </div>
+    <h1 class="gate-title">ยืนยันตัวตนก่อนเข้าใช้งาน</h1>
+    <p class="gate-sub">
+      1) ใส่รหัสเข้าใช้งาน<br>
+      2) ล็อกอินด้วย Google (1 เครื่อง = 1 บัญชี)<br>
+      <span style="color:#b3000c;font-weight:800;">หากมีคนเข้า “รหัสเดียวกัน” คนที่เข้าก่อนจะถูกเด้งออกทันที</span>
+    </p>
+
+    <div class="gate-row">
+      <input id="gate-code" type="text" inputmode="numeric" maxlength="8" placeholder="ใส่รหัส">
+    </div>
+
+    <div class="gate-actions">
+      <button id="btn-google" class="btn-main" type="button"><i class="fa-brands fa-google"></i> ล็อกอินด้วย Google</button>
+      <button id="btn-enter-gate" class="btn-enter-web pulse-effect" type="button" disabled><i class="fas fa-lock-open"></i> เข้าสู่ระบบ</button>
+    </div>
+
+    <div id="gate-status" class="gate-status">
+      <div><b>สถานะ:</b> รอใส่รหัสและล็อกอิน</div>
+      <small>หมายเหตุ: นี่คือ “ระบบล็อกการเข้าใช้งาน” ไม่ใช่การเข้ารหัสข้อมูลแบบแท้จริง</small>
+    </div>
+  </div>
+</div>
+
+
     <canvas id="confetti-canvas"></canvas>
     <canvas class="snow-canvas" id="snowCanvas"></canvas>
 <div id="welcome-screen">
@@ -1170,20 +1248,3 @@ function initSnow() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
