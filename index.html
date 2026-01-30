@@ -754,7 +754,50 @@
 
     
 
-         .timer-display {
+         
+        /* ===== ปุ่ม ชนะ/แพ้ บนหัวตาราง ===== */
+        .th-winlose{
+            text-align:center;
+            padding:10px 8px;
+            background: rgba(255,255,255,0.04);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .btn-winlose{
+            border: 0;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-weight: 800;
+            cursor: pointer;
+            margin: 0 6px;
+            transition: transform .15s, filter .15s;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+        }
+        .btn-winlose:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+        .btn-winlose:active{ transform: translateY(0); }
+
+        .btn-winlose.btn-win{ background: linear-gradient(135deg,#16a34a,#22c55e); color:#052e16; }
+        .btn-winlose.btn-lose{ background: linear-gradient(135deg,#ef4444,#b91c1c); color:#fff; }
+
+        /* ===== ป้ายสุทธิหลังชื่อ ===== */
+        .name-net-badge{
+            position:absolute;
+            right:8px;
+            top:50%;
+            transform: translateY(-50%);
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:48px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 900;
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.18);
+            pointer-events:none;
+        }
+.timer-display {
             font-family: 'Sarabun', monospace;
             font-variant-numeric: tabular-nums;
             font-feature-settings: "tnum";
@@ -1123,7 +1166,6 @@ function initSnow() {
 </script>
 </body>
 </html>
-
 
 
 
