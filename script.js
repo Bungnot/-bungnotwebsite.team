@@ -1579,48 +1579,52 @@ function sendMessageToLine() {
 
 
 /* =========================
-   ACCESS GATE + SINGLE SESSION (Firebase)
+   ACCESS GATE (NO GOOGLE) + SINGLE SESSION (Firebase)
    =========================
    เป้าหมาย:
-   - ต้องใส่ "รหัส" + ล็อกอิน Google ก่อนถึงใช้งาน
-   - รหัสเดียวกัน: คนเข้าก่อนโดนเด้งทันที (เพราะ Session ถูกแทนที่)
-   - 1 เครื่อง = 1 Google (พยายามทำให้ข้ามเบราว์เซอร์ได้ด้วย FingerprintJS)
+   - เข้าระบบด้วย User/Pass ที่เรากำหนดไว้ล่วงหน้า (ไม่ใช้ Google)
+   - User เดิมเข้าซ้ำ: คนเข้าก่อนโดนเด้งทันที (Session ถูกแทนที่)
+   - 1 เครื่อง = 1 User (พยายามทำให้ข้ามเบราว์เซอร์ได้ด้วย FingerprintJS)
    - 1 แท็บ/หน้าต่าง เท่านั้น (แท็บใหม่เข้ามา = แท็บเก่าโดนเด้ง)
+
+   หมายเหตุความปลอดภัย (พูดตรงๆ):
+   - ถ้าตรวจรหัสบนฝั่งหน้าเว็บอย่างเดียว “คนที่เปิดดูซอร์ส” สามารถเห็นรายการรหัสได้
+     ถ้าต้องการความปลอดภัยจริง ต้องย้ายการตรวจ User/Pass ไปทำที่ backend หรือ Cloud Functions
 */
 
-(function initAccessGate(){
-  const LOCK_TTL_MS = 15_000;        // ถ้า heartbeat หายเกินนี้ ถือว่า session ตาย (อนุญาต takeover)
+(function initAccessGateNoGoogle(){
+  const LOCK_TTL_MS = 15_000;        // heartbeat หายเกินนี้ถือว่า session ตาย (อนุญาต takeover)
   const HEARTBEAT_MS = 5_000;
-  const DEVICE_BIND_PATH = 'locks/devices';
-  const CODE_LOCK_PATH   = 'locks/codes';
-  const USER_LOCK_PATH   = 'locks/users';
-  const KICK_PATH        = 'locks/kicks';
 
-  // กำหนดว่ารหัสต้องเป็นตัวเลขอย่างเดียว / ความยาว
-  const CODE_MIN_LEN = 4;
-  const CODE_MAX_LEN = 8;
+  const DEVICE_BIND_PATH  = 'locks/devices';     // deviceId -> { account, lastSeen }
+  const ACCOUNT_LOCK_PATH = 'locks/accounts';    // account -> { sessionId, deviceId, lastSeen }
+  const KICK_PATH         = 'locks/kicks';       // sessionId -> { reason, ts }
 
-  // (ทางเลือก) ถ้าต้องการ "จำกัดแค่ 4 รหัส" ให้ใส่ในรายการนี้
-  // const ALLOWED_CODES = ["3841","7295","1604","9087"]; // ตัวอย่าง
-  const ALLOWED_CODES = null; // null = ไม่จำกัดรหัส
+  // ===== รายการ User/Pass ที่กำหนดไว้ =====
+  // (Case-insensitive สำหรับ User: ระบบจะ upper-case ก่อนเทียบ)
+  const CREDENTIALS = {
+    "DO":   "ascre@!",
+    "YO":   "ovjfds#@",
+    "BOOM": "vlf=342@",
+    "NOT":  "busld@34",
+  };
 
   // DOM
   const gateScreen = document.getElementById('gate-screen');
-  const gateCodeEl = document.getElementById('gate-code');
-  const btnGoogle  = document.getElementById('btn-google');
-  const btnEnter   = document.getElementById('btn-enter-gate');
+  const gateUserEl = document.getElementById('gate-user');
+  const gatePassEl = document.getElementById('gate-pass');
+  const btnLogin   = document.getElementById('btn-login-gate');
   const gateStatus = document.getElementById('gate-status');
 
-  if (!gateScreen || !gateCodeEl || !btnGoogle || !btnEnter || !gateStatus) return;
+  if (!gateScreen || !gateUserEl || !gatePassEl || !btnLogin || !gateStatus) return;
 
   // Firebase objects (ถูก init ใน index.html)
-  const auth = firebase.auth();
+  const db = firebase.database();
+  // ไม่ใช้ Firebase Auth ในเวอร์ชันนี้
 
   // Runtime state
   const state = {
-    uid: null,
-    email: null,
-    code: null,
+    account: null,          // "DO" / "YO" / ...
     sessionId: (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '_' + Math.random().toString(16).slice(2)),
     deviceId: null,
     hbTimer: null,
@@ -1633,81 +1637,42 @@ function sendMessageToLine() {
     gateStatus.innerHTML = html;
   }
 
-  function normalizeCode(raw){
-    const s = (raw || '').trim().replace(/\s+/g,'');
-    // เอาเฉพาะตัวเลข ถ้าคุณต้องการให้เป็นตัวอักษรด้วย ให้แก้บรรทัดนี้
-    const digits = s.replace(/\D+/g,'');
-    return digits;
-  }
-
-  function validateCode(code){
-    if (!code) return 'กรุณาใส่รหัส';
-    if (code.length < CODE_MIN_LEN || code.length > CODE_MAX_LEN) return `รหัสต้องยาว ${CODE_MIN_LEN}-${CODE_MAX_LEN} หลัก`;
-    if (ALLOWED_CODES && !ALLOWED_CODES.includes(code)) return 'รหัสไม่ถูกต้อง (ไม่อยู่ในรายการที่อนุญาต)';
-    return null;
-  }
-
-  // ===== Single-tab guard (แท็บใหม่เข้ามา = เด้งแท็บเก่า) =====
-  const bc = ('BroadcastChannel' in window) ? new BroadcastChannel('admin_rocket_single_tab') : null;
-
-  function announceTab(){
-    try{
-      const msg = { type:'HELLO', tabId: state.tabId, ts: Date.now() };
-      if (bc) bc.postMessage(msg);
-      localStorage.setItem('admin_rocket_tab_ping', JSON.stringify(msg));
-    }catch(_){}
-  }
-
-  function forceCloseForAnotherTab(){
-    // แท็บนี้คือคนเข้าก่อน -> โดนเด้ง
-    hardLockout('มีการเปิดหน้าเว็บนี้ในแท็บ/หน้าต่างอื่น ระบบอนุญาตได้แค่ 1 หน้าเท่านั้น');
-  }
-
-  function handleTabMessage(data){
-    if (!data || data.tabId === state.tabId) return;
-    if (data.type === 'HELLO') {
-      // ใครก็ตามที่ "ส่ง HELLO ล่าสุด" ถือว่าเป็นแท็บล่าสุด -> แท็บเก่าถูกเด้ง
-      // ดังนั้นเมื่อเรารับ HELLO จากแท็บอื่น ให้เราเด้งตัวเองทันที
-      forceCloseForAnotherTab();
-    }
-  }
-
-  if (bc) bc.onmessage = (e) => handleTabMessage(e.data);
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'admin_rocket_tab_ping' && e.newValue){
-      try { handleTabMessage(JSON.parse(e.newValue)); } catch(_){}
-    }
-  });
-
-  // เรียก announce ทันที และทุก 3 วินาที (กันกรณี bc ไม่ทำงานบาง browser)
-  announceTab();
-  setInterval(announceTab, 3000);
-
-  // ===== Device fingerprint (พยายามให้ข้าม browser ได้) =====
-  async function getDeviceId(){
-    try{
-      if (state.deviceId) return state.deviceId;
-      if (window.FingerprintJS) {
-        const fp = await FingerprintJS.load();
-        const result = await fp.get();
-        state.deviceId = result.visitorId;
-        return state.deviceId;
-      }
-    }catch(_){}
-    // fallback: ใช้ localStorage (ข้าม browser ไม่ได้ แต่ยังดีกว่าไม่มี)
-    const k = 'admin_rocket_device_id';
-    let v = localStorage.getItem(k);
-    if (!v){
-      v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('dev_' + Date.now() + '_' + Math.random().toString(16).slice(2));
-      localStorage.setItem(k, v);
-    }
-    state.deviceId = v;
-    return v;
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   }
 
   function now(){ return Date.now(); }
 
   function ref(path){ return db.ref(path); }
+
+
+  // ===== Device ID (พยายามให้ข้ามเบราว์เซอร์ได้ด้วย FingerprintJS) =====
+  async function getDeviceId(){
+    if (state.deviceId) return state.deviceId;
+
+    // 1) ใช้ FingerprintJS ก่อน (ข้ามเบราว์เซอร์ได้ "บางระดับ")
+    try{
+      if (window.FingerprintJS){
+        const fp = await FingerprintJS.load();
+        const res = await fp.get();
+        if (res && res.visitorId){
+          state.deviceId = 'fp_' + res.visitorId;
+          return state.deviceId;
+        }
+      }
+    }catch(_){}
+
+    // 2) fallback: localStorage (ข้ามเบราว์เซอร์ไม่ได้)
+    const k = 'admin_rocket_device_id';
+    let v = null;
+    try{ v = localStorage.getItem(k); }catch(_){}
+    if (!v){
+      v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('dev_' + Date.now() + '_' + Math.random().toString(16).slice(2));
+      try{ localStorage.setItem(k, v); }catch(_){}
+    }
+    state.deviceId = v;
+    return v;
+  }
 
   function stopAllWatchers(){
     try{
@@ -1719,214 +1684,193 @@ function sendMessageToLine() {
   }
 
   async function hardLockout(reason){
-    // ล้าง session + กลับสู่หน้าล็อก
     stopAllWatchers();
     state.unlocked = false;
-    state.code = null;
 
-    try{ await auth.signOut(); }catch(_){}
 
     gateScreen.classList.remove('hidden');
-
     setStatus(`
       <div><b>สถานะ:</b> <span style="color:#b3000c;font-weight:800;">ถูกตัดออกจากระบบ</span></div>
       <div style="margin-top:6px;">เหตุผล: ${escapeHtml(reason || 'Session ถูกแทนที่')}</div>
-      <small>หากต้องการใช้งานต่อ ให้ใส่รหัสและล็อกอินใหม่</small>
+      <small>ให้เข้าสู่ระบบใหม่ด้วย User/Pass</small>
     `);
-    btnEnter.disabled = true;
+    btnLogin.disabled = false;
   }
 
-  function escapeHtml(s){
-    return String(s || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  // ===== Single-tab guard (แท็บใหม่เข้ามา = เด้งแท็บเก่า) =====
+  const bc = ('BroadcastChannel' in window) ? new BroadcastChannel('admin_rocket_single_tab') : null;
+
+  function forceCloseForAnotherTab(){
+    hardLockout('มีการเปิดหน้าเว็บนี้ในแท็บ/หน้าต่างอื่น ระบบอนุญาตได้แค่ 1 หน้าเท่านั้น');
   }
 
+  function handleTabMessage(data){
+    if (!data || data.tabId === state.tabId) return;
+    if (data.type === 'HELLO') forceCloseForAnotherTab();
+  }
+
+  if (bc) bc.onmessage = (e) => handleTabMessage(e.data);
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'admin_rocket_tab_ping' && e.newValue){
+      try { handleTabMessage(JSON.parse(e.newValue)); } catch(_){}
+    }
+  });
+
+  function announceTab(){
+    try{
+      const msg = { type:'HELLO', tabId: state.tabId, ts: now() };
+      if (bc) bc.postMessage(msg);
+      localStorage.setItem('admin_rocket_tab_ping', JSON.stringify(msg));
+    }catch(_){}
+  }
+
+  // ===== Validation =====
+  function normalizeUser(raw){
+    return String(raw || '').trim().toUpperCase();
+  }
+
+  function validateCredentials(account, pass){
+    if (!account) return 'กรุณาใส่ User';
+    if (!pass) return 'กรุณาใส่ Pass';
+    if (!CREDENTIALS[account]) return 'User ไม่ถูกต้อง';
+    if (CREDENTIALS[account] !== pass) return 'Pass ไม่ถูกต้อง';
+    return null;
+  }
+
+  // ===== Cleanup locks (เฉพาะถ้ายังเป็นเจ้าของ) =====
   async function cleanupLocks(){
-    if (!state.uid || !state.code) return;
+    if (!state.account) return;
     const mySid = state.sessionId;
 
-    // ลบ lock เฉพาะถ้า "ยังเป็นเจ้าของ"
-    const codeRef = ref(`${CODE_LOCK_PATH}/${state.code}`);
-    const userRef = ref(`${USER_LOCK_PATH}/${state.uid}`);
+    const accRef  = ref(`${ACCOUNT_LOCK_PATH}/${state.account}`);
     const kickRef = ref(`${KICK_PATH}/${mySid}`);
 
     try{
-      const [cSnap, uSnap] = await Promise.all([codeRef.get(), userRef.get()]);
-      if (cSnap.exists() && cSnap.val()?.sessionId === mySid) await codeRef.remove();
-      if (uSnap.exists() && uSnap.val()?.sessionId === mySid) await userRef.remove();
+      const aSnap = await accRef.get();
+      if (aSnap.exists() && aSnap.val()?.sessionId === mySid){
+        await accRef.remove();
+      }
       await kickRef.remove();
     }catch(_){}
   }
 
-  // ===== Core: Acquire lock =====
+  // ===== Acquire session lock =====
   async function acquireLock(){
-    const user = auth.currentUser;
-    if (!user) throw new Error('ยังไม่ได้ล็อกอิน Google');
+    const account = normalizeUser(gateUserEl.value);
+    const pass = String(gatePassEl.value || '');
 
-    const code = normalizeCode(gateCodeEl.value);
-    const err = validateCode(code);
+    const err = validateCredentials(account, pass);
     if (err) throw new Error(err);
 
-    state.uid = user.uid;
-    state.email = user.email || null;
-    state.code = code;
-
+    state.account = account;
     const deviceId = await getDeviceId();
     const mySid = state.sessionId;
 
-    // 1) Enforce: 1 device = 1 Google
     const deviceRef = ref(`${DEVICE_BIND_PATH}/${deviceId}`);
-    const deviceSnap = await deviceRef.get();
-    if (deviceSnap.exists()){
-      const bound = deviceSnap.val();
-      if (bound?.uid && bound.uid !== state.uid){
-        // ปฏิเสธ: เครื่องนี้ผูกกับ Google คนอื่นแล้ว
-        throw new Error('เครื่องนี้ถูกผูกกับบัญชี Google อื่นแล้ว (1 เครื่อง = 1 Google)');
+    const devSnap = await deviceRef.get();
+    if (devSnap.exists()){
+      const bound = devSnap.val() || {};
+      const lastSeen = Number(bound.lastSeen || 0);
+
+      // ถ้าเครื่องนี้ผูกกับ user อื่น และยัง active อยู่ -> ปฏิเสธ
+      if (bound.account && bound.account !== account && (now() - lastSeen) < (LOCK_TTL_MS * 2)){
+        throw new Error(`เครื่องนี้ถูกผูกกับผู้ใช้อื่นแล้ว (1 เครื่อง = 1 User)`);
       }
     }
 
-    // 2) Kick old session by user (ทุกที่ทุก device)
-    const userRef = ref(`${USER_LOCK_PATH}/${state.uid}`);
-    const oldUserSnap = await userRef.get();
-    const oldUser = oldUserSnap.exists() ? oldUserSnap.val() : null;
-    if (oldUser?.sessionId && oldUser.sessionId !== mySid){
-      await ref(`${KICK_PATH}/${oldUser.sessionId}`).set({ reason: 'บัญชีนี้ถูกล็อกอินจากที่อื่น', at: now() });
-    }
+    // Bind device -> account (เขียนทับได้ถ้า stale)
+    await deviceRef.set({ account, lastSeen: now() });
 
-    // 3) Kick old session by code (รหัสเดียวกัน)
-    const codeRef = ref(`${CODE_LOCK_PATH}/${code}`);
-    const oldCodeSnap = await codeRef.get();
-    const oldCode = oldCodeSnap.exists() ? oldCodeSnap.val() : null;
-
-    if (oldCode?.sessionId && oldCode.sessionId !== mySid){
-      // ถ้า stale ให้ takeover เฉยๆ
-      const stale = oldCode.lastSeen && (now() - oldCode.lastSeen > LOCK_TTL_MS);
-      if (!stale){
-        await ref(`${KICK_PATH}/${oldCode.sessionId}`).set({ reason: 'มีคนใช้รหัสเดียวกัน', at: now() });
+    const accRef = ref(`${ACCOUNT_LOCK_PATH}/${account}`);
+    const accSnap = await accRef.get();
+    if (accSnap.exists()){
+      const old = accSnap.val() || {};
+      if (old.sessionId && old.sessionId !== mySid){
+        // สั่งเด้ง session เก่า
+        await ref(`${KICK_PATH}/${old.sessionId}`).set({
+          reason: 'มีการเข้าระบบซ้ำด้วย User เดิม',
+          ts: now()
+        });
       }
     }
 
-    // 4) Write new locks (code + user + device bind)
-    const payload = {
-      uid: state.uid,
-      email: state.email,
+    // เขียน lock ของเรา
+    await accRef.set({
       sessionId: mySid,
       deviceId,
-      ua: navigator.userAgent,
       lastSeen: now()
-    };
+    });
 
-    await Promise.all([
-      codeRef.set(payload),
-      userRef.set({ code, sessionId: mySid, lastSeen: now(), deviceId }),
-      deviceRef.set({ uid: state.uid, email: state.email, boundAt: now() })
-    ]);
+    state.deviceId = deviceId;
 
-    // 5) Setup onDisconnect (best effort cleanup)
-    try{
-      codeRef.onDisconnect().remove();
-      userRef.onDisconnect().remove();
-    }catch(_){}
-
-    // 6) Start watchers
-    startWatchers();
-
-    // Unlock UI
-    state.unlocked = true;
-    gateScreen.classList.add('hidden');
-  }
-
-  function startWatchers(){
-    stopAllWatchers();
-
-    const mySid = state.sessionId;
-
-    // A) Watch kick message
+    // Watch kick
     const kickRef = ref(`${KICK_PATH}/${mySid}`);
     const kickHandler = (snap) => {
       if (snap.exists()){
-        const v = snap.val() || {};
-        hardLockout(v.reason || 'Session ถูกเด้ง');
+        const payload = snap.val() || {};
+        hardLockout(payload.reason || 'Session ถูกแทนที่');
       }
     };
     kickRef.on('value', kickHandler);
     state.unsubRefs.push(() => kickRef.off('value', kickHandler));
 
-    // B) Watch code lock ownership
-    const codeRef = ref(`${CODE_LOCK_PATH}/${state.code}`);
-    const codeHandler = (snap) => {
-      if (!snap.exists()) return;
-      const v = snap.val() || {};
-      if (v.sessionId && v.sessionId !== mySid){
-        hardLockout('มีคนใช้รหัสเดียวกัน ระบบแทนที่ Session เดิม');
-      }
-    };
-    codeRef.on('value', codeHandler);
-    state.unsubRefs.push(() => codeRef.off('value', codeHandler));
-
-    // C) Heartbeat
+    // Heartbeat + ownership check
     state.hbTimer = setInterval(async () => {
       try{
-        if (!state.uid || !state.code) return;
-        const ts = now();
-        await Promise.all([
-          ref(`${CODE_LOCK_PATH}/${state.code}/lastSeen`).set(ts),
-          ref(`${USER_LOCK_PATH}/${state.uid}/lastSeen`).set(ts),
-        ]);
+        const cur = await accRef.get();
+        if (cur.exists()){
+          const v = cur.val() || {};
+          if (v.sessionId !== mySid){
+            hardLockout('Session ถูกแทนที่');
+            return;
+          }
+        }
+        await accRef.update({ lastSeen: now() });
+        await deviceRef.update({ lastSeen: now(), account });
       }catch(_){}
     }, HEARTBEAT_MS);
 
-    // D) Cleanup on unload
-    window.addEventListener('beforeunload', () => { try{ cleanupLocks(); }catch(_){} }, { once: true });
+    state.unlocked = true;
+    gateScreen.classList.add('hidden');
+
+    setStatus(`
+      <div><b>สถานะ:</b> <span style="color:#067647;font-weight:800;">เข้าสู่ระบบแล้ว</span></div>
+      <div style="margin-top:6px;">User: <b>${escapeHtml(account)}</b></div>
+      <small>หากมีคนใช้ User เดียวกันเข้าซ้ำ ระบบจะเด้งคนที่เข้าก่อนทันที</small>
+    `);
+
+    // บันทึก user ล่าสุด (เพื่อกรอกให้อัตโนมัติครั้งหน้า)
+    try{ localStorage.setItem('admin_rocket_last_account', account); }catch(_){}
   }
 
-  // ===== UI wiring =====
-  function updateButtons(){
-    const code = normalizeCode(gateCodeEl.value);
-    const ok = !validateCode(code);
-    btnEnter.disabled = !(ok && auth.currentUser);
-  }
-
-  gateCodeEl.addEventListener('input', () => {
-    gateCodeEl.value = normalizeCode(gateCodeEl.value).slice(0, CODE_MAX_LEN);
-    updateButtons();
-  });
-
-  btnGoogle.addEventListener('click', async () => {
+  async function onLoginClick(){
+    btnLogin.disabled = true;
     try{
-      setStatus(`<div><b>สถานะ:</b> กำลังล็อกอิน Google...</div>`);
-      const provider = new firebase.auth.GoogleAuthProvider();
-      await auth.signInWithPopup(provider);
-      setStatus(`<div><b>สถานะ:</b> ล็อกอินแล้ว (${escapeHtml(auth.currentUser?.email || '')})</div><small>ใส่รหัสแล้วกด “เข้าสู่ระบบ”</small>`);
-      updateButtons();
-    }catch(e){
-      setStatus(`<div><b>สถานะ:</b> <span style="color:#b3000c;font-weight:800;">ล็อกอินไม่สำเร็จ</span></div><div>${escapeHtml(e?.message || e)}</div>`);
-    }
-  });
-
-  btnEnter.addEventListener('click', async () => {
-    try{
-      setStatus(`<div><b>สถานะ:</b> กำลังตรวจสอบสิทธิ์และล็อก Session...</div>`);
+      announceTab();
       await acquireLock();
-      // ถ้าถึงตรงนี้ แปลว่าเข้าใช้งานได้
     }catch(e){
-      setStatus(`<div><b>สถานะ:</b> <span style="color:#b3000c;font-weight:800;">เข้าใช้งานไม่ได้</span></div><div>${escapeHtml(e?.message || e)}</div><small>ตรวจสอบรหัส / บัญชี Google / หรือเครื่องถูกผูกไว้แล้ว</small>`);
-      btnEnter.disabled = true;
+      setStatus(`
+        <div><b>สถานะ:</b> <span style="color:#b3000c;font-weight:800;">เข้าไม่ได้</span></div>
+        <div style="margin-top:6px;">${escapeHtml(e?.message || String(e))}</div>
+        <small>ตรวจสอบ User/Pass หรือการตั้งค่า Firebase Authentication (Anonymous) และ Database Rules</small>
+      `);
+      btnLogin.disabled = false;
     }
-  });
+  }
 
-  auth.onAuthStateChanged((user) => {
-    if (user){
-      setStatus(`<div><b>สถานะ:</b> ล็อกอินแล้ว (${escapeHtml(user.email || '')})</div><small>ใส่รหัสแล้วกด “เข้าสู่ระบบ”</small>`);
-    }else{
-      setStatus(`<div><b>สถานะ:</b> รอใส่รหัสและล็อกอิน</div><small>ระบบจะอนุญาตเฉพาะ Google ที่ผูกกับเครื่องนี้</small>`);
-    }
-    updateButtons();
-  });
+  btnLogin.addEventListener('click', onLoginClick);
+  gatePassEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') onLoginClick(); });
+  gateUserEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') onLoginClick(); });
 
-  // เผื่อผู้ใช้รีเฟรชหน้า: บังคับให้ล็อกใหม่เสมอ (เพื่อให้ "รหัสซ้ำแล้วเด้ง" ชัดเจน)
-  // ถ้าต้องการให้จำ session ต่อ ให้เพิ่มระบบ restore จาก localStorage + ตรวจ lock ownership
+  // Prefill last user
   try{
-    localStorage.removeItem('admin_rocket_last_session');
+    const last = localStorage.getItem('admin_rocket_last_account');
+    if (last) gateUserEl.value = last;
   }catch(_){}
+
+  // Cleanup on unload
+  window.addEventListener('beforeunload', () => {
+    cleanupLocks();
+  });
 
 })();
