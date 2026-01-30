@@ -2,43 +2,6 @@
  * ฟังก์ชันใหม่สำหรับหน้าต้อนรับ (Welcome Screen)
  */
 
-// กันคลิกขวา
-document.addEventListener("contextmenu", (e) => e.preventDefault(), { passive: false });
-
-// กันคีย์ลัดที่มักใช้ดู/ก๊อปโค้ด
-document.addEventListener("keydown", (e) => {
-  const key = (e.key || "").toLowerCase();
-
-  // F12
-  if (e.key === "F12") {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  }
-
-  // Ctrl+U (view source), Ctrl+S (save), Ctrl+P (print), Ctrl+C (copy), Ctrl+V (paste), Ctrl+X (cut)
-  if (e.ctrlKey && ["u", "s", "p", "c", "v", "x"].includes(key)) {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  }
-
-  // DevTools shortcuts: Ctrl+Shift+I / J / C
-  if (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  }
-
-  // Mac: Cmd (metaKey) equivalents
-  if (e.metaKey && ["u", "s", "p", "c", "v", "x"].includes(key)) {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  }
-}, true);
-
-
 function updateClosedCampDisplay() {
     const el = document.getElementById("bung-camp-summary");
     if (!el) return;
@@ -196,22 +159,8 @@ if (rowTotal > 0) {
     if (chaserBadge) chaserBadge.style.display = showNetLabel ? "inline-flex" : "none";
     if (holderBadge) holderBadge.style.display = showNetLabel ? "inline-flex" : "none";
   } else {
-    // โหมดเดิม: แสดงสุทธิในช่องราคา
-    // ล้างสีป้ายหลังชื่อ (ถ้ามี)
-    const chaserTd = chaserInput.parentElement;
-    const holderTd = holderInput.parentElement;
-    const existingChaserBadge = chaserTd?.querySelector?.('.name-net-badge');
-    const existingHolderBadge = holderTd?.querySelector?.('.name-net-badge');
-    setNameNetBadgeState(existingChaserBadge, '');
-    setNameNetBadgeState(existingHolderBadge, '');
-
-    if (!netInside) {
-      netInside = document.createElement("div");
-      netInside.className = "net-inside-label";
-      priceTd.appendChild(netInside);
-    }
-    netInside.innerText = netAmount.toLocaleString();
-    netInside.style.display = showNetLabel ? "block" : "none";
+    // โหมดเดิม: ไม่แสดงป้ายสุทธิในช่องราคา (เอาปุ่ม/ป้ายออก)
+    if (netInside) netInside.remove();
   }
 } else {
   if (netInside) netInside.remove();
