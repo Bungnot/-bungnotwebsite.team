@@ -1356,11 +1356,9 @@ function openStopwatchWindow() {
             let timerCount = 0;
 
             function formatTime(ms) {
-                let totalSeconds = Math.floor(ms / 1000);
-                let minutes = Math.floor(totalSeconds / 60);
-                let seconds = totalSeconds % 60;
-                let tenths = Math.floor((ms % 1000) / 100);
-                return \`\${minutes.toString().padStart(2, '0')}:\${seconds.toString().padStart(2, '0')}.\${tenths}\`;
+                const totalSeconds = Math.floor(ms / 1000);
+                const tenths = Math.floor((ms % 1000) / 100);
+                return `${totalSeconds.toString().padStart(2, '0')}.${tenths}`;
             }
 
             function createNewTimer() {
@@ -1379,7 +1377,7 @@ function openStopwatchWindow() {
                         <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
                         <button class="btn-delete" onclick="this.parentElement.parentElement.deleteCard()"><i class="fas fa-trash-alt"></i></button>
                     </div>
-                    <div class="timer-display">00:00.0</div>
+                   <div class="timer-display">00.0</div>
                     <div class="controls">
                         <button class="btn-start"><i class="fas fa-play"></i> เริ่ม</button>
                         <button class="btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
