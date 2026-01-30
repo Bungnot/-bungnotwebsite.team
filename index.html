@@ -797,6 +797,20 @@
             border: 1px solid rgba(255,255,255,0.18);
             pointer-events:none;
         }
+
+        /* สีตามผล: ชนะ=เขียว / แพ้=แดง */
+        .name-net-badge.badge-win{
+            background: linear-gradient(135deg,#16a34a,#22c55e);
+            color:#052e16;
+            border-color: rgba(34,197,94,0.45);
+            box-shadow: 0 10px 22px rgba(34,197,94,0.20);
+        }
+        .name-net-badge.badge-lose{
+            background: linear-gradient(135deg,#ef4444,#b91c1c);
+            color:#fff;
+            border-color: rgba(239,68,68,0.55);
+            box-shadow: 0 10px 22px rgba(239,68,68,0.22);
+        }
 .timer-display {
             font-family: 'Sarabun', monospace;
             font-variant-numeric: tabular-nums;
@@ -1166,20 +1180,3 @@ function initSnow() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
