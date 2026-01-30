@@ -1412,7 +1412,7 @@ function openStopwatchWindow() {
                     } else {
                         // Start/Resume
                         startTime = Date.now();
-                        intervalId = setInterval(updateDisplay, 100); // อัปเดตทุก 0.1 วินาที
+                        intervalId = setInterval(updateDisplay, 50);
                         btnStart.innerHTML = '<i class="fas fa-pause"></i> หยุด';
                         btnStart.className = 'btn-pause';
                     }
