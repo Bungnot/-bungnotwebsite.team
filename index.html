@@ -978,7 +978,23 @@
         .main-container, .right-panel, .welcome-box{
             animation: premiumEnter .45s ease both;
         }
-        </style>
+        
+        /* --- Fix: Win/Lose button text clarity (high contrast) --- */
+        .btn-winlose{
+            color:#ffffff !important;
+            font-weight:800;
+            letter-spacing:0.2px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.40);
+        }
+        .btn-winlose i{ color:#ffffff !important; }
+        .btn-winlose:focus-visible{
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.20), 0 0 0 7px rgba(179,135,40,0.22);
+        }
+        .btn-winlose:hover{ text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
+        .btn-winlose:active{ text-shadow: 0 1px 1px rgba(0,0,0,0.35); }
+
+</style>
 </head>
 <body class="theme-christmas">
     <canvas id="confetti-canvas"></canvas>
