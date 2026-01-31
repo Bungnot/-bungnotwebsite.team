@@ -1177,7 +1177,7 @@ function capturePlayerRow(playerName) {
       }
     </style>
 
-      <div class="cap-banner">รายการเล่นของคุณลูกค้า</div>
+      <div class="cap-banner">ยอดเล่น Real-Time</div>
       <div class="cap-sub">
         <span class="cap-badge">👤 คุณ <b>${cleanName}</b> ✏️</span>
       </div>
@@ -1364,55 +1364,299 @@ function showHistory() {
     let content = `
     <html>
     <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>ประวัติการปิดยอด - ADMIN ROCKET</title>
-        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
         <style>
-            body { font-family: 'Sarabun', sans-serif; background: #0f1b2a; padding: 40px; color: #333; margin: 0; }
-            .history-title { color: white; text-align: center; margin-bottom: 30px; font-size: 2rem; }
-            .table-card { 
-                background: white; border-radius: 20px; padding: 25px; margin-bottom: 50px; 
-                box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; border-top: 6px solid #d42426;
+            :root{
+              --bg1:#071021;
+              --bg2:#0c1a33;
+              --card:#ffffff;
+              --muted:#64748b;
+              --text:#0f172a;
+              --line:rgba(15,23,42,0.10);
+              --shadow: 0 24px 60px rgba(0,0,0,0.22);
+              --shadow2: 0 14px 35px rgba(0,0,0,0.14);
+              --gold1:#fbbf24;
+              --gold2:#f59e0b;
+              --green:#22c55e;
+              --red:#ef4444;
+              --chip:#e2e8f0;
             }
-            .history-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-            .timestamp-label { color: #64748b; font-size: 0.9rem; }
-            .profit-label { background: #2ecc71; color: white; padding: 4px 15px; border-radius: 50px; font-weight: bold; font-size: 0.9rem; }
-            
-            .table-title-display { 
-                font-size: 1.4rem; font-weight: bold; color: #b3000c; text-align: center; 
-                background: #fff5f5; padding: 10px; border-radius: 12px; margin-bottom: 20px; 
-                border: 1px solid #ffcccc; 
+
+            *{ box-sizing: border-box; }
+            body{
+              font-family: 'Kanit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+              margin:0;
+              padding:36px 18px 60px;
+              color: var(--text);
+              background:
+                radial-gradient(1200px 600px at 20% 0%, rgba(251,191,36,0.18), transparent 50%),
+                radial-gradient(900px 520px at 90% 10%, rgba(59,130,246,0.16), transparent 50%),
+                linear-gradient(135deg, var(--bg1), var(--bg2));
             }
-            .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-            .custom-table th { padding: 12px; color: white; font-weight: 600; }
-            .th-green { background: #14452f; border-radius: 10px 0 0 10px; }
-            .th-orange { background: #bf953f; }
-            .th-red { background: #b3000c; }
-            .th-dark { background: #2d3436; border-radius: 0 10px 10px 0; }
-            
-            .custom-table td { 
-                padding: 15px; text-align: center; background: #f8fafc; 
-                border: 1px solid #edf2f7; border-radius: 8px; font-weight: 600; 
+
+            .page{
+              max-width: 1120px;
+              margin: 0 auto;
             }
-            
-            .btn-copy-item {
-                background: #f0fff4; color: #22c55e; border: 1px solid #bbf7d0;
-                width: 35px; height: 35px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+
+            .topbar{
+              position: sticky;
+              top: 0;
+              z-index: 50;
+              padding: 14px 0 18px;
+              backdrop-filter: blur(12px);
             }
-            .btn-copy-item:hover { background: #22c55e; color: white; }
-            
-            .status-group { display: flex; align-items: center; justify-content: center; gap: 8px; }
-            .status-icon { color: #94a3b8; font-size: 1.1rem; }
-            
-            @media print { .no-print { display: none; } }
+
+            .topbar-inner{
+              display:flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 12px;
+              padding: 14px 16px;
+              border-radius: 18px;
+              background: rgba(255,255,255,0.10);
+              border: 1px solid rgba(255,255,255,0.12);
+              box-shadow: var(--shadow2);
+            }
+
+            .title{
+              display:flex;
+              align-items:center;
+              gap: 10px;
+              color:#fff;
+              font-weight: 900;
+              font-size: 1.35rem;
+              letter-spacing: 0.2px;
+            }
+            .title i{ color: rgba(251,191,36,0.95); }
+
+            .actions{
+              display:flex;
+              gap: 10px;
+              align-items:center;
+            }
+
+            .btn{
+              appearance: none;
+              border: 1px solid rgba(255,255,255,0.16);
+              background: rgba(255,255,255,0.10);
+              color:#fff;
+              padding: 10px 14px;
+              border-radius: 14px;
+              cursor: pointer;
+              font-weight: 800;
+              display:inline-flex;
+              align-items:center;
+              gap: 8px;
+              transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease;
+              user-select:none;
+            }
+            .btn:hover{
+              transform: translateY(-1px);
+              box-shadow: 0 16px 35px rgba(0,0,0,0.25);
+              background: rgba(255,255,255,0.16);
+              border-color: rgba(255,255,255,0.22);
+            }
+            .btn:active{ transform: translateY(0) scale(0.99); }
+
+            .btn-primary{
+              border-color: rgba(251,191,36,0.35);
+              background: linear-gradient(90deg, rgba(251,191,36,0.95), rgba(245,158,11,0.92));
+              color:#3b1d00;
+            }
+            .btn-primary:hover{
+              background: linear-gradient(90deg, rgba(251,191,36,1), rgba(245,158,11,0.98));
+            }
+
+            .history-wrap{ margin-top: 14px; }
+
+            .table-card{
+              background: rgba(255,255,255,0.95);
+              border: 1px solid rgba(15,23,42,0.10);
+              border-radius: 22px;
+              padding: 18px 18px 16px;
+              margin: 18px 0 22px;
+              box-shadow: var(--shadow);
+              position: relative;
+              overflow: hidden;
+            }
+            .table-card::before{
+              content:"";
+              position:absolute;
+              left:0; right:0; top:0;
+              height: 5px;
+              background: linear-gradient(90deg, var(--gold1), var(--gold2));
+              opacity: 0.95;
+            }
+
+            .history-meta-row{
+              display:flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 12px;
+              flex-wrap: wrap;
+              margin-bottom: 12px;
+            }
+            .timestamp-label{
+              color: var(--muted);
+              font-size: 0.95rem;
+              font-weight: 600;
+              display:flex;
+              align-items:center;
+              gap: 8px;
+            }
+            .meta-chip{
+              display:inline-flex;
+              align-items:center;
+              gap: 8px;
+              padding: 8px 12px;
+              border-radius: 999px;
+              background: rgba(2,6,23,0.04);
+              border: 1px solid rgba(2,6,23,0.08);
+              color: #0f172a;
+              font-weight: 800;
+              font-size: 0.95rem;
+              white-space: nowrap;
+            }
+            .meta-chip.positive{
+              background: rgba(34,197,94,0.10);
+              border-color: rgba(34,197,94,0.22);
+              color: #065f46;
+            }
+            .meta-chip.negative{
+              background: rgba(239,68,68,0.10);
+              border-color: rgba(239,68,68,0.20);
+              color: #7f1d1d;
+            }
+
+            .table-title-display{
+              margin: 10px 0 14px;
+              padding: 12px 14px;
+              border-radius: 16px;
+              background: linear-gradient(180deg, rgba(255,247,237,1), rgba(255,255,255,1));
+              border: 1px solid rgba(245,158,11,0.16);
+              color: #7c2d12;
+              font-size: 1.20rem;
+              font-weight: 900;
+              text-align:center;
+              letter-spacing: 0.2px;
+            }
+
+            .custom-table{
+              width: 100%;
+              border-collapse: separate;
+              border-spacing: 0;
+              overflow: hidden;
+              border-radius: 16px;
+              border: 1px solid rgba(15,23,42,0.10);
+              table-layout: fixed;
+              background: #fff;
+            }
+
+            .custom-table thead th{
+              padding: 12px 12px;
+              color: #fff;
+              font-weight: 900;
+              font-size: 0.98rem;
+              letter-spacing: 0.2px;
+            }
+            .custom-table thead th:nth-child(1){ text-align:left; padding-left:16px; background: linear-gradient(90deg,#0f3a2a,#14532d); }
+            .custom-table thead th:nth-child(2){ text-align:center; background: linear-gradient(90deg,#b38728,#d0a44b); }
+            .custom-table thead th:nth-child(3){ text-align:right; padding-right:16px; background: linear-gradient(90deg,#9f1239,#be123c); }
+            .custom-table thead th:nth-child(4){ text-align:center; background: linear-gradient(90deg,#1f2937,#111827); }
+
+            .custom-table tbody td{
+              padding: 14px 12px;
+              background: #f8fafc;
+              border-top: 1px solid rgba(15,23,42,0.06);
+              font-weight: 700;
+              color: #0f172a;
+              font-size: 0.98rem;
+              overflow:hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            .custom-table tbody tr:nth-child(even) td{ background: rgba(2,6,23,0.02); }
+
+            .custom-table tbody td:nth-child(1){ text-align:left; padding-left:16px; }
+            .custom-table tbody td:nth-child(2){ text-align:center; font-variant-numeric: tabular-nums; }
+            .custom-table tbody td:nth-child(3){ text-align:right; padding-right:16px; }
+            .custom-table tbody td:nth-child(4){ text-align:center; }
+
+            .price-accent{ color:#b3000c; font-weight: 900; }
+
+            .status-group{
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              gap: 10px;
+            }
+            .status-icon{ color: #94a3b8; font-size: 1.1rem; }
+
+            .btn-copy-item{
+              background: rgba(34,197,94,0.10);
+              color: #16a34a;
+              border: 1px solid rgba(34,197,94,0.25);
+              width: 36px;
+              height: 36px;
+              border-radius: 12px;
+              cursor: pointer;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              transition: transform .14s ease, box-shadow .14s ease, background .14s ease, color .14s ease;
+            }
+            .btn-copy-item:hover{
+              transform: translateY(-1px);
+              background: #16a34a;
+              color: #fff;
+              box-shadow: 0 14px 30px rgba(22,163,74,0.25);
+            }
+
+            .note{
+              margin: 10px 0 0;
+              color: rgba(255,255,255,0.72);
+              text-align:center;
+              font-weight: 600;
+              font-size: 0.95rem;
+            }
+
+            @media (max-width: 740px){
+              body{ padding: 18px 12px 40px; }
+              .title{ font-size: 1.1rem; }
+              .custom-table thead th, .custom-table tbody td{ font-size: 0.92rem; }
+            }
+
+            @media print{
+              .no-print{ display:none !important; }
+              body{ background:#fff; padding:0; }
+              .topbar{ position: static; backdrop-filter: none; }
+              .topbar-inner{ background:#fff; border:none; box-shadow:none; }
+              .title{ color:#0f172a; }
+              .note{ color:#475569; }
+              .table-card{ box-shadow:none; }
+            }
         </style>
     </head>
     <body>
-        <div class="no-print" style="text-align:right; margin-bottom:20px;">
-            <button onclick="window.print()" style="padding:10px 20px; border-radius:10px; cursor:pointer; background:white; font-weight:bold;">พิมพ์ประวัติ</button>
+      <div class="page">
+        <div class="topbar no-print">
+          <div class="topbar-inner">
+            <div class="title"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติการคิดยอดทั้งหมด</div>
+            <div class="actions">
+              <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> พิมพ์ประวัติ</button>
+            </div>
+          </div>
+          <div class="note">ADMIN ROCKET SYSTEM</div>
         </div>
-        <h2 class="history-title">ประวัติการคิดยอดทั้งหมด</h2>`;
+
+        <div class="history-wrap">
+`;
 
     // ค้นหาส่วนนี้ในฟังก์ชัน showHistory ของคุณ
     historyData.slice().reverse().forEach((h, tIdx) => {
@@ -1430,7 +1674,7 @@ function showHistory() {
             return `
                 <tr id="row-${tIdx}-${rIdx}">
                     <td>${r[0] || '-'}</td>
-                    <td style="color:#b3000c;">${displayPrice}</td>
+                    <td><span class="price-accent">${displayPrice}</span></td>
                     <td>${r[2] || '-'}</td>
                     <td>
                         <div class="status-group">
@@ -1448,7 +1692,7 @@ function showHistory() {
         <div class="table-card">
             <div class="history-meta-row">
                 <div class="timestamp-label"><i class="far fa-clock"></i> ปิดยอดเมื่อ: ${h.timestamp}</div>
-                <div class="profit-label">กำไร: ฿${h.profit.toLocaleString(undefined,{minimumFractionDigits:2})}</div>
+                <div class="meta-chip ${h.profit >= 0 ? "positive" : "negative"}">${h.profit >= 0 ? "กำไร" : "ขาดทุน"}: ฿${Math.abs(h.profit).toLocaleString(undefined,{minimumFractionDigits:2})}</div>
             </div>
             <div class="table-title-display">${h.title || 'ไม่ระบุชื่อค่าย'}</div>
             <table class="custom-table">
@@ -1519,6 +1763,8 @@ function showHistory() {
                 });
             }
         </script>
+            </div>
+      </div>
     </body></html>`;
     
     newWindow.document.write(content);
@@ -1745,6 +1991,8 @@ function openStopwatchWindow() {
 
             window.onload = createNewTimer;
         </script>
+            </div>
+      </div>
     </body>
     </html>`;
 
