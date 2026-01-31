@@ -1050,6 +1050,21 @@ function capturePlayerRow(playerName) {
         font-weight:700;
       }
       .cap-badge b{ color:#0f172a; font-weight:900; }
+      .cap-alert{
+        width:fit-content;
+        max-width: 92%;
+        margin: 10px auto 0;
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: rgba(34,197,94,0.10);
+        border: 1px solid rgba(34,197,94,0.28);
+        color:#065f46;
+        font-weight:800;
+        font-size: 0.98rem;
+        line-height: 1.25rem;
+        box-shadow: 0 14px 32px rgba(0,0,0,0.08);
+      }
+      .cap-alert i{ margin-right:8px; }
       .camp-card{
         width:88%;
         margin:18px auto;
@@ -1086,6 +1101,7 @@ function capturePlayerRow(playerName) {
         width:100%;
         border-collapse:separate;
         border-spacing:0;
+        table-layout: fixed;
         font-size:1rem;
         color:#0f172a;
       }
@@ -1112,6 +1128,9 @@ function capturePlayerRow(playerName) {
         text-align:center;
         font-variant-numeric: tabular-nums;
       }
+
+      /* --- Fix: force header price center --- */
+      .camp-table thead th:nth-child(2){ text-align:center !important; }
 
       /* --- Fix: center price column robustly --- */
       .camp-table th:nth-child(2),
@@ -1149,11 +1168,13 @@ function capturePlayerRow(playerName) {
       }
     </style>
 
-      <div class="cap-banner">เช็คยอดเล่นลูกค้า</div>
+      <div class="cap-banner">เช็ครายการเล่นลูกค้า</div>
       <div class="cap-sub">
         <span class="cap-badge">👤 คุณ <b>${cleanName}</b> ✏️</span>
       </div>
-    </div>
+    
+      <div class="cap-alert"><i class="fas fa-circle-exclamation"></i> ห้ามเล่นเกินเครดิตที่มี หากเล่นเกินกรุณาฝากยอดเข้ามาด้วยนะครับ</div>
+</div>
   `;
 
   // 🔹 สร้างทีละค่ายพร้อมเส้นคั่น
@@ -1192,6 +1213,11 @@ function capturePlayerRow(playerName) {
             <div class="camp-total">รวมค่ายนี้ ${campTotal.toLocaleString()}</div>
           </div>
           <table class="camp-table">
+            <colgroup>
+              <col style="width:55%;">
+              <col style="width:20%;">
+              <col style="width:25%;">
+            </colgroup>
             <thead>
               <tr>
                 <th>คนไล่</th>
