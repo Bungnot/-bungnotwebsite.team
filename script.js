@@ -1168,7 +1168,7 @@ function capturePlayerRow(playerName) {
       }
     </style>
 
-      <div class="cap-banner">เช็ครายการเล่นลูกค้า</div>
+      <div class="cap-banner">ยอดเล่น Real-Time</div>
       <div class="cap-sub">
         <span class="cap-badge">👤 คุณ <b>${cleanName}</b> ✏️</span>
       </div>
@@ -1214,9 +1214,9 @@ function capturePlayerRow(playerName) {
           </div>
           <table class="camp-table">
             <colgroup>
-              <col style="width:55%;">
+              <col style="width:40%;">
               <col style="width:20%;">
-              <col style="width:25%;">
+              <col style="width:40%;">
             </colgroup>
             <thead>
               <tr>
