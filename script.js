@@ -1104,6 +1104,15 @@ function capturePlayerRow(playerName) {
       }
       .td-center{text-align:center;}
 
+      .price-cell{
+        width:100%;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        text-align:center;
+        font-variant-numeric: tabular-nums;
+      }
+
       /* --- Fix: center price column robustly --- */
       .camp-table th:nth-child(2),
       .camp-table td:nth-child(2){
@@ -1140,7 +1149,7 @@ function capturePlayerRow(playerName) {
       }
     </style>
 
-      <div class="cap-banner">เช็คยอดเล่นลูกค้า แต่ละค่าย</div>
+      <div class="cap-banner">ยอดเล่น Real-Time</div>
       <div class="cap-sub">
         <span class="cap-badge">👤 คุณ <b>${cleanName}</b> ✏️</span>
       </div>
@@ -1169,7 +1178,7 @@ function capturePlayerRow(playerName) {
         return `
           <tr>
             <td>${r.from}</td>
-            <td class="td-center">${r.price}</td>
+            <td><div class="price-cell">${r.price}</div></td>
             <td>${r.to}</td>
           </tr>`;
       }).join('');
@@ -1186,7 +1195,7 @@ function capturePlayerRow(playerName) {
             <thead>
               <tr>
                 <th>คนไล่</th>
-                <th class="td-center">ราคา</th>
+                <th><div class="price-cell">ราคา</div></th>
                 <th>คนยั้ง</th>
               </tr>
             </thead>
