@@ -889,6 +889,7 @@
         .table-container{
             position: relative;
         }
+        /* ใช้กรอบเรืองแสงแทนการทับสีทั้งตาราง (กันแดง/เขียวเต็มพื้นที่) */
         .table-container::after{
             content:"";
             position:absolute;
@@ -896,21 +897,24 @@
             border-radius: 26px;
             pointer-events:none;
             opacity:0;
-            transition: opacity .2s ease;
+            transition: opacity .18s ease;
+            border: 2px solid transparent;
+            background: transparent;
         }
         .table-container.outcome-win::after{
             opacity:1;
-            background: linear-gradient(135deg, rgba(34,197,94,0.35), rgba(16,185,129,0.10), rgba(34,197,94,0.25));
-            box-shadow: 0 0 0 2px rgba(34,197,94,0.18);
+            border-color: rgba(34,197,94,0.55);
+            box-shadow: 0 0 0 1px rgba(34,197,94,0.18), 0 14px 40px rgba(34,197,94,0.14);
         }
         .table-container.outcome-lose::after{
             opacity:1;
-            background: linear-gradient(135deg, rgba(239,68,68,0.30), rgba(244,63,94,0.10), rgba(239,68,68,0.22));
-            box-shadow: 0 0 0 2px rgba(239,68,68,0.16);
+            border-color: rgba(239,68,68,0.55);
+            box-shadow: 0 0 0 1px rgba(239,68,68,0.16), 0 14px 40px rgba(239,68,68,0.12);
         }
+        /* เน้นเฉพาะแถบหัวปุ่ม ชนะ/แพ้ ให้รู้สถานะ */
         .table-container.outcome-win .th-winlose{ box-shadow: 0 14px 28px rgba(34,197,94,0.18) inset; }
         .table-container.outcome-lose .th-winlose{ box-shadow: 0 14px 28px rgba(239,68,68,0.16) inset; }
-        
+
         /* --- Table micro interaction --- */
         .custom-table tbody tr{
             transition: transform .12s ease, background .12s ease;
