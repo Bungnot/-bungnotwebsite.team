@@ -1130,6 +1130,15 @@ function capturePlayerRow(playerName) {
       }
 
       /* --- Fix: force header price center --- */
+
+      /* --- Align: 'คนยั้ง' (3rd column) to far right --- */
+      .camp-table thead th:nth-child(3),
+      .camp-table tbody td:nth-child(3){
+        text-align:right !important;
+      }
+      .camp-table thead th:nth-child(3){ padding-right:16px; }
+      .camp-table tbody td:nth-child(3){ padding-right:16px; }
+
       .camp-table thead th:nth-child(2){ text-align:center !important; }
 
       /* --- Fix: center price column robustly --- */
