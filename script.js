@@ -786,6 +786,7 @@ function addTable(title = "", rows = null, isSilent = false) {
                 <thead>
                     <tr class="winlose-row">
                         <th colspan="4" class="th-winlose">
+                             <div class="winlose-note">วิธี : อย่าลืมกา แผลจาวออกด้วย</div>
                             <button class="btn-winlose btn-win" onclick="setOutcomeForTable(this, 'C')"><i class="fas fa-trophy"></i> ชนะ</button>
                             <button class="btn-winlose btn-lose" onclick="setOutcomeForTable(this, 'H')"><i class="fas fa-skull"></i> แพ้</button>
                         </th>
