@@ -1103,6 +1103,13 @@ function capturePlayerRow(playerName) {
         background: rgba(2,6,23,0.02);
       }
       .td-center{text-align:center;}
+
+      /* --- Fix: center price column robustly --- */
+      .camp-table th:nth-child(2),
+      .camp-table td:nth-child(2){
+        text-align:center !important;
+        font-variant-numeric: tabular-nums;
+      }
       .grand-card{
         width:88%;
         margin:26px auto 0;
