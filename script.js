@@ -1003,24 +1003,140 @@ function capturePlayerRow(playerName) {
     });
   });
 
-  // 🧾 กล่องรวมผลทั้งหมด
+    // 🧾 กล่องรวมผลทั้งหมด
   const captureDiv = document.createElement('div');
-  captureDiv.style.width = '950px';
-  captureDiv.style.padding = '45px 55px';
-  captureDiv.style.background = 'linear-gradient(180deg,#fffef7,#fffbea)';
-  captureDiv.style.borderRadius = '20px';
-  captureDiv.style.fontFamily = "'Sarabun',sans-serif";
+  captureDiv.style.width = '980px';
+  captureDiv.style.padding = '42px 52px';
+  captureDiv.style.background = '#ffffff';
+  captureDiv.style.borderRadius = '26px';
+  captureDiv.style.border = '1px solid rgba(15,23,42,0.08)';
+  captureDiv.style.fontFamily = "'Kanit','Sarabun',sans-serif";
   captureDiv.style.textAlign = 'center';
-  captureDiv.style.boxShadow = '0 0 30px rgba(0,0,0,0.08)';
+  captureDiv.style.boxShadow = '0 28px 60px rgba(0,0,0,0.18)';
 
   let innerHTML = `
-    <div style="background:linear-gradient(90deg,#fde68a,#fbbf24,#f59e0b);
-                color:#b91c1c;font-weight:700;font-size:1.9rem;
-                padding:15px 0;border-radius:10px;margin-bottom:25px;">
-      ยอดเล่น Real-Time
-    </div>
-    <div style="font-size:1.1rem;color:#334155;margin-bottom:10px;">
-      🧍‍♂️ <b>คุณ ${cleanName}</b>
+    <div class="cap-wrap">
+      
+    <style>
+      .cap-wrap{width:100%;}
+      .cap-banner{
+        background: linear-gradient(90deg,#fbbf24,#f59e0b);
+        color:#7c2d12;
+        font-weight:900;
+        font-size:2rem;
+        padding:18px 22px;
+        border-radius:18px;
+        letter-spacing:0.2px;
+        box-shadow: 0 18px 45px rgba(0,0,0,0.14);
+      }
+      .cap-sub{
+        margin-top:14px;
+        display:flex;
+        justify-content:center;
+        gap:10px;
+        flex-wrap:wrap;
+      }
+      .cap-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:8px 12px;
+        border-radius:999px;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid rgba(245,158,11,0.20);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+        color:#334155;
+        font-size:1.02rem;
+        font-weight:700;
+      }
+      .cap-badge b{ color:#0f172a; font-weight:900; }
+      .camp-card{
+        width:88%;
+        margin:18px auto;
+        background:#ffffff;
+        border:1px solid rgba(15,23,42,0.08);
+        border-radius:18px;
+        box-shadow:0 16px 38px rgba(0,0,0,0.10);
+        overflow:hidden;
+        text-align:left;
+      }
+      .camp-head{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:12px 16px;
+        background: linear-gradient(180deg,#fff7ed,#ffffff);
+        border-bottom:1px solid rgba(15,23,42,0.06);
+      }
+      .camp-title{
+        font-size:1.05rem;
+        font-weight:900;
+        color:#9a3412;
+      }
+      .camp-total{
+        padding:7px 12px;
+        border-radius:999px;
+        background: rgba(34,197,94,0.10);
+        border: 1px solid rgba(34,197,94,0.25);
+        color:#065f46;
+        font-weight:900;
+        font-size:0.98rem;
+      }
+      .camp-table{
+        width:100%;
+        border-collapse:separate;
+        border-spacing:0;
+        font-size:1rem;
+        color:#0f172a;
+      }
+      .camp-table thead th{
+        background:#fffbeb;
+        font-weight:900;
+        padding:10px 12px;
+        border-bottom:1px solid rgba(15,23,42,0.08);
+      }
+      .camp-table tbody td{
+        padding:10px 12px;
+        border-bottom:1px solid rgba(15,23,42,0.06);
+      }
+      .camp-table tbody tr:nth-child(even) td{
+        background: rgba(2,6,23,0.02);
+      }
+      .td-center{text-align:center;}
+      .grand-card{
+        width:88%;
+        margin:26px auto 0;
+        padding:18px 20px;
+        border-radius:18px;
+        background: linear-gradient(180deg,#fff7ed,#ffffff);
+        border:1px solid rgba(245,158,11,0.18);
+        text-align:center;
+        box-shadow:0 16px 40px rgba(0,0,0,0.10);
+      }
+      .grand-num{
+        font-size:2.7rem;
+        font-weight:1000;
+        color:#0f172a;
+        letter-spacing:0.3px;
+      }
+      .grand-meta{
+        color:#475569;
+        margin-top:6px;
+        font-size:1rem;
+        font-weight:700;
+      }
+      .cap-foot{
+        margin-top:18px;
+        font-size:0.9rem;
+        color:#94a3b8;
+        letter-spacing:1px;
+      }
+    </style>
+
+      <div class="cap-banner">ยอดเล่น Real-Time</div>
+      <div class="cap-sub">
+        <span class="cap-badge">👤 คุณ <b>${cleanName}</b> ✏️</span>
+      </div>
     </div>
   `;
 
@@ -1045,54 +1161,41 @@ function capturePlayerRow(playerName) {
         }
         return `
           <tr>
-            <td style="border:1px solid #facc15;padding:8px;">${r.from}</td>
-            <td style="border:1px solid #facc15;padding:8px;text-align:center;">${r.price}</td>
-            <td style="border:1px solid #facc15;padding:8px;">${r.to}</td>
+            <td>${r.from}</td>
+            <td class="td-center">${r.price}</td>
+            <td>${r.to}</td>
           </tr>`;
       }).join('');
 
       grandTotal += campTotal;
 
-      innerHTML += `
-          <div style="margin:25px auto 10px auto;font-size:1rem;color:#b91c1c;
-                      font-weight:600;width:85%;text-align:left;">
-            🏕️ ค่าย: ${campName}
+            innerHTML += `
+        <div class="camp-card">
+          <div class="camp-head">
+            <div class="camp-title">🏕️ ค่าย: ${campName}</div>
+            <div class="camp-total">รวมค่ายนี้ ${campTotal.toLocaleString()}</div>
           </div>
-          <table style="width:85%;margin:0 auto 10px auto;border-collapse:collapse;
-                        font-size:1rem;color:#1e293b;">
-            <thead style="background:#fef3c7;">
+          <table class="camp-table">
+            <thead>
               <tr>
-                <th style="border:1px solid #facc15;padding:8px;">คนไล่</th>
-                <th style="border:1px solid #facc15;padding:8px;">ราคา</th>
-                <th style="border:1px solid #facc15;padding:8px;">คนยั้ง</th>
+                <th>คนไล่</th>
+                <th class="td-center">ราคา</th>
+                <th>คนยั้ง</th>
               </tr>
             </thead>
             <tbody>${rowsHTML}</tbody>
           </table>
-          <div style="font-weight:bold;margin:10px auto 25px auto;
-                      color:#111827;text-align:center;width:85%;">
-            รวมค่ายนี้ ${campTotal.toLocaleString()}
-          </div>
-          ${
-            idx < campEntries.length - 1
-              ? `<div style="width:85%;height:2px;margin:25px auto;
-                             background:linear-gradient(90deg,#fef08a,#facc15,#fef08a);"></div>`
-              : ""
-          }
-        `;
+        </div>
+      `;
     });
   }
 
-  // 🔸 รวมทั้งหมด
+    // 🔸 รวมทั้งหมด
   innerHTML += `
-    <div style="font-size:2.5rem;font-weight:bold;color:#111827;margin-top:25px;">
-      รวมทั้งหมด ${grandTotal.toLocaleString()}
-    </div>
-    <div style="font-size:1rem;color:#475569;margin-top:5px;">
-      รวมทั้งหมด ${totalRecords} รายการ
-    </div>
-    <div style="margin-top:25px;font-size:0.9rem;color:#94a3b8;">
-      ADMIN ROCKET SYSTEM
+    <div class="grand-card">
+      <div class="grand-num">รวมทั้งหมด ${grandTotal.toLocaleString()}</div>
+      <div class="grand-meta">รวมทั้งหมด ${totalRecords} รายการ</div>
+      <div class="cap-foot">ADMIN ROCKET SYSTEM</div>
     </div>
   `;
 
