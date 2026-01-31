@@ -1855,143 +1855,467 @@ function openStopwatchWindow() {
     <html>
     <head>
         <title>ระบบจับเวลา PRO - ADMIN ROCKET</title>
-        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
-            body { font-family: 'Sarabun', sans-serif; background: #0f172a; color: white; padding: 20px; margin: 0; }
-            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
-            .timer-card { 
-                background: #1e293b; border-radius: 16px; padding: 20px; margin-bottom: 15px; 
-                display: flex; flex-direction: column; border: 1px solid #334155;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            :root{
+              --bg1:#071021;
+              --bg2:#0c1a33;
+              --card: rgba(255,255,255,0.08);
+              --card2: rgba(255,255,255,0.06);
+              --line: rgba(255,255,255,0.12);
+              --text:#ffffff;
+              --muted: rgba(255,255,255,0.70);
+              --shadow: 0 22px 55px rgba(0,0,0,0.35);
+              --shadow2: 0 14px 35px rgba(0,0,0,0.25);
+              --gold1:#fbbf24;
+              --gold2:#f59e0b;
+              --green:#22c55e;
+              --red:#ef4444;
+              --slate:#94a3b8;
+              --ink:#0f172a;
             }
-            .camp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-            .camp-name-input { 
-                background: #0f172a; border: 1px solid #334155; border-radius: 8px;
-                color: #2ecc71; font-size: 1.1rem; font-weight: bold; width: 60%; padding: 8px 12px; outline: none;
+            *{ box-sizing:border-box; }
+            body{
+              margin:0;
+              padding: 22px 16px 20px;
+              font-family: 'Kanit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+              color: var(--text);
+              background:
+                radial-gradient(900px 520px at 18% 0%, rgba(251,191,36,0.18), transparent 55%),
+                radial-gradient(880px 520px at 92% 10%, rgba(59,130,246,0.16), transparent 55%),
+                linear-gradient(135deg, var(--bg1), var(--bg2));
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: geometricPrecision;
             }
-            .timer-display { 
-                font-family: 'Courier New', monospace; font-size: 3.5rem; color: #f8fafc; 
-                text-align: center; margin: 10px 0; font-weight: bold; letter-spacing: 2px;
-                text-shadow: 0 0 20px rgba(255,255,255,0.1);
+
+            .shell{
+              max-width: 720px;
+              margin: 0 auto;
             }
-            .controls { display: flex; gap: 10px; justify-content: center; }
-            button { 
-                border: none; border-radius: 10px; cursor: pointer; font-weight: bold; 
-                transition: all 0.2s; padding: 12px 20px; display: flex; align-items: center; gap: 8px;
+
+            .topbar{
+              position: sticky;
+              top: 0;
+              z-index: 50;
+              padding-bottom: 14px;
+              backdrop-filter: blur(12px);
             }
-            .btn-start { background: #2ecc71; color: white; flex: 2; justify-content: center; }
-            .btn-pause { background: #f39c12; color: white; flex: 2; justify-content: center; }
-            .btn-reset { background: #64748b; color: white; flex: 1; justify-content: center; }
-            .btn-delete { background: #e74c3c; color: white; padding: 10px; }
-            .btn-add { 
-                width: 100%; background: transparent; color: #3b82f6; font-size: 1.1rem; padding: 15px;
-                margin-top: 10px; border: 2px dashed #3b82f6; border-radius: 16px;
+
+            .topbar-inner{
+              display:flex;
+              align-items:center;
+              justify-content: space-between;
+              gap: 10px;
+              padding: 14px 14px;
+              border-radius: 18px;
+              background: rgba(255,255,255,0.08);
+              border: 1px solid rgba(255,255,255,0.12);
+              box-shadow: var(--shadow2);
             }
-            button:hover { transform: translateY(-2px); filter: brightness(1.1); }
-            button:active { transform: translateY(0); }
+
+            .title{
+              display:flex;
+              align-items:center;
+              gap: 10px;
+              font-weight: 900;
+              letter-spacing: 0.2px;
+              font-size: 1.20rem;
+              color: #fff;
+            }
+            .title i{ color: rgba(251,191,36,0.95); }
+
+            .pill{
+              display:inline-flex;
+              align-items:center;
+              gap: 8px;
+              padding: 8px 12px;
+              border-radius: 999px;
+              background: rgba(255,255,255,0.06);
+              border: 1px solid rgba(255,255,255,0.12);
+              color: rgba(255,255,255,0.82);
+              font-weight: 800;
+              font-size: 0.92rem;
+              white-space: nowrap;
+            }
+
+            .stack{ display:flex; flex-direction:column; gap: 14px; }
+
+            .timer-card{
+              background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+              border: 1px solid rgba(255,255,255,0.14);
+              border-radius: 22px;
+              padding: 16px;
+              box-shadow: var(--shadow);
+              position: relative;
+              overflow: hidden;
+            }
+            .timer-card::before{
+              content:"";
+              position:absolute;
+              left:0; right:0; top:0;
+              height: 4px;
+              background: linear-gradient(90deg, var(--gold1), var(--gold2));
+              opacity: 0.95;
+            }
+
+            .camp-row{
+              display:flex;
+              align-items:center;
+              justify-content: space-between;
+              gap: 10px;
+              margin-bottom: 12px;
+            }
+
+            .camp-name-input{
+              flex: 1;
+              min-width: 0;
+              background: rgba(2,6,23,0.35);
+              border: 1px solid rgba(255,255,255,0.14);
+              border-radius: 14px;
+              padding: 10px 12px;
+              color: #e5e7eb;
+              font-weight: 800;
+              font-size: 1.02rem;
+              outline: none;
+            }
+            .camp-name-input::placeholder{ color: rgba(255,255,255,0.45); font-weight:700; }
+            .camp-name-input:focus{
+              border-color: rgba(251,191,36,0.40);
+              box-shadow: 0 0 0 4px rgba(251,191,36,0.12);
+            }
+
+            .camp-actions{
+              display:flex;
+              align-items:center;
+              gap: 10px;
+              flex-shrink: 0;
+            }
+
+            .status-pill{
+              display:inline-flex;
+              align-items:center;
+              gap: 8px;
+              padding: 8px 10px;
+              border-radius: 999px;
+              border: 1px solid rgba(255,255,255,0.14);
+              background: rgba(255,255,255,0.06);
+              color: rgba(255,255,255,0.82);
+              font-weight: 900;
+              font-size: 0.90rem;
+            }
+            .dot{
+              width: 8px;
+              height: 8px;
+              border-radius: 999px;
+              background: rgba(148,163,184,0.9);
+              box-shadow: 0 0 0 4px rgba(148,163,184,0.10);
+            }
+            .status-running .dot{
+              background: rgba(34,197,94,1);
+              box-shadow: 0 0 0 4px rgba(34,197,94,0.14);
+            }
+            .status-paused .dot{
+              background: rgba(245,158,11,1);
+              box-shadow: 0 0 0 4px rgba(245,158,11,0.14);
+            }
+
+            .timer-display{
+              font-variant-numeric: tabular-nums;
+              font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+              font-size: 3.2rem;
+              font-weight: 900;
+              text-align:center;
+              padding: 18px 14px;
+              border-radius: 18px;
+              background: rgba(2,6,23,0.40);
+              border: 1px solid rgba(255,255,255,0.12);
+              letter-spacing: 1px;
+              color: #ffffff;
+            }
+
+            .controls{
+              margin-top: 12px;
+              display:flex;
+              gap: 10px;
+              align-items:center;
+              justify-content:center;
+            }
+
+            .btn{
+              border: 1px solid rgba(255,255,255,0.14);
+              background: rgba(255,255,255,0.08);
+              color:#fff;
+              border-radius: 14px;
+              cursor: pointer;
+              font-weight: 900;
+              padding: 12px 14px;
+              display:inline-flex;
+              align-items:center;
+              justify-content:center;
+              gap: 8px;
+              transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease, filter .14s ease;
+              user-select:none;
+            }
+            .btn:hover{
+              transform: translateY(-1px);
+              box-shadow: 0 16px 35px rgba(0,0,0,0.28);
+              background: rgba(255,255,255,0.12);
+              border-color: rgba(255,255,255,0.20);
+            }
+            .btn:active{ transform: translateY(0) scale(0.99); }
+
+            .btn-main{
+              flex: 1;
+              border-color: rgba(34,197,94,0.28);
+              background: linear-gradient(90deg, rgba(34,197,94,0.95), rgba(16,185,129,0.92));
+              color: #052e16;
+            }
+            .btn-main:hover{ filter: brightness(1.03); }
+
+            .btn-reset{
+              width: 128px;
+              background: rgba(148,163,184,0.16);
+              border-color: rgba(148,163,184,0.22);
+            }
+
+            .btn-copy{
+              width: 46px;
+              padding: 12px 0;
+              background: rgba(59,130,246,0.16);
+              border-color: rgba(59,130,246,0.22);
+            }
+
+            .btn-delete{
+              width: 42px;
+              height: 42px;
+              border-radius: 14px;
+              background: rgba(239,68,68,0.14);
+              border: 1px solid rgba(239,68,68,0.24);
+              color: #fecaca;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              cursor:pointer;
+              transition: transform .14s ease, background .14s ease, box-shadow .14s ease;
+            }
+            .btn-delete:hover{
+              transform: translateY(-1px);
+              background: rgba(239,68,68,0.22);
+              box-shadow: 0 14px 30px rgba(239,68,68,0.16);
+            }
+
+            .btn-add{
+              margin-top: 14px;
+              width: 100%;
+              padding: 14px 14px;
+              border-radius: 18px;
+              border: 1px dashed rgba(255,255,255,0.22);
+              background: rgba(255,255,255,0.06);
+              color: rgba(255,255,255,0.86);
+              font-weight: 900;
+              cursor:pointer;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              gap: 10px;
+              transition: transform .14s ease, background .14s ease, border-color .14s ease;
+              user-select:none;
+            }
+            .btn-add:hover{
+              transform: translateY(-1px);
+              background: rgba(255,255,255,0.10);
+              border-color: rgba(251,191,36,0.35);
+            }
+
+            /* Toast */
+            #toast{
+              position: fixed;
+              left: 50%;
+              bottom: 18px;
+              transform: translateX(-50%);
+              padding: 10px 14px;
+              border-radius: 999px;
+              background: rgba(0,0,0,0.55);
+              color:#fff;
+              font-weight: 800;
+              font-size: 0.95rem;
+              border: 1px solid rgba(255,255,255,0.18);
+              box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+              opacity: 0;
+              pointer-events: none;
+              transition: opacity .18s ease, transform .18s ease;
+            }
+            #toast.show{ opacity:1; transform: translateX(-50%) translateY(-2px); }
+
+            @media (max-width: 560px){
+              body{ padding: 18px 12px 18px; }
+              .timer-display{ font-size: 2.8rem; }
+              .btn-reset{ width: 110px; }
+            }
         </style>
     </head>
     <body>
-        <div class="header">
-            <h2><i class="fas fa-stopwatch"></i> จับเวลารายค่าย</h2>
+      <div class="shell">
+        <div class="topbar">
+          <div class="topbar-inner">
+            <div class="title"><i class="fas fa-stopwatch"></i> จับเวลารายค่าย</div>
+            <div class="pill"><i class="fa-solid fa-bolt"></i> PRO</div>
+          </div>
         </div>
-        
-        <div id="timers-container"></div>
-        
+
+        <div id="timers-container" class="stack"></div>
+
         <button class="btn-add" onclick="createNewTimer()">
-            <i class="fas fa-plus-circle"></i> เพิ่มค่ายใหม่
+          <i class="fas fa-plus-circle"></i> เพิ่มค่ายใหม่
         </button>
 
+        <div id="toast">คัดลอกแล้ว</div>
+
         <script>
-            let timerCount = 0;
+          let timerCount = 0;
 
-            function formatTime(ms) {
-              const totalSeconds = Math.floor(ms / 1000);
-              const tenths = Math.floor((ms % 1000) / 100);
-              return totalSeconds.toString().padStart(2, '0') + "." + tenths;
+          function showToast(msg){
+            const t = document.getElementById('toast');
+            if(!t) return;
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._to);
+            t._to = setTimeout(()=> t.classList.remove('show'), 1200);
+          }
+
+          function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const tenths = Math.floor((ms % 1000) / 100);
+            return totalSeconds.toString().padStart(2, '0') + "." + tenths;
+          }
+
+          function setStatus(pill, state){
+            pill.classList.remove('status-running','status-paused');
+            const txt = pill.querySelector('.txt');
+            if(state === 'running'){
+              pill.classList.add('status-running');
+              txt.textContent = 'กำลังจับเวลา';
+            }else if(state === 'paused'){
+              pill.classList.add('status-paused');
+              txt.textContent = 'หยุดชั่วคราว';
+            }else{
+              txt.textContent = 'พร้อม';
             }
+          }
 
-            function createNewTimer() {
-                timerCount++;
-                const container = document.getElementById('timers-container');
-                const card = document.createElement('div');
-                card.className = 'timer-card';
-                card.id = 'timer-card-' + timerCount;
-                
-                let startTime = 0;
-                let elapsedTime = 0;
-                let intervalId = null;
+          function createNewTimer() {
+            timerCount++;
+            const container = document.getElementById('timers-container');
+            const card = document.createElement('div');
+            card.className = 'timer-card';
+            card.id = 'timer-card-' + timerCount;
 
-                card.innerHTML = \`
-                    <div class="camp-row">
-                        <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
-                        <button class="btn-delete" onclick="this.parentElement.parentElement.deleteCard()"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                   <div class="timer-display">00.0</div>
-                    <div class="controls">
-                        <button class="btn-start"><i class="fas fa-play"></i> เริ่ม</button>
-                        <button class="btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
-                    </div>
-                \`;
+            let startTime = 0;
+            let elapsedTime = 0;
+            let intervalId = null;
 
-                const display = card.querySelector('.timer-display');
-                const btnStart = card.querySelector('.btn-start');
-                const btnReset = card.querySelector('.btn-reset');
+            card.innerHTML = `
+              <div class="camp-row">
+                <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
+                <div class="camp-actions">
+                  <div class="status-pill"><span class="dot"></span><span class="txt">พร้อม</span></div>
+                  <button class="btn-delete" title="ลบค่าย" onclick="this.closest('.timer-card').deleteCard()">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
+              </div>
 
-                const updateDisplay = () => {
-                    const now = Date.now();
-                    const currentTotal = elapsedTime + (startTime ? (now - startTime) : 0);
-                    display.innerText = formatTime(currentTotal);
-                };
+              <div class="timer-display">00.0</div>
 
-                btnStart.onclick = function() {
-                    if (window.opener && window.opener.isSoundEnabled) {
-                            const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
-                            clickSound.volume = 0.3;
-                            clickSound.play();
-                        }
+              <div class="controls">
+                <button class="btn btn-main"><i class="fas fa-play"></i> เริ่ม</button>
+                <button class="btn btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
+                <button class="btn btn-copy" title="คัดลอกเวลา"><i class="fa-regular fa-copy"></i></button>
+              </div>
+            `;
 
-                    if (intervalId) {
-                        // Pause
-                        elapsedTime += Date.now() - startTime;
-                        clearInterval(intervalId);
-                        intervalId = null;
-                        startTime = 0;
-                        btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่มต่อ';
-                        btnStart.className = 'btn-start';
-                    } else {
-                        // Start/Resume
-                        startTime = Date.now();
-                        intervalId = setInterval(updateDisplay, 50);
-                        btnStart.innerHTML = '<i class="fas fa-pause"></i> หยุด';
-                        btnStart.className = 'btn-pause';
-                    }
-                };
+            const display = card.querySelector('.timer-display');
+            const btnMain = card.querySelector('.btn-main');
+            const btnReset = card.querySelector('.btn-reset');
+            const btnCopy = card.querySelector('.btn-copy');
+            const pill = card.querySelector('.status-pill');
 
-                btnReset.onclick = function() {
-                    clearInterval(intervalId);
-                    intervalId = null;
-                    startTime = 0;
-                    elapsedTime = 0;
-                    display.innerText = "00.0";
-                    btnStart.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
-                    btnStart.className = 'btn-start';
-                };
+            const updateDisplay = () => {
+              const now = Date.now();
+              const currentTotal = elapsedTime + (startTime ? (now - startTime) : 0);
+              display.innerText = formatTime(currentTotal);
+            };
 
-                card.deleteCard = function() {
-                    if(confirm('ลบตัวจับเวลานี้?')) {
-                        clearInterval(intervalId);
-                        card.remove();
-                    }
-                };
+            const playClick = () => {
+              if (window.opener && window.opener.isSoundEnabled) {
+                const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/3124/3124-preview.mp3');
+                clickSound.volume = 0.25;
+                clickSound.play();
+              }
+            };
 
-                container.appendChild(card);
-            }
+            btnMain.onclick = function(){
+              playClick();
 
-            window.onload = createNewTimer;
+              // กำลังรัน -> กดเพื่อพัก
+              if(startTime){
+                elapsedTime += (Date.now() - startTime);
+                startTime = 0;
+                clearInterval(intervalId);
+                intervalId = null;
+                updateDisplay();
+                this.innerHTML = '<i class="fas fa-play"></i> ต่อ';
+                setStatus(pill, 'paused');
+                return;
+              }
+
+              // ยังไม่เริ่ม หรือพักอยู่ -> กดเพื่อเริ่ม/ต่อ
+              startTime = Date.now();
+              intervalId = setInterval(updateDisplay, 100);
+              this.innerHTML = '<i class="fas fa-pause"></i> พัก';
+              setStatus(pill, 'running');
+            };
+
+            btnReset.onclick = function(){
+              playClick();
+              clearInterval(intervalId);
+              intervalId = null;
+              startTime = 0;
+              elapsedTime = 0;
+              display.innerText = "00.0";
+              btnMain.innerHTML = '<i class="fas fa-play"></i> เริ่ม';
+              setStatus(pill, 'idle');
+              showToast('รีเซ็ตแล้ว');
+            };
+
+            btnCopy.onclick = async function(){
+              playClick();
+              try{
+                await navigator.clipboard.writeText(display.innerText);
+                showToast('คัดลอกเวลาแล้ว');
+              }catch(e){
+                showToast('คัดลอกไม่สำเร็จ');
+              }
+            };
+
+            card.deleteCard = function(){
+              if(confirm('ลบตัวจับเวลานี้?')){
+                clearInterval(intervalId);
+                card.remove();
+                showToast('ลบค่ายแล้ว');
+              }
+            };
+
+            container.prepend(card);
+          }
+
+          // ค่าเริ่มต้น: สร้าง 1 ค่ายอัตโนมัติ
+          createNewTimer();
         </script>
-            </div>
       </div>
     </body>
     </html>`;
