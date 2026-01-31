@@ -53,6 +53,21 @@ function setOutcomeForTable(btn, outcome) {
         tr.dataset.outcome = outcome || "";
     });
 
+
+    // เปลี่ยนธีมของตารางตามผลลัพธ์ (Premium Accent)
+    tableWrapper.classList.toggle('outcome-win', outcome === 'C');
+    tableWrapper.classList.toggle('outcome-lose', outcome === 'H');
+    tableWrapper.classList.toggle('outcome-none', !outcome);
+
+    if (outcome === 'C') { 
+        toastRateLimited('ตั้งค่าเป็น: ชนะ', 'success');
+        confettiRateLimited();
+    } else if (outcome === 'H') {
+        toastRateLimited('ตั้งค่าเป็น: แพ้', 'danger');
+    } else {
+        toastRateLimited('ล้างผลลัพธ์แล้ว', 'info');
+    }
+
     // อัปเดตป้ายสุทธิทันที + เซฟลง localStorage
     updateIndividualTableSummaries();
     saveData();
@@ -354,6 +369,51 @@ function launchConfetti() {
         setTimeout(() => confetti.remove(), fallDuration * 1000);
     }
 }
+
+// ===== Premium Micro-Interactions (Toast + Rate Limit) =====
+let __toastLastAt = 0;
+let __confettiLastAt = 0;
+
+function showToast(message, type = "info") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon">
+            ${type === "success" ? '<i class="fas fa-check-circle"></i>' :
+              type === "warning" ? '<i class="fas fa-exclamation-triangle"></i>' :
+              type === "danger" ? '<i class="fas fa-times-circle"></i>' :
+              '<i class="fas fa-info-circle"></i>'}
+        </div>
+        <div class="toast-msg">${message}</div>
+    `;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add("toast-show"));
+
+    setTimeout(() => {
+        toast.classList.remove("toast-show");
+        toast.classList.add("toast-hide");
+        setTimeout(() => toast.remove(), 250);
+    }, 1800);
+}
+
+function toastRateLimited(message, type="info", minGapMs=1200) {
+    const now = Date.now();
+    if (now - __toastLastAt < minGapMs) return;
+    __toastLastAt = now;
+    showToast(message, type);
+}
+
+function confettiRateLimited(minGapMs=3500) {
+    const now = Date.now();
+    if (now - __confettiLastAt < minGapMs) return;
+    __confettiLastAt = now;
+    launchConfetti();
+}
+
 
 function animateValue(obj, start, end, duration) {
     let startTimestamp = null;
@@ -681,6 +741,7 @@ function saveData() {
         badge.style.opacity = "1"; 
         setTimeout(() => badge.style.opacity = "0", 1500); 
     }
+    toastRateLimited('บันทึกอัตโนมัติเรียบร้อย', 'success', 2000);
 }
 
 function buildSummary(rows) {
@@ -786,7 +847,7 @@ function addTable(title = "", rows = null, isSilent = false) {
                 <thead>
                     <tr class="winlose-row">
                         <th colspan="4" class="th-winlose">
-                             <div class="winlose-note">วิธี : อย่าลืมกา แผลจาวออกด้วย</div>
+                             <div class="winlose-note"><span class="note-pill"><i class="fas fa-info-circle"></i> วิธี : อย่าลืมกา แผลจาวออกด้วย</span></div>
                             <button class="btn-winlose btn-win" onclick="setOutcomeForTable(this, 'C')"><i class="fas fa-trophy"></i> ชนะ</button>
                             <button class="btn-winlose btn-lose" onclick="setOutcomeForTable(this, 'H')"><i class="fas fa-skull"></i> แพ้</button>
                         </th>
