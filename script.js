@@ -2218,26 +2218,7 @@ function openStopwatchWindow() {
             let elapsedTime = 0;
             let intervalId = null;
 
-            card.innerHTML = `
-              <div class="camp-row">
-                <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">
-                <div class="camp-actions">
-                  <div class="status-pill"><span class="dot"></span><span class="txt">พร้อม</span></div>
-                  <button class="btn-delete" title="ลบค่าย" onclick="this.closest('.timer-card').deleteCard()">
-                    <i class="fas fa-trash-alt"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div class="timer-display">00.0</div>
-
-              <div class="controls">
-                <button class="btn btn-main"><i class="fas fa-play"></i> เริ่ม</button>
-                <button class="btn btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>
-                <button class="btn btn-copy" title="คัดลอกเวลา"><i class="fa-regular fa-copy"></i></button>
-              </div>
-            `;
-
+            card.innerHTML = '\n              <div class="camp-row">\n                <input type="text" class="camp-name-input" placeholder="ระบุชื่อค่าย...">\n                <div class="camp-actions">\n                  <div class="status-pill"><span class="dot"></span><span class="txt">พร้อม</span></div>\n                  <button class="btn-delete" title="ลบค่าย" onclick="this.closest(\'.timer-card\').deleteCard()">\n                    <i class="fas fa-trash-alt"></i>\n                  </button>\n                </div>\n              </div>\n\n              <div class="timer-display">00.0</div>\n\n              <div class="controls">\n                <button class="btn btn-main"><i class="fas fa-play"></i> เริ่ม</button>\n                <button class="btn btn-reset"><i class="fas fa-undo"></i> รีเซ็ต</button>\n                <button class="btn btn-copy" title="คัดลอกเวลา"><i class="fa-regular fa-copy"></i></button>\n              </div>\n            ';
             const display = card.querySelector('.timer-display');
             const btnMain = card.querySelector('.btn-main');
             const btnReset = card.querySelector('.btn-reset');
