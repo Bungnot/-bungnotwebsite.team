@@ -12,7 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<style>
+<style>@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap');
+
         :root {
             /* Christmas Luxury Pro Palette (Default) */
             --primary-bg: radial-gradient(circle at center, #1a3a32 0%, #0f1b2a 50%, #2d0a0a 100%);
@@ -828,7 +829,156 @@
    
     
     
-    </style>
+    
+        /* --- Premium Typography --- */
+        body{
+            font-family: 'Kanit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* --- Premium helper note (เหนือปุ่ม ชนะ/แพ้) --- */
+        .winlose-note{ text-align:center; margin-bottom:10px; }
+        .note-pill{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 14px;
+            border-radius:999px;
+            background: rgba(255,255,255,0.8);
+            border: 1px solid rgba(179,135,40,0.35);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+        }
+        .note-pill i{ color:#b38728; }
+        
+        /* --- Premium Win/Lose Buttons (Shimmer + Lift) --- */
+        .btn-winlose{
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+            transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+        }
+        .btn-winlose:hover{
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.18);
+            filter: saturate(1.05);
+        }
+        .btn-winlose:active{ transform: translateY(0px) scale(0.98); }
+        .btn-winlose::before{
+            content:"";
+            position:absolute;
+            top:-40%;
+            left:-60%;
+            width:60%;
+            height:180%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+            transform: rotate(20deg);
+            opacity:0;
+        }
+        .btn-winlose:hover::before{
+            opacity:1;
+            animation: btnShimmer .8s ease;
+        }
+        @keyframes btnShimmer{
+            from{ left:-60%; }
+            to{ left:140%; }
+        }
+        
+        /* --- Premium Outcome Accent (ตาราง ชนะ/แพ้) --- */
+        .table-container{
+            position: relative;
+        }
+        .table-container::after{
+            content:"";
+            position:absolute;
+            inset:-2px;
+            border-radius: 26px;
+            pointer-events:none;
+            opacity:0;
+            transition: opacity .2s ease;
+        }
+        .table-container.outcome-win::after{
+            opacity:1;
+            background: linear-gradient(135deg, rgba(34,197,94,0.35), rgba(16,185,129,0.10), rgba(34,197,94,0.25));
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.18);
+        }
+        .table-container.outcome-lose::after{
+            opacity:1;
+            background: linear-gradient(135deg, rgba(239,68,68,0.30), rgba(244,63,94,0.10), rgba(239,68,68,0.22));
+            box-shadow: 0 0 0 2px rgba(239,68,68,0.16);
+        }
+        .table-container.outcome-win .th-winlose{ box-shadow: 0 14px 28px rgba(34,197,94,0.18) inset; }
+        .table-container.outcome-lose .th-winlose{ box-shadow: 0 14px 28px rgba(239,68,68,0.16) inset; }
+        
+        /* --- Table micro interaction --- */
+        .custom-table tbody tr{
+            transition: transform .12s ease, background .12s ease;
+        }
+        .custom-table tbody tr:hover{
+            transform: translateY(-1px);
+            background: rgba(15, 23, 42, 0.03);
+        }
+        .custom-table input:focus{
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(179,135,40,0.20);
+            border-color: rgba(179,135,40,0.45);
+        }
+        
+        /* --- Toast (Premium Notification) --- */
+        #toast-container{
+            position: fixed;
+            right: 18px;
+            top: 18px;
+            z-index: 10050;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast{
+            min-width: 260px;
+            max-width: 360px;
+            display:flex;
+            align-items:flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(15,23,42,0.08);
+            box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+            backdrop-filter: blur(14px);
+            transform: translateY(-6px);
+            opacity: 0;
+            transition: opacity .22s ease, transform .22s ease;
+        }
+        .toast-show{
+            opacity:1;
+            transform: translateY(0px);
+        }
+        .toast-hide{
+            opacity:0;
+            transform: translateY(-6px);
+        }
+        .toast-icon{ font-size: 1.05rem; margin-top: 1px; }
+        .toast-msg{ font-size: 0.95rem; line-height: 1.2rem; color: #0f172a; }
+        .toast-success{ border-color: rgba(34,197,94,0.22); }
+        .toast-success .toast-icon{ color: rgb(34,197,94); }
+        .toast-danger{ border-color: rgba(239,68,68,0.22); }
+        .toast-danger .toast-icon{ color: rgb(239,68,68); }
+        .toast-warning{ border-color: rgba(245,158,11,0.25); }
+        .toast-warning .toast-icon{ color: rgb(245,158,11); }
+        .toast-info{ border-color: rgba(59,130,246,0.22); }
+        .toast-info .toast-icon{ color: rgb(59,130,246); }
+        
+        @keyframes premiumEnter{
+            from{ opacity:0; transform: translateY(10px) scale(0.99); }
+            to{ opacity:1; transform: translateY(0) scale(1); }
+        }
+        .main-container, .right-panel, .welcome-box{
+            animation: premiumEnter .45s ease both;
+        }
+        </style>
 </head>
 <body class="theme-christmas">
     <canvas id="confetti-canvas"></canvas>
@@ -1178,6 +1328,8 @@ function initSnow() {
     animate();
 }       
 </script>
+
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
 
