@@ -1177,7 +1177,7 @@ function capturePlayerRow(playerName) {
       }
     </style>
 
-      <div class="cap-banner">ยอดเล่น Real-Time</div>
+      <div class="cap-banner">รายการเล่นลูกค้า</div>
       <div class="cap-sub">
         <span class="cap-badge">👤 คุณ <b>${cleanName}</b> ✏️</span>
       </div>
