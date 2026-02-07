@@ -2365,3 +2365,664 @@ function sendMessageToLine() {
     if(!name || !msg) return;
     window.open(`https://line.me/R/msg/text/?${encodeURIComponent('คุณ '+name+'\n'+msg)}`, '_blank');
 }
+
+
+
+
+
+
+
+
+
+
+/* =========================================================
+   ✅ CREDIT CHECK + MULTI-ADMIN SYNC (Firebase RTDB) v1
+   - Paste THIS WHOLE BLOCK at the VERY END of script.js
+========================================================= */
+(function () {
+  // ---------- Keys (LocalStorage) ----------
+  const TABLES_KEY = "savedTables";
+  const TABLES_REV_KEY = "savedTables_rev";
+
+  const WATCH_KEY = "creditWatchList";         // textarea รายชื่อ (บรรทัดละ 1 ชื่อ)
+  const WATCH_REV_KEY = "creditWatchList_rev";
+
+  const LIMIT_KEY = "creditLimit";             // เลข limit (0 = ไม่จำกัด)
+  const LIMIT_REV_KEY = "creditLimit_rev";
+
+  // ---------- Sync Channel (same device tabs) ----------
+  const CHANNEL = "admin_rocket_shared_v1";
+  const bc = ("BroadcastChannel" in window) ? new BroadcastChannel(CHANNEL) : null;
+
+  // ---------- Firebase paths (shared across admins/devices) ----------
+  // NOTE: ใช้ RTDB เดียวกับตัวที่คุณมีใน index.html (ตัวแปร db ต้องมีอยู่แล้ว)
+  const BASE = "adminRocketShared/v1";
+  const TABLES_PATH = `${BASE}/tables`;
+  const WATCH_PATH  = `${BASE}/watchlist`;
+  const LIMIT_PATH  = `${BASE}/limit`;
+
+  // ---------- Client id ----------
+  const CLIENT_ID_KEY = "rocket_client_id";
+  const clientId = (function () {
+    let id = sessionStorage.getItem(CLIENT_ID_KEY);
+    if (!id) {
+      id = "c_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+      sessionStorage.setItem(CLIENT_ID_KEY, id);
+    }
+    return id;
+  })();
+
+  // ---------- Helpers ----------
+  const toInt = (v) => {
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const bumpRev = (revKey) => {
+    const r = Date.now();
+    localStorage.setItem(revKey, String(r));
+    return r;
+  };
+
+  const safeJsonParse = (raw, fallback) => {
+    try { return JSON.parse(raw); } catch { return fallback; }
+  };
+
+  const hasDB = () => (typeof window.db !== "undefined" && db && typeof db.ref === "function");
+
+  // ---------- Flags (prevent loops) ----------
+  const SYNC = {
+    applyingRemote: false,
+    suppressSave: false,
+    publishTimerTables: null,
+    publishTimerWatch: null,
+    publishTimerLimit: null
+  };
+
+  // ---------- Patch addTable / loadData / saveData safely (no manual edits needed) ----------
+  // 1) suppress saveData inside addTable when isSilent=true (ตอน loadData/remote apply)
+  if (typeof window.addTable === "function") {
+    const _addTable = window.addTable;
+    window.addTable = function (title = "", rows = null, isSilent = false) {
+      if (isSilent) SYNC.suppressSave = true;
+      try {
+        return _addTable.apply(this, arguments);
+      } finally {
+        if (isSilent) SYNC.suppressSave = false;
+      }
+    };
+  }
+
+  // 2) after loadData, refresh all summary/badges
+  if (typeof window.loadData === "function") {
+    const _loadData = window.loadData;
+    window.loadData = function () {
+      SYNC.suppressSave = true; // กัน addTable(silent) ไปเรียก saveData
+      try {
+        _loadData.apply(this, arguments);
+      } finally {
+        SYNC.suppressSave = false;
+      }
+
+      // refresh UI
+      try { if (typeof refreshAllBadges === "function") refreshAllBadges(); } catch {}
+      try { if (typeof updateDashboardStats === "function") updateDashboardStats(); } catch {}
+      try { if (typeof updateNameSummary === "function") updateNameSummary(); } catch {}
+      try { if (typeof updateIndividualTableSummaries === "function") updateIndividualTableSummaries(); } catch {}
+    };
+  }
+
+  // 3) wrap saveData: after original save, bump rev + broadcast + publish to Firebase
+  if (typeof window.saveData === "function") {
+    const _saveData = window.saveData;
+    window.saveData = function () {
+      if (SYNC.suppressSave || SYNC.applyingRemote) return;
+      _saveData.apply(this, arguments);
+
+      // bump rev so other tabs (and credit window) can react via storage event
+      const rev = bumpRev(TABLES_REV_KEY);
+
+      // local broadcast
+      if (bc) bc.postMessage({ type: "tables", rev, sender: clientId });
+
+      // remote publish (debounced)
+      publishTablesDebounced();
+    };
+  }
+
+  // ---------- Remote publish (debounced) ----------
+  function publishTablesDebounced() {
+    if (!hasDB()) return;
+    if (SYNC.publishTimerTables) clearTimeout(SYNC.publishTimerTables);
+    SYNC.publishTimerTables = setTimeout(() => {
+      try {
+        const data = safeJsonParse(localStorage.getItem(TABLES_KEY) || "[]", []);
+        const rev = toInt(localStorage.getItem(TABLES_REV_KEY));
+        db.ref(TABLES_PATH).set({
+          rev,
+          updatedAt: Date.now(),
+          updatedBy: clientId,
+          data
+        });
+      } catch (e) {
+        console.warn("publishTables error:", e);
+      }
+    }, 450);
+  }
+
+  function publishWatchlistDebounced(text) {
+    if (!hasDB()) return;
+    if (SYNC.publishTimerWatch) clearTimeout(SYNC.publishTimerWatch);
+    SYNC.publishTimerWatch = setTimeout(() => {
+      try {
+        const rev = toInt(localStorage.getItem(WATCH_REV_KEY));
+        db.ref(WATCH_PATH).set({
+          rev,
+          updatedAt: Date.now(),
+          updatedBy: clientId,
+          text: String(text || "")
+        });
+      } catch (e) {
+        console.warn("publishWatchlist error:", e);
+      }
+    }, 350);
+  }
+
+  function publishLimitDebounced(val) {
+    if (!hasDB()) return;
+    if (SYNC.publishTimerLimit) clearTimeout(SYNC.publishTimerLimit);
+    SYNC.publishTimerLimit = setTimeout(() => {
+      try {
+        const rev = toInt(localStorage.getItem(LIMIT_REV_KEY));
+        db.ref(LIMIT_PATH).set({
+          rev,
+          updatedAt: Date.now(),
+          updatedBy: clientId,
+          value: toInt(val)
+        });
+      } catch (e) {
+        console.warn("publishLimit error:", e);
+      }
+    }, 350);
+  }
+
+  // ---------- Remote subscribe ----------
+  function applyRemoteTables(payload) {
+    if (!payload || !payload.data) return;
+    const remoteRev = toInt(payload.rev);
+    const localRev = toInt(localStorage.getItem(TABLES_REV_KEY));
+
+    if (remoteRev <= localRev) return; // already up to date
+
+    SYNC.applyingRemote = true;
+    try {
+      localStorage.setItem(TABLES_KEY, JSON.stringify(payload.data));
+      localStorage.setItem(TABLES_REV_KEY, String(remoteRev));
+
+      // rebuild UI
+      if (typeof loadData === "function") loadData(true);
+    } finally {
+      SYNC.applyingRemote = false;
+    }
+  }
+
+  function applyRemoteWatch(payload) {
+    if (!payload) return;
+    const remoteRev = toInt(payload.rev);
+    const localRev = toInt(localStorage.getItem(WATCH_REV_KEY));
+    if (remoteRev <= localRev) return;
+
+    localStorage.setItem(WATCH_KEY, String(payload.text || ""));
+    localStorage.setItem(WATCH_REV_KEY, String(remoteRev));
+  }
+
+  function applyRemoteLimit(payload) {
+    if (!payload) return;
+    const remoteRev = toInt(payload.rev);
+    const localRev = toInt(localStorage.getItem(LIMIT_REV_KEY));
+    if (remoteRev <= localRev) return;
+
+    localStorage.setItem(LIMIT_KEY, String(toInt(payload.value)));
+    localStorage.setItem(LIMIT_REV_KEY, String(remoteRev));
+  }
+
+  function startRemoteSync() {
+    if (!hasDB()) return;
+
+    try {
+      db.ref(TABLES_PATH).on("value", (snap) => applyRemoteTables(snap.val()));
+      db.ref(WATCH_PATH).on("value", (snap) => applyRemoteWatch(snap.val()));
+      db.ref(LIMIT_PATH).on("value", (snap) => applyRemoteLimit(snap.val()));
+    } catch (e) {
+      console.warn("Remote sync disabled:", e);
+    }
+  }
+
+  // ---------- Local listeners ----------
+  if (bc) {
+    bc.onmessage = (ev) => {
+      const msg = ev.data || {};
+      if (msg.sender === clientId) return;
+
+      // เราใช้ storage event เป็นหลักอยู่แล้ว แต่ broadcast ช่วยให้ไวขึ้น
+      if (msg.type === "tables") {
+        // อ่าน localStorage แล้ว rebuild
+        if (typeof loadData === "function") loadData(true);
+      }
+    };
+  }
+
+  window.addEventListener("storage", (ev) => {
+    if (!ev || !ev.key) return;
+    if (ev.key === TABLES_REV_KEY) {
+      if (typeof loadData === "function") loadData(true);
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // init default keys (ครั้งแรก)
+    if (!localStorage.getItem(TABLES_REV_KEY)) localStorage.setItem(TABLES_REV_KEY, "0");
+    if (!localStorage.getItem(WATCH_REV_KEY)) localStorage.setItem(WATCH_REV_KEY, "0");
+    if (!localStorage.getItem(LIMIT_REV_KEY)) localStorage.setItem(LIMIT_REV_KEY, "0");
+    if (!localStorage.getItem(WATCH_KEY)) localStorage.setItem(WATCH_KEY, "");
+    if (!localStorage.getItem(LIMIT_KEY)) localStorage.setItem(LIMIT_KEY, "0");
+
+    startRemoteSync();
+  });
+
+  // =========================================================
+  // ✅ CREDIT CHECK WINDOW (New Tab)
+  // =========================================================
+  window.openCreditCheckWindow = function openCreditCheckWindow() {
+    const win = window.open("", "_blank");
+    if (!win) return alert("เบราว์เซอร์บล็อก popup — กรุณาอนุญาต popups ก่อน");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
+      authDomain: "admin-rocket-live.firebaseapp.com",
+      databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "admin-rocket-live",
+      storageBucket: "admin-rocket-live.firebasestorage.app",
+      messagingSenderId: "875303528481",
+      appId: "1:875303528481:web:719af49939623d64225b60"
+    };
+
+    const html = `
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>เช็คเครดิตรวม (Real-time)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b1220; --card:rgba(255,255,255,.07); --bd:rgba(255,255,255,.12);
+      --text:#e5e7eb; --muted:#94a3b8; --acc:#38bdf8; --danger:#fb7185; --ok:#34d399;
+    }
+    *{box-sizing:border-box;font-family:Kanit,system-ui,-apple-system,sans-serif;}
+    body{margin:0;background:radial-gradient(1200px 600px at 15% 10%, rgba(56,189,248,.18), transparent 60%),
+                 radial-gradient(900px 600px at 85% 30%, rgba(251,113,133,.12), transparent 60%),
+                 var(--bg); color:var(--text);}
+    .wrap{max-width:1100px;margin:0 auto;padding:22px;}
+    .top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;}
+    .title{font-size:1.2rem;font-weight:800;letter-spacing:.2px;}
+    .pill{padding:8px 12px;border:1px solid var(--bd);background:var(--card);border-radius:999px;color:var(--muted);font-size:.9rem}
+    .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
+    @media (max-width:920px){ .grid{grid-template-columns:1fr} }
+    .card{border:1px solid var(--bd);background:var(--card);border-radius:18px;padding:14px;backdrop-filter: blur(10px);}
+    .label{font-weight:700;color:#cbd5e1;margin-bottom:6px;font-size:.95rem}
+    textarea{width:100%;min-height:160px;resize:vertical;border-radius:14px;border:1px solid var(--bd);background:rgba(0,0,0,.22);
+      padding:12px;color:var(--text);outline:none}
+    textarea:focus, input:focus{border-color:rgba(56,189,248,.55);box-shadow:0 0 0 4px rgba(56,189,248,.12)}
+    input{width:100%;border-radius:14px;border:1px solid var(--bd);background:rgba(0,0,0,.22);
+      padding:12px;color:var(--text);outline:none}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .btn{cursor:pointer;border:1px solid var(--bd);background:rgba(255,255,255,.06);color:var(--text);
+      padding:10px 12px;border-radius:14px;font-weight:700}
+    .btn:hover{border-color:rgba(56,189,248,.45)}
+    .btn-acc{border-color:rgba(56,189,248,.45);background:rgba(56,189,248,.12)}
+    .btn-danger{border-color:rgba(251,113,133,.45);background:rgba(251,113,133,.10)}
+    table{width:100%;border-collapse:collapse;margin-top:10px;overflow:hidden;border-radius:14px}
+    th,td{padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.10);text-align:left;font-size:.95rem}
+    th{color:#cbd5e1;font-weight:800;background:rgba(255,255,255,.04)}
+    .amt{text-align:right;font-weight:900}
+    .muted{color:var(--muted)}
+    .bad{color:var(--danger)}
+    .good{color:var(--ok)}
+    .mini{font-size:.85rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="title">🧾 เช็คเครดิตรวม (Real-time) — กันเล่นเกิน</div>
+      <div class="pill" id="lastSync">กำลังเชื่อมต่อ…</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="label">รายชื่อที่ต้องเช็ค (บรรทัดละ 1 ชื่อ)</div>
+        <textarea id="watch" placeholder="ตัวอย่าง:
+Aom
+Bank
+@Boss
+..."></textarea>
+
+        <div class="row">
+          <button class="btn btn-acc" id="btnCopy">คัดลอกสรุป</button>
+          <button class="btn btn-danger" id="btnClear">ล้างรายชื่อ</button>
+          <button class="btn" id="btnRefresh">รีเฟรช</button>
+        </div>
+
+        <div style="margin-top:12px" class="mini">
+          • ถ้าไม่ใส่รายชื่อ จะโชว์ “ทุกคนที่มีในตาราง” อัตโนมัติ<br/>
+          • นับยอดจาก “ตัวเลข 3 หลักขึ้นไป” ในช่องราคา (เหมือนระบบเดิม)
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">ตั้งค่า “เครดิตสูงสุดต่อคน” (บาท) — เกินแล้วจะขึ้นสีแดง</div>
+        <input id="limit" type="number" min="0" placeholder="0 = ไม่จำกัด" />
+
+        <div style="margin-top:12px" class="label">ค้นหา</div>
+        <input id="q" type="text" placeholder="พิมพ์ชื่อเพื่อกรอง…" />
+
+        <div class="mini" style="margin-top:10px">
+          สรุปรวมทั้งหมด: <b id="grandTotal">฿0</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="label">ผลลัพธ์เครดิตรวม</div>
+      <div class="muted mini" id="hint"></div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:60%">ชื่อ</th>
+            <th style="width:40%;text-align:right">ยอดรวม (บาท)</th>
+          </tr>
+        </thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    const TABLES_KEY = ${JSON.stringify(TABLES_KEY)};
+    const TABLES_REV_KEY = ${JSON.stringify(TABLES_REV_KEY)};
+    const WATCH_KEY = ${JSON.stringify(WATCH_KEY)};
+    const WATCH_REV_KEY = ${JSON.stringify(WATCH_REV_KEY)};
+    const LIMIT_KEY = ${JSON.stringify(LIMIT_KEY)};
+    const LIMIT_REV_KEY = ${JSON.stringify(LIMIT_REV_KEY)};
+
+    const CHANNEL = ${JSON.stringify(CHANNEL)};
+    const BASE = ${JSON.stringify(BASE)};
+    const TABLES_PATH = ${JSON.stringify(TABLES_PATH)};
+    const WATCH_PATH  = ${JSON.stringify(WATCH_PATH)};
+    const LIMIT_PATH  = ${JSON.stringify(LIMIT_PATH)};
+    const clientId = ${JSON.stringify(clientId)};
+    const firebaseConfig = ${JSON.stringify(firebaseConfig)};
+
+    const bc = ("BroadcastChannel" in window) ? new BroadcastChannel(CHANNEL) : null;
+
+    function toInt(v){ const n=parseInt(v,10); return Number.isFinite(n)?n:0; }
+    function safeParse(raw, fb){ try{return JSON.parse(raw);}catch{return fb;} }
+
+    function parseWatch(text){
+      const arr = String(text||"")
+        .split(/\\r?\\n|,/g)
+        .map(s => s.trim())
+        .filter(Boolean);
+      // unique keep order
+      const seen = new Set();
+      return arr.filter(n => (seen.has(n)?false:(seen.add(n),true)));
+    }
+
+    function sumFromPrice(priceText){
+      const clean = String(priceText||"").replace(/[Oo]/g,'0');
+      const nums = clean.match(/\\d+/g);
+      if(!nums) return 0;
+      let sum=0;
+      nums.forEach(n => { if(n.length>=3) sum += parseInt(n,10); });
+      return sum;
+    }
+
+    function computeTotals(){
+      const tables = safeParse(localStorage.getItem(TABLES_KEY)||"[]", []);
+      const per = {};
+      let grand = 0;
+
+      tables.forEach(t => {
+        const rows = (t && t.rows) ? t.rows : [];
+        rows.forEach(r => {
+          const ch = (r && r[0]) ? String(r[0]).trim() : "";
+          const pr = (r && r[1]) ? String(r[1]) : "";
+          const ho = (r && r[2]) ? String(r[2]).trim() : "";
+          const s = sumFromPrice(pr);
+          if(s<=0) return;
+          grand += s;
+          if(ch) per[ch] = (per[ch]||0) + s;
+          if(ho && ho !== ch) per[ho] = (per[ho]||0) + s;
+        });
+      });
+
+      return { per, grand };
+    }
+
+    function render(){
+      const watchText = localStorage.getItem(WATCH_KEY) || "";
+      const limitVal = toInt(localStorage.getItem(LIMIT_KEY) || "0");
+      const q = (document.getElementById("q").value || "").trim().toLowerCase();
+
+      const watch = parseWatch(watchText);
+      const { per, grand } = computeTotals();
+
+      document.getElementById("watch").value = watchText;
+      document.getElementById("limit").value = String(limitVal);
+      document.getElementById("grandTotal").innerText = "฿" + grand.toLocaleString();
+
+      const names = (watch.length ? watch : Object.keys(per).sort((a,b)=> (per[b]||0)-(per[a]||0)));
+
+      const filtered = names.filter(n => !q || String(n).toLowerCase().includes(q));
+      document.getElementById("hint").innerText =
+        watch.length ? "กำลังโชว์เฉพาะรายชื่อที่แอดมินกรอก" : "กำลังโชว์ทุกคนที่มีข้อมูลในตาราง";
+
+      const tb = document.getElementById("tb");
+      tb.innerHTML = "";
+
+      filtered.forEach(name => {
+        const total = toInt(per[name] || 0);
+        const tr = document.createElement("tr");
+        const over = (limitVal > 0 && total > limitVal);
+        tr.innerHTML = \`
+          <td>\${over ? '<span class="bad">⚠</span> ' : '<span class="good">●</span> '}<b>\${name}</b></td>
+          <td class="amt \${over ? 'bad' : ''}">\${total.toLocaleString()}</td>
+        \`;
+        tb.appendChild(tr);
+      });
+
+      const now = new Date();
+      document.getElementById("lastSync").innerText =
+        "อัปเดตล่าสุด: " + now.toLocaleTimeString();
+    }
+
+    // --- Save watchlist / limit (local + broadcast + firebase) ---
+    let tWatch=null, tLimit=null;
+
+    function bumpRev(key){
+      const r = Date.now();
+      localStorage.setItem(key, String(r));
+      return r;
+    }
+
+    function publishWatch(text){
+      bumpRev(WATCH_REV_KEY);
+      if (bc) bc.postMessage({ type:"watch", sender: clientId, rev: toInt(localStorage.getItem(WATCH_REV_KEY)) });
+
+      try{
+        firebase.initializeApp(firebaseConfig);
+      }catch(e){ /* already initialized */ }
+
+      try{
+        const db = firebase.database();
+        db.ref(WATCH_PATH).set({
+          rev: toInt(localStorage.getItem(WATCH_REV_KEY)),
+          updatedAt: Date.now(),
+          updatedBy: clientId,
+          text: String(text||"")
+        });
+      }catch(e){ console.warn(e); }
+    }
+
+    function publishLimit(val){
+      bumpRev(LIMIT_REV_KEY);
+      if (bc) bc.postMessage({ type:"limit", sender: clientId, rev: toInt(localStorage.getItem(LIMIT_REV_KEY)) });
+
+      try{
+        firebase.initializeApp(firebaseConfig);
+      }catch(e){ /* already initialized */ }
+
+      try{
+        const db = firebase.database();
+        db.ref(LIMIT_PATH).set({
+          rev: toInt(localStorage.getItem(LIMIT_REV_KEY)),
+          updatedAt: Date.now(),
+          updatedBy: clientId,
+          value: toInt(val)
+        });
+      }catch(e){ console.warn(e); }
+    }
+
+    // Inputs
+    document.getElementById("watch").addEventListener("input", (e)=>{
+      const v = e.target.value;
+      localStorage.setItem(WATCH_KEY, v);
+      if(tWatch) clearTimeout(tWatch);
+      tWatch = setTimeout(()=>{ publishWatch(v); render(); }, 350);
+    });
+
+    document.getElementById("limit").addEventListener("input", (e)=>{
+      const v = e.target.value;
+      localStorage.setItem(LIMIT_KEY, String(toInt(v)));
+      if(tLimit) clearTimeout(tLimit);
+      tLimit = setTimeout(()=>{ publishLimit(v); render(); }, 350);
+    });
+
+    document.getElementById("q").addEventListener("input", render);
+
+    document.getElementById("btnClear").onclick = ()=>{
+      localStorage.setItem(WATCH_KEY, "");
+      publishWatch("");
+      render();
+    };
+
+    document.getElementById("btnRefresh").onclick = render;
+
+    document.getElementById("btnCopy").onclick = async ()=>{
+      const watchText = localStorage.getItem(WATCH_KEY) || "";
+      const watch = parseWatch(watchText);
+      const { per, grand } = computeTotals();
+      const names = (watch.length ? watch : Object.keys(per).sort((a,b)=> (per[b]||0)-(per[a]||0)));
+      const lines = [
+        "เช็คเครดิตรวม (Real-time)",
+        "รวมทั้งหมด: ฿" + grand.toLocaleString(),
+        "-------------------------",
+        ...names.map(n => \`\${n}: \${(per[n]||0).toLocaleString()}\`)
+      ].join("\\n");
+      try{
+        await navigator.clipboard.writeText(lines);
+        alert("คัดลอกสรุปแล้ว ✅");
+      }catch{
+        alert("คัดลอกไม่สำเร็จ (ลองใช้ Chrome)");
+      }
+    };
+
+    // --- listeners: storage + broadcast + firebase ---
+    window.addEventListener("storage", (ev)=>{
+      if(!ev || !ev.key) return;
+      if(ev.key === TABLES_REV_KEY || ev.key === WATCH_REV_KEY || ev.key === LIMIT_REV_KEY || ev.key === WATCH_KEY || ev.key === LIMIT_KEY){
+        render();
+      }
+    });
+
+    if(bc){
+      bc.onmessage = ()=> render();
+    }
+
+    // Firebase subscribe (tables + watch + limit)
+    try{
+      firebase.initializeApp(firebaseConfig);
+    }catch(e){ /* already initialized */ }
+
+    try{
+      const db = firebase.database();
+
+      db.ref(TABLES_PATH).on("value", (snap)=>{
+        const p = snap.val();
+        if(!p) return;
+        const remoteRev = toInt(p.rev);
+        const localRev = toInt(localStorage.getItem(TABLES_REV_KEY));
+        if(remoteRev > localRev && p.data){
+          localStorage.setItem(TABLES_KEY, JSON.stringify(p.data));
+          localStorage.setItem(TABLES_REV_KEY, String(remoteRev));
+          render();
+        }
+      });
+
+      db.ref(WATCH_PATH).on("value", (snap)=>{
+        const p = snap.val();
+        if(!p) return;
+        const remoteRev = toInt(p.rev);
+        const localRev = toInt(localStorage.getItem(WATCH_REV_KEY));
+        if(remoteRev > localRev){
+          localStorage.setItem(WATCH_KEY, String(p.text||""));
+          localStorage.setItem(WATCH_REV_KEY, String(remoteRev));
+          render();
+        }
+      });
+
+      db.ref(LIMIT_PATH).on("value", (snap)=>{
+        const p = snap.val();
+        if(!p) return;
+        const remoteRev = toInt(p.rev);
+        const localRev = toInt(localStorage.getItem(LIMIT_REV_KEY));
+        if(remoteRev > localRev){
+          localStorage.setItem(LIMIT_KEY, String(toInt(p.value)));
+          localStorage.setItem(LIMIT_REV_KEY, String(remoteRev));
+          render();
+        }
+      });
+
+      document.getElementById("lastSync").innerText = "เชื่อมต่อ Firebase แล้ว ✅";
+    }catch(e){
+      document.getElementById("lastSync").innerText = "Firebase ใช้งานไม่ได้ (ยังไม่เชื่อม/สิทธิ์ไม่พอ)";
+      console.warn(e);
+    }
+
+    // init defaults
+    if(!localStorage.getItem(TABLES_REV_KEY)) localStorage.setItem(TABLES_REV_KEY, "0");
+    if(!localStorage.getItem(WATCH_REV_KEY)) localStorage.setItem(WATCH_REV_KEY, "0");
+    if(!localStorage.getItem(LIMIT_REV_KEY)) localStorage.setItem(LIMIT_REV_KEY, "0");
+    if(!localStorage.getItem(WATCH_KEY)) localStorage.setItem(WATCH_KEY, "");
+    if(!localStorage.getItem(LIMIT_KEY)) localStorage.setItem(LIMIT_KEY, "0");
+
+    render();
+  </script>
+</body>
+</html>
+    `;
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  };
+
+})();
+
