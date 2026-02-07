@@ -2365,3 +2365,510 @@ function sendMessageToLine() {
     if(!name || !msg) return;
     window.open(`https://line.me/R/msg/text/?${encodeURIComponent('คุณ '+name+'\n'+msg)}`, '_blank');
 }
+
+
+
+
+
+
+
+// ตารางเช็คเครดิตรวม **/
+
+/* ===========================
+   ✅ ADMIN SHARED REALTIME (v1)
+   - Shared tables on Firebase: sharedTables_v1
+   - New tab summary: openPlayersSummaryWindow()
+   =========================== */
+(function () {
+  const SHARED_TABLES_PATH = "sharedTables_v1";
+  const CLIENT_ID_KEY = "admin_client_id_v1";
+
+  // สร้าง/จำ client id (แอดมินแต่ละเครื่อง)
+  const clientId =
+    localStorage.getItem(CLIENT_ID_KEY) ||
+    (crypto.randomUUID ? crypto.randomUUID() : "c_" + Math.random().toString(36).slice(2));
+  localStorage.setItem(CLIENT_ID_KEY, clientId);
+
+  let isSubscribed = false;
+  let suppressSave = false;
+  let lastRemoteUpdatedAt = 0;
+  let writeTimer = null;
+
+  function getDbSafe() {
+    try {
+      const _db =
+        (typeof db !== "undefined" && db) ||
+        (typeof firebase !== "undefined" && firebase.database ? firebase.database() : null);
+
+      // ทำให้หน้าต่างใหม่เรียก db ผ่าน opener.db ได้
+      if (_db) window.db = _db;
+      return _db;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function parseTablesFromDOM() {
+    const data = [];
+    document.querySelectorAll(".table-container").forEach((table) => {
+      const titleInput = table.querySelector(".table-title-input");
+      const title = titleInput ? titleInput.value : "";
+      const rows = [];
+      table.querySelectorAll("tbody tr").forEach((r) => {
+        const cells = r.querySelectorAll("input");
+        if (cells.length >= 3) {
+          rows.push([cells[0].value, cells[1].value, cells[2].value, (r.dataset.outcome || "")]);
+        }
+      });
+      data.push({ title, rows });
+    });
+    return data;
+  }
+
+  function applyTablesToUI(tables) {
+    const container = document.getElementById("tables-container");
+    if (!container) return;
+
+    suppressSave = true;
+    container.innerHTML = "";
+    (tables || []).forEach((t) => addTable(t.title, t.rows, true)); // isSilent=true
+    suppressSave = false;
+
+    // รีเฟรช UI แต่ไม่เขียนกลับเข้า Cloud
+    if (typeof saveData === "function") saveData({ skipShared: true, force: true });
+  }
+
+  function writeSharedTablesNow(tables) {
+    const _db = getDbSafe();
+    if (!_db) return;
+
+    const payload = {
+      tables: Array.isArray(tables) ? tables : [],
+      updatedAt: Date.now(),
+      updatedBy: clientId,
+    };
+
+    _db.ref(SHARED_TABLES_PATH).set(payload).catch(() => {});
+  }
+
+  function writeSharedTablesDebounced(tables) {
+    clearTimeout(writeTimer);
+    writeTimer = setTimeout(() => writeSharedTablesNow(tables), 500);
+  }
+
+  function subscribeSharedTables() {
+    if (isSubscribed) return;
+    const _db = getDbSafe();
+    if (!_db) return;
+
+    isSubscribed = true;
+
+    _db.ref(SHARED_TABLES_PATH).on("value", (snap) => {
+      const v = snap.val();
+      if (!v || !Array.isArray(v.tables)) return;
+
+      const updatedAt = v.updatedAt || 0;
+      if (updatedAt <= lastRemoteUpdatedAt) return;
+      lastRemoteUpdatedAt = updatedAt;
+
+      // ถ้าเป็นเครื่องเราเองที่อัปเดต -> ไม่ต้อง apply ซ้ำ
+      if (v.updatedBy === clientId) return;
+
+      // sync ลง localStorage + UI
+      localStorage.setItem("savedTables", JSON.stringify(v.tables));
+      applyTablesToUI(v.tables);
+
+      // แจ้งเบา ๆ (ถ้ามี toastRateLimited)
+      if (typeof toastRateLimited === "function") {
+        toastRateLimited("อัปเดตข้อมูลจากแอดมินคนอื่นแล้ว", "info", 1800);
+      }
+    });
+  }
+
+  // ✅ ปิดระบบ pushToRealtime เดิม (กันยอดพุ่งจากการ push ซ้ำ)
+  if (typeof window.pushToRealtime === "function") {
+    window.pushToRealtime = function () {};
+  }
+
+  // ✅ Override saveData: ทำงานเดิม + ส่งขึ้น Cloud
+  const __origSaveData = window.saveData;
+  if (typeof __origSaveData === "function") {
+    window.saveData = function (opts) {
+      opts = opts || {};
+
+      // ถ้ากำลัง apply จาก Cloud ให้ไม่ autosave รัว ๆ
+      if (suppressSave && !opts.force) return;
+
+      // ทำงานเดิมทั้งหมด (เก็บ localStorage, คำนวณ badge, toast ฯลฯ)
+      try {
+        __origSaveData();
+      } catch (e) {}
+
+      // ส่งขึ้น Cloud (ยกเว้นตอน opts.skipShared)
+      if (!opts.skipShared) {
+        let tables = null;
+        try {
+          const raw = localStorage.getItem("savedTables");
+          tables = raw ? JSON.parse(raw) : parseTablesFromDOM();
+        } catch (e) {
+          tables = parseTablesFromDOM();
+        }
+        writeSharedTablesDebounced(tables);
+      }
+    };
+  }
+
+  // ✅ Override loadData: โหลดจาก Cloud ก่อน (ถ้ามี), แล้วค่อย fallback local
+  const __origLoadData = window.loadData;
+  window.loadData = function () {
+    const _db = getDbSafe();
+    const container = document.getElementById("tables-container");
+    if (!container) return;
+
+    if (!_db) {
+      // ไม่มี db ก็ใช้ local เดิม
+      if (typeof __origLoadData === "function") __origLoadData();
+      subscribeSharedTables();
+      return;
+    }
+
+    _db.ref(SHARED_TABLES_PATH)
+      .once("value")
+      .then((snap) => {
+        const v = snap.val();
+
+        // ถ้า Cloud มีข้อมูล -> ใช้ Cloud เป็นหลัก
+        if (v && Array.isArray(v.tables)) {
+          lastRemoteUpdatedAt = v.updatedAt || 0;
+          localStorage.setItem("savedTables", JSON.stringify(v.tables));
+          applyTablesToUI(v.tables);
+        } else {
+          // Cloud ยังไม่มี -> โหลด local เดิม
+          suppressSave = true;
+          if (typeof __origLoadData === "function") __origLoadData();
+          suppressSave = false;
+
+          // แล้วอัปขึ้น Cloud เพื่อให้ทุกคนเห็น
+          const raw = localStorage.getItem("savedTables");
+          if (raw) {
+            try {
+              writeSharedTablesNow(JSON.parse(raw));
+            } catch (e) {}
+          }
+          // รีเฟรช UI แบบไม่เขียนซ้ำ
+          if (typeof saveData === "function") saveData({ skipShared: true, force: true });
+        }
+
+        subscribeSharedTables();
+      })
+      .catch(() => {
+        // fallback local
+        if (typeof __origLoadData === "function") __origLoadData();
+        subscribeSharedTables();
+      });
+  };
+
+  // ✅ ล้างข้อมูล: ให้ล้าง Cloud ด้วย (ไม่งั้นรีโหลดแล้วข้อมูลจะกลับมา)
+  if (typeof window.clearAllHistory === "function") {
+    window.clearAllHistory = function () {
+      if (typeof playSound === "function") playSound("clear");
+
+      // ใช้ Modal เดิมถ้ามี
+      if (typeof showConfirmModal === "function") {
+        showConfirmModal("ยืนยันการล้างข้อมูล", 0, () => {
+          const keepId = localStorage.getItem(CLIENT_ID_KEY);
+          localStorage.clear();
+          if (keepId) localStorage.setItem(CLIENT_ID_KEY, keepId);
+
+          // รีเซ็ต logic เดิม (ถ้ามีตัวแปร)
+          try {
+            closedCampCount = 0;
+            if (typeof updateClosedCampDisplay === "function") updateClosedCampDisplay();
+          } catch (e) {}
+
+          // ล้าง Cloud
+          writeSharedTablesNow([]);
+
+          if (typeof playSound === "function") playSound("success");
+          setTimeout(() => location.reload(), 500);
+        });
+      } else {
+        // fallback แบบง่าย
+        const ok = confirm("ยืนยันการล้างข้อมูลทั้งหมด?");
+        if (!ok) return;
+
+        const keepId = localStorage.getItem(CLIENT_ID_KEY);
+        localStorage.clear();
+        if (keepId) localStorage.setItem(CLIENT_ID_KEY, keepId);
+        writeSharedTablesNow([]);
+        location.reload();
+      }
+    };
+  }
+
+  // ===========================
+  // ✅ New Tab: รายชื่อลูกค้า + ยอดเล่นรวม (Real-Time)
+  // ===========================
+  function computeTotalsFromTables(tables) {
+    const totals = {};
+    let grand = 0;
+
+    (tables || []).forEach((t) => {
+      (t.rows || []).forEach((r) => {
+        const chaser = (r[0] || "").trim();
+        const holder = (r[2] || "").trim();
+        const price = (r[1] || "").replace(/[Oo]/g, "0");
+        const nums = price.match(/\d+/g);
+        if (!nums) return;
+
+        nums.forEach((n) => {
+          if (n.length >= 3) {
+            const val = parseInt(n, 10);
+            if (!Number.isFinite(val)) return;
+
+            grand += val;
+            if (chaser) totals[chaser] = (totals[chaser] || 0) + val;
+            if (holder && holder !== chaser) totals[holder] = (totals[holder] || 0) + val;
+          }
+        });
+      });
+    });
+
+    return { totals, grand };
+  }
+
+  window.openPlayersSummaryWindow = function () {
+    const _db = getDbSafe();
+    const win = window.open("", "_blank", "width=950,height=850");
+    if (!win) {
+      alert("กรุณาอนุญาต Pop-up เพื่อเปิดหน้ารายชื่อลูกค้า");
+      return;
+    }
+
+    // HTML หน้าใหม่ (อ่าน db จาก opener)
+    const html = `
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>รายชื่อลูกค้า - Real-Time</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#071021; --bg2:#0c1a33; --card: rgba(255,255,255,0.08);
+      --line: rgba(255,255,255,0.12); --text:#fff; --muted: rgba(255,255,255,0.70);
+      --gold1:#fbbf24; --gold2:#f59e0b;
+    }
+    body{
+      margin:0; font-family:'Kanit',sans-serif;
+      background: radial-gradient(1200px 700px at 20% 0%, #123155 0%, transparent 60%),
+                  radial-gradient(1200px 700px at 80% 20%, #1b3a2b 0%, transparent 55%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      color:var(--text);
+      padding: 22px;
+    }
+    .wrap{ max-width: 980px; margin:0 auto; }
+    .top{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+    }
+    .title{ font-weight:900; font-size:1.15rem; display:flex; align-items:center; gap:10px;}
+    .title i{ color: var(--gold1); }
+    .meta{ font-size:0.9rem; color: var(--muted); }
+    .controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+    input{
+      padding:10px 12px; border-radius: 12px; border:1px solid var(--line);
+      background: rgba(0,0,0,0.25); color:#fff; outline:none;
+      min-width: 220px;
+    }
+    .btn{
+      padding:10px 12px; border-radius: 12px; border:1px solid var(--line);
+      background: rgba(255,255,255,0.10); color:#fff; cursor:pointer;
+      font-weight:800;
+    }
+    .btn:hover{ filter:brightness(1.07); }
+    .card{
+      margin-top: 14px;
+      background: rgba(255,255,255,0.07);
+      border:1px solid var(--line);
+      border-radius: 18px;
+      overflow:hidden;
+    }
+    .row{
+      display:grid;
+      grid-template-columns: 70px 1fr 170px;
+      gap:12px;
+      align-items:center;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+    .row:last-child{ border-bottom:none; }
+    .rank{
+      width:52px; height:34px; border-radius:999px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900;
+      background: rgba(255,255,255,0.10);
+      border:1px solid rgba(255,255,255,0.12);
+    }
+    .name{ font-weight:900; }
+    .amt{
+      text-align:right; font-weight:900;
+      background: linear-gradient(135deg, rgba(251,191,36,0.22), rgba(245,158,11,0.12));
+      border:1px solid rgba(251,191,36,0.25);
+      padding:8px 10px; border-radius: 12px;
+    }
+    .empty{
+      padding: 22px;
+      color: var(--muted);
+      text-align:center;
+      font-style: italic;
+    }
+    .footnote{
+      margin-top: 10px; color: var(--muted); font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="title"><i class="fa-solid fa-users"></i> รายชื่อลูกค้า (Real-Time)</div>
+        <div class="meta" id="meta">กำลังเชื่อมต่อ...</div>
+      </div>
+      <div class="controls">
+        <input id="q" placeholder="ค้นหาชื่อ..." />
+        <button class="btn" id="copy"><i class="fa-solid fa-copy"></i> คัดลอก</button>
+        <button class="btn" onclick="window.close()"><i class="fa-solid fa-xmark"></i> ปิดแท็บ</button>
+      </div>
+    </div>
+
+    <div class="card" id="list"></div>
+    <div class="footnote">* คิดจาก “ราคา” เฉพาะตัวเลข 3 หลักขึ้นไป และรวมให้ทั้งคนไล่ + คนยั้ง (แบบเดียวกับในระบบคุณ)</div>
+  </div>
+
+<script>
+(function(){
+  const SHARED_TABLES_PATH = ${JSON.stringify(SHARED_TABLES_PATH)};
+  const listEl = document.getElementById('list');
+  const metaEl = document.getElementById('meta');
+  const qEl = document.getElementById('q');
+  const copyBtn = document.getElementById('copy');
+
+  function computeTotalsFromTables(tables){
+    const totals = {};
+    let grand = 0;
+
+    (tables || []).forEach(t=>{
+      (t.rows || []).forEach(r=>{
+        const chaser = (r[0]||"").trim();
+        const holder = (r[2]||"").trim();
+        const price = (r[1]||"").replace(/[Oo]/g,"0");
+        const nums = price.match(/\\d+/g);
+        if(!nums) return;
+        nums.forEach(n=>{
+          if(n.length>=3){
+            const val = parseInt(n,10);
+            if(!Number.isFinite(val)) return;
+            grand += val;
+            if(chaser) totals[chaser] = (totals[chaser]||0) + val;
+            if(holder && holder!==chaser) totals[holder] = (totals[holder]||0) + val;
+          }
+        });
+      });
+    });
+
+    return {totals, grand};
+  }
+
+  function render(entries, grand, updatedAt){
+    const q = (qEl.value || "").trim().toLowerCase();
+    const filtered = q ? entries.filter(([name]) => name.toLowerCase().includes(q)) : entries;
+
+    metaEl.textContent =
+      "รวม " + entries.length.toLocaleString('th-TH') + " คน | ยอดรวม " + grand.toLocaleString('th-TH') +
+      " | อัปเดตล่าสุด: " + (updatedAt ? new Date(updatedAt).toLocaleString('th-TH') : "-");
+
+    if(filtered.length===0){
+      listEl.innerHTML = '<div class="empty">ยังไม่มีข้อมูล หรือไม่พบชื่อที่ค้นหา</div>';
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(([name,total], idx)=>(
+      '<div class="row">' +
+        '<div class="rank">#' + (idx+1) + '</div>' +
+        '<div class="name">' + (name || '-') + '</div>' +
+        '<div class="amt">' + (total||0).toLocaleString('th-TH') + '</div>' +
+      '</div>'
+    )).join('');
+  }
+
+  copyBtn.onclick = async () => {
+    try{
+      const text = Array.from(listEl.querySelectorAll('.row')).map(r=>{
+        const name = r.querySelector('.name')?.innerText || '';
+        const amt  = r.querySelector('.amt')?.innerText || '';
+        return name + ' : ' + amt;
+      }).join('\\n');
+      await navigator.clipboard.writeText(text || '');
+      copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> คัดลอกแล้ว';
+      setTimeout(()=> copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> คัดลอก', 1200);
+    }catch(e){
+      alert('คัดลอกไม่สำเร็จ');
+    }
+  };
+
+  qEl.addEventListener('input', ()=> {
+    // rerender จาก cache ล่าสุด
+    if(window.__lastEntries){
+      render(window.__lastEntries, window.__lastGrand, window.__lastUpdatedAt);
+    }
+  });
+
+  const openerDb = window.opener && window.opener.db;
+  if(!openerDb){
+    metaEl.textContent = "เชื่อมต่อไม่สำเร็จ (เปิดหน้านี้ผ่านปุ่มในหน้าเว็บหลักเท่านั้น)";
+    listEl.innerHTML = '<div class="empty">ไม่พบการเชื่อมต่อ db</div>';
+    return;
+  }
+
+  openerDb.ref(SHARED_TABLES_PATH).on('value', (snap)=>{
+    const v = snap.val();
+    const tables = v && Array.isArray(v.tables) ? v.tables : [];
+    const updatedAt = v && v.updatedAt ? v.updatedAt : 0;
+
+    const {totals, grand} = computeTotalsFromTables(tables);
+    const entries = Object.entries(totals).sort((a,b)=> b[1]-a[1]);
+
+    window.__lastEntries = entries;
+    window.__lastGrand = grand;
+    window.__lastUpdatedAt = updatedAt;
+
+    render(entries, grand, updatedAt);
+  });
+
+})();
+</script>
+
+</body>
+</html>
+`;
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  };
+
+  // ให้แน่ใจว่า subscribe ทำงานหลัง dom โหลด
+  window.addEventListener("DOMContentLoaded", () => {
+    // ถ้า loadData ถูกเรียกจาก handler เดิมอยู่แล้ว ก็ปล่อยได้เลย
+    // แต่ช่วย subscribe เผื่อกรณีอื่น
+    subscribeSharedTables();
+  });
+})();
