@@ -2373,4 +2373,28 @@ function sendMessageToLine() {
 
 
 // ตารางเช็คเครดิตรวม **/
+// ฟังก์ชันสำหรับส่งยอดรวมของลูกค้าทุกคนขึ้นระบบ Real-time
+function syncAdminSummary() {
+    const summaryData = {};
+    // วนลูปหาทุกตาราง (ใช้ class .table-card ตามที่คุณมี)
+    document.querySelectorAll('.table-card').forEach(table => {
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const name = row.cells[0].innerText.trim(); // ชื่อลูกค้า
+            const price = parseFloat(row.cells[1].innerText.replace(/,/g, '')) || 0; // ยอดเล่น
+            
+            if (name && name !== "") {
+                summaryData[name] = (summaryData[name] || 0) + price;
+            }
+        });
+    });
+    // ส่งยอดรวมทั้งหมดไปที่หัวข้อ 'liveSummary' ใน Firebase
+    firebase.database().ref("liveSummary").set(summaryData);
+}
 
+// ตั้งให้ทำงานทุกครั้งที่มีการอัปเดตตาราง (เพิ่มต่อท้ายฟังก์ชันอัปเดตเดิมของคุณ)
+const originalUpdateSummary = updateGlobalSummary; 
+updateGlobalSummary = function() {
+    originalUpdateSummary(); // ทำงานเดิม
+    syncAdminSummary();      // ส่งข้อมูลขึ้นคลาวด์ให้แอดมินคนอื่นเห็น
+};
