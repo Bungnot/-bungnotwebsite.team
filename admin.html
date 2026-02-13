@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ระบบเช็คยอดแอดมิน (Real-time)</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; }
+        .box { background: #333; padding: 20px; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #444; text-align: left; }
+        th { color: #f8b500; }
+        .total { color: #00ff88; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>📊 ยอดเล่นลูกค้าทั้งหมด (Real-time)</h2>
+        <p>แอดมินคนไหนกรอก ข้อมูลจะเด้งที่นี่ทันที</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>ชื่อไลน์ลูกค้า</th>
+                    <th>ยอดรวม (บาท)</th>
+                </tr>
+            </thead>
+            <tbody id="display">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        // เอา Config จากขั้นตอนที่ 1 มาวางตรงนี้
+        const firebaseConfig = {
+            apiKey: "รหัสของคุณ",
+            databaseURL: "ลิงก์ฐานข้อมูลของคุณ",
+            projectId: "ไอดีโปรเจกต์ของคุณ",
+            // ... วางให้ครบตามเว็บหลัก
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ดักฟังข้อมูล: ใครกรอกอะไรมา มันจะรันตรงนี้ทันทีไม่ต้องรีเฟรช
+        db.ref("liveSummary").on("value", (snapshot) => {
+            const data = snapshot.val();
+            const display = document.getElementById("display");
+            display.innerHTML = ""; // ล้างหน้าจอเพื่ออัปเดตใหม่
+
+            if (data) {
+                for (let name in data) {
+                    display.innerHTML += `
+                        <tr>
+                            <td>${name}</td>
+                            <td class="total">${data[name].toLocaleString()} ฿</td>
+                        </tr>
+                    `;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
