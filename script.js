@@ -1246,7 +1246,7 @@ function capturePlayerRow(playerName) {
     <div class="grand-card">
       <div class="grand-num">รวมทั้งหมด ${grandTotal.toLocaleString()}</div>
       <div class="grand-meta">รวมทั้งหมด ${totalRecords} รายการ</div>
-      <div class="cap-foot">ระบบคิดยอด เถ้าแก่น้อย</div>
+      <div class="cap-foot">ADMIN ROCKET SYSTEM - เถ้าแก่น้อย</div>
     </div>
   `;
 
