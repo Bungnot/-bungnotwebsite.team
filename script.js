@@ -2402,63 +2402,77 @@ updateGlobalSummary = function() {
 
 
 
-// 1. กำหนดข้อมูลบัญชีผู้ใช้
-const AUTH_USERS = {
-    "rocket_boss_01": "RK#7829!XP",
-    "rocket_boss_02": "GT@4410*ZM",
-    "rocket_boss_03": "BW$9962?QR",
-    "rocket_boss_04": "LV&1135#TK"
+////////////////////////////////////////
+
+
+
+// --- CONFIGURATION ---
+const ADMIN_ACCOUNTS = {
+    "admin_premium1": "RK#9921@Top",
+    "admin_premium2": "PM#4482$Gold",
+    "admin_premium3": "BungFai*773#",
+    "admin_premium4": "Boss&1150!Z"
 };
 
-// 2. ฟังก์ชันล็อกอินและป้องกันการซ้ำ (Single Session)
-function attemptLogin() {
+let currentSessionId = localStorage.getItem('rocket_session_id');
+let currentUsername = localStorage.getItem('rocket_username');
+
+// --- LOGIN FUNCTION ---
+function handleLogin() {
     const user = document.getElementById('user-input').value;
     const pass = document.getElementById('pass-input').value;
     const errorEl = document.getElementById('login-error');
 
-    if (AUTH_USERS[user] && AUTH_USERS[user] === pass) {
-        // สร้างรหัสเครื่อง (Unique ID) สำหรับเซสชันนี้
-        const mySid = Math.random().toString(36).substring(2, 15);
+    if (ADMIN_ACCOUNTS[user] && ADMIN_ACCOUNTS[user] === pass) {
+        // สร้าง Session ID ใหม่แบบสุ่ม
+        const newSid = 'SID-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         
-        // บันทึกลง Firebase เพื่อบอกว่า User นี้ออนไลน์อยู่ที่เครื่องนี้
-        firebase.database().ref('admin_sessions/' + user).set({
-            sid: mySid,
-            timestamp: Date.now()
+        // บันทึกลง Firebase (Single Session Control)
+        firebase.database().ref('active_sessions/' + user).set({
+            sid: newSid,
+            last_login: Date.now()
         }).then(() => {
-            localStorage.setItem('rocket_sid', mySid);
-            localStorage.setItem('rocket_user', user);
-            initSecurityCheck(user, mySid);
-            document.getElementById('login-overlay').style.display = 'none';
+            localStorage.setItem('rocket_session_id', newSid);
+            localStorage.setItem('rocket_username', user);
+            currentSessionId = newSid;
+            currentUsername = user;
+            
+            document.getElementById('login-overlay').style.fadeOut = "slow";
+            setTimeout(() => {
+                document.getElementById('login-overlay').style.display = 'none';
+            }, 500);
+            
+            listenForKick(user, newSid);
         });
     } else {
-        errorEl.textContent = "❌ ข้อมูลไม่ถูกต้อง!";
         errorEl.style.display = 'block';
+        setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
     }
 }
 
-// 3. ระบบตรวจจับการล็อกอินซ้อน (Real-time Kick out)
-function initSecurityCheck(user, mySid) {
-    const sessionRef = firebase.database().ref('admin_sessions/' + user + '/sid');
+// --- KICK OUT SYSTEM (Single Session) ---
+function listenForKick(user, mySid) {
+    const sessionRef = firebase.database().ref('active_sessions/' + user + '/sid');
     sessionRef.on('value', (snapshot) => {
-        const activeSid = snapshot.val();
-        if (activeSid && activeSid !== mySid) {
-            alert("⚠️ มีคนอื่นใช้รหัสนี้ล็อกอินเข้าสู่ระบบ คุณจะถูกเด้งออกทันที!");
+        const onlineSid = snapshot.val();
+        if (onlineSid && onlineSid !== mySid) {
+            alert("⚠️ ตรวจพบการล็อกอินจากที่อื่น! คุณจะถูกออกจากระบบทันที");
             localStorage.clear();
-            location.reload(); // รีโหลดเพื่อกลับไปหน้า Login
+            location.reload(); 
         }
     });
 }
 
-// 4. ตรวจสอบสถานะตอนเปิดเว็บ
-window.addEventListener('DOMContentLoaded', () => {
-    const savedUser = localStorage.getItem('rocket_user');
-    const savedSid = localStorage.getItem('rocket_sid');
-    
-    if (savedUser && savedSid) {
-        firebase.database().ref('admin_sessions/' + savedUser + '/sid').once('value', (snapshot) => {
-            if (snapshot.val() === savedSid) {
+// --- AUTO CHECK ON LOAD ---
+window.addEventListener('load', () => {
+    if (currentUsername && currentSessionId) {
+        firebase.database().ref('active_sessions/' + currentUsername + '/sid').once('value', (snapshot) => {
+            if (snapshot.val() === currentSessionId) {
                 document.getElementById('login-overlay').style.display = 'none';
-                initSecurityCheck(savedUser, savedSid);
+                listenForKick(currentUsername, currentSessionId);
+            } else {
+                localStorage.clear();
+                document.getElementById('login-overlay').style.display = 'flex';
             }
         });
     }
