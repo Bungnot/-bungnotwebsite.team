@@ -2398,3 +2398,116 @@ updateGlobalSummary = function() {
     originalUpdateSummary(); // ทำงานเดิม
     syncAdminSummary();      // ส่งข้อมูลขึ้นคลาวด์ให้แอดมินคนอื่นเห็น
 };
+
+
+
+
+/* =========================================
+   ส่วนเสริม: ระบบจัดการเครดิต (Credit System)
+   ========================================= */
+
+// 1. ฟังก์ชันเปิด/ปิดหน้าต่าง
+function openCreditModal() {
+    document.getElementById('creditModal').style.display = 'flex';
+}
+
+function closeCreditModal() {
+    document.getElementById('creditModal').style.display = 'none';
+    document.getElementById('creditStatus').innerText = "";
+}
+
+// 2. ฟังก์ชันเติมเครดิตด้วยมือ (ผ่านหน้าต่าง Popup)
+function manualAddCredit() {
+    const name = document.getElementById('creditName').value.trim();
+    const amount = parseFloat(document.getElementById('creditAmount').value);
+
+    if (!name || isNaN(amount)) {
+        alert("กรุณากรอกชื่อและจำนวนเงินให้ถูกต้อง");
+        return;
+    }
+
+    updateFirebaseCredit(name, amount, 'add');
+    
+    // แจ้งเตือน
+    const status = document.getElementById('creditStatus');
+    status.innerText = `✅ เติม ${amount.toLocaleString()} ให้ ${name} แล้ว`;
+    status.style.color = "green";
+    
+    // เคลียร์ค่า
+    document.getElementById('creditAmount').value = '';
+}
+
+// 3. ฟังก์ชันหลักสำหรับอัปเดต Firebase
+function updateFirebaseCredit(name, amount, type) {
+    if (!name) return;
+    
+    // อ้างอิงไปที่โฟลเดอร์ credits ใน Firebase
+    const ref = firebase.database().ref('credits/' + name);
+    
+    ref.once('value').then(snapshot => {
+        let currentCredit = snapshot.val() || 0; // ดึงค่าเดิม ถ้าไม่มีให้เป็น 0
+        
+        if (type === 'add') {
+            currentCredit += amount; // บวกเพิ่ม
+        } else if (type === 'sub') {
+            currentCredit -= amount; // ลบออก
+        }
+        
+        // บันทึกกลับขึ้นระบบ
+        ref.set(currentCredit);
+        console.log(`Updated Credit for ${name}: ${type === 'add' ? '+' : '-'}${amount}`);
+    });
+}
+
+
+function setOutcomeForTable(btn, outcome) {
+    playSound('click');
+    const tableWrapper = btn.closest('.table-container');
+    if (!tableWrapper) return;
+
+    // --- [ส่วนที่เพิ่มใหม่: คำนวณเครดิตอัตโนมัติ] ---
+    // ทำงานเฉพาะตอนกดปุ่ม (ไม่รวมตอนโหลดหน้าเว็บ)
+    if (outcome) {
+        const rows = tableWrapper.querySelectorAll('tbody tr');
+        rows.forEach(tr => {
+            const inputs = tr.querySelectorAll("input");
+            if (inputs.length < 3) return;
+
+            const chaser = inputs[0].value.trim(); // ชื่อคนไล่
+            const priceVal = inputs[1].value;      // ราคา
+            const holder = inputs[2].value.trim(); // ชื่อคนยั้ง
+            
+            const total = getRowTotal(priceVal);          // ยอดเต็ม
+            const net = total > 0 ? Math.floor(total * 0.9) : 0; // ยอดหัก % (90%)
+
+            if (total > 0) {
+                if (outcome === 'C') {
+                    // กรณี: คนไล่ชนะ (Chaser Win)
+                    // คนไล่ (โดนหัก %) -> ได้เงิน -> เพิ่มเครดิต
+                    updateFirebaseCredit(chaser, net, 'add');
+                    // คนยั้ง (ไม่โดนหัก) -> เสียเต็ม -> ลบเครดิต
+                    updateFirebaseCredit(holder, total, 'sub');
+                } 
+                else if (outcome === 'H') {
+                    // กรณี: คนยั้งชนะ (Holder Win)
+                    // คนยั้ง (โดนหัก %) -> ได้เงิน -> เพิ่มเครดิต
+                    updateFirebaseCredit(holder, net, 'add');
+                    // คนไล่ (ไม่โดนหัก) -> เสียเต็ม -> ลบเครดิต
+                    updateFirebaseCredit(chaser, total, 'sub');
+                }
+            }
+        });
+        
+        showToast(`💰 อัปเดตเครดิตตามผล: ${outcome === 'C' ? 'คนไล่ชนะ' : 'คนยั้งชนะ'} เรียบร้อย`);
+    }
+    // --- [จบส่วนที่เพิ่มใหม่] ---
+
+    tableWrapper.querySelectorAll('tbody tr').forEach(tr => {
+        tr.dataset.outcome = outcome || "";
+    });
+    
+    // ... (โค้ดเดิมด้านล่างปล่อยไว้เหมือนเดิม) ...
+    tableWrapper.classList.toggle('outcome-win', outcome === 'C');
+    tableWrapper.classList.toggle('outcome-lose', outcome === 'H');
+    // ...
+}
