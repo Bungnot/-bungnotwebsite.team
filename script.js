@@ -2405,8 +2405,9 @@ updateGlobalSummary = function() {
 ////////////////////////////////////////
 
 
+// --- 1. ตรวจสอบการโหลด Firebase ---
+// อย่าลืมใส่ firebase.initializeApp(firebaseConfig) ไว้บนสุดนะครับ!
 
-// --- CONFIGURATION ---
 const ADMIN_ACCOUNTS = {
     "admin_premium1": "RK#9921@Top",
     "admin_premium2": "PM#4482$Gold",
@@ -2414,32 +2415,27 @@ const ADMIN_ACCOUNTS = {
     "admin_premium4": "Boss&1150!Z"
 };
 
-let currentSessionId = localStorage.getItem('rocket_session_id');
-let currentUsername = localStorage.getItem('rocket_username');
-
-// --- LOGIN FUNCTION ---
+// --- 2. ฟังก์ชัน Login ---
 function handleLogin() {
     const user = document.getElementById('user-input').value;
     const pass = document.getElementById('pass-input').value;
     const errorEl = document.getElementById('login-error');
+    const overlay = document.getElementById('login-overlay');
 
     if (ADMIN_ACCOUNTS[user] && ADMIN_ACCOUNTS[user] === pass) {
-        // สร้าง Session ID ใหม่แบบสุ่ม
         const newSid = 'SID-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         
-        // บันทึกลง Firebase (Single Session Control)
         firebase.database().ref('active_sessions/' + user).set({
             sid: newSid,
             last_login: Date.now()
         }).then(() => {
             localStorage.setItem('rocket_session_id', newSid);
             localStorage.setItem('rocket_username', user);
-            currentSessionId = newSid;
-            currentUsername = user;
             
-            document.getElementById('login-overlay').style.fadeOut = "slow";
-            setTimeout(() => {
-                document.getElementById('login-overlay').style.display = 'none';
+            // แก้ไขจาก .fadeOut เป็นการซ่อนแบบปกติหรือใช้ CSS Transition
+            overlay.style.opacity = '0';
+            setTimeout(() => { 
+                overlay.style.display = 'none'; 
             }, 500);
             
             listenForKick(user, newSid);
@@ -2450,30 +2446,36 @@ function handleLogin() {
     }
 }
 
-// --- KICK OUT SYSTEM (Single Session) ---
+// --- 3. ฟังก์ชันตรวจจับการล็อกอินซ้อน ---
 function listenForKick(user, mySid) {
     const sessionRef = firebase.database().ref('active_sessions/' + user + '/sid');
+    // ใช้ .on เพื่อคอยฟังการเปลี่ยนแปลงตลอดเวลา
     sessionRef.on('value', (snapshot) => {
         const onlineSid = snapshot.val();
         if (onlineSid && onlineSid !== mySid) {
-            alert("⚠️ ตรวจพบการล็อกอินจากที่อื่น! คุณจะถูกออกจากระบบทันที");
+            alert("⚠️ บัญชีนี้มีการเข้าสู่ระบบจากอุปกรณ์อื่น คุณจะถูกออกจากระบบ");
             localStorage.clear();
             location.reload(); 
         }
     });
 }
 
-// --- AUTO CHECK ON LOAD ---
+// --- 4. ตรวจสอบสถานะเมื่อเปิดหน้าเว็บ (Fix Syntax ที่หายไป) ---
 window.addEventListener('load', () => {
-    if (currentUsername && currentSessionId) {
-        firebase.database().ref('active_sessions/' + currentUsername + '/sid').once('value', (snapshot) => {
-            if (snapshot.val() === currentSessionId) {
+    const savedUser = localStorage.getItem('rocket_username');
+    const savedSid = localStorage.getItem('rocket_session_id');
+
+    if (savedUser && savedSid) {
+        firebase.database().ref('active_sessions/' + savedUser + '/sid').once('value', (snapshot) => {
+            if (snapshot.val() === savedSid) {
                 document.getElementById('login-overlay').style.display = 'none';
-                listenForKick(currentUsername, currentSessionId);
+                listenForKick(savedUser, savedSid);
             } else {
                 localStorage.clear();
                 document.getElementById('login-overlay').style.display = 'flex';
             }
         });
+    } else {
+        document.getElementById('login-overlay').style.display = 'flex';
     }
 });
