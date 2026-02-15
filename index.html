@@ -1244,19 +1244,26 @@ body.theme-ocean .credit-box {
       
       /* --- ส่วนของ JavaScript (Theme, Halloween, etc.) --- */
       
-      // ฟังก์ชันเปลี่ยนธีมและอื่นๆ (จากโค้ดเดิมของคุณ)
       function setTheme(name) {
         document.body.classList.remove('theme-christmas', 'theme-midnight', 'theme-ocean', 'theme-halloween');
         document.body.classList.add('theme-' + name);
         localStorage.setItem('admin_selected_theme', name);
+        
+        // อัปเดตปุ่ม active
         document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.getElementById('btn-theme-' + name);
         if(activeBtn) activeBtn.classList.add('active');
+        
+        // ล้าง Effect เก่า
         document.querySelectorAll('.spider-web-top, .bat-animation, .ocean-bubble, .halloween-extra').forEach(el => el.remove());
+        
+        // จัดการหิมะ
         const snowCanvas = document.getElementById('snowCanvas');
         if (snowCanvas) {
             snowCanvas.style.display = (name === 'christmas') ? 'block' : 'none';
         }
+        
+        // โหลด Effect ใหม่
         if (name === 'halloween') { initHalloweenSystem(); } 
         else if (name === 'ocean') { createBubbles(); }
         
