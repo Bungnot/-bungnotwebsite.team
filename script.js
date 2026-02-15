@@ -73,6 +73,7 @@ function setOutcomeForTable(btn, outcome) {
     // อัปเดตป้ายสุทธิทันที + เซฟลง localStorage
     updateIndividualTableSummaries();
     saveData();
+    applyCreditsFromOutcome(tableWrapper, outcome); // ✅ เพิ่มบรรทัดนี้
 }
 
 function getRowTotal(priceText) {
@@ -2406,6 +2407,98 @@ updateGlobalSummary = function() {
 // ================================
 var CUSTOMER_CREDIT_LS_KEY = "customerCredits_v1";
 window.customerCredits = window.customerCredits || [];
+
+
+// ===== Credit helpers (ใช้กับ window.customerCredits ที่คุณทำไว้แล้ว) =====
+function creditNormalizeName(name){
+  return (name || "").toString().trim();
+}
+function creditFindIndex(line){
+  const key = creditNormalizeName(line).toLowerCase();
+  return (window.customerCredits || []).findIndex(x => (x.line || "").toLowerCase() === key);
+}
+function creditAdd(line, amount){
+  line = creditNormalizeName(line);
+  amount = Math.floor(Number(amount || 0));
+  if (!line || !Number.isFinite(amount) || amount <= 0) return;
+
+  window.customerCredits = window.customerCredits || [];
+  const idx = creditFindIndex(line);
+  if (idx >= 0) window.customerCredits[idx].credits = Number(window.customerCredits[idx].credits || 0) + amount;
+  else window.customerCredits.push({ line, credits: amount });
+
+  // เซฟ + sync cloud ถ้ามี
+  if (typeof saveCustomerCredits === "function") saveCustomerCredits({ silent:true, pushCloud:true });
+}
+function creditRemove(line){
+  line = creditNormalizeName(line);
+  if (!line) return;
+
+  window.customerCredits = (window.customerCredits || []).filter(x => (x.line || "").toLowerCase() !== line.toLowerCase());
+
+  if (typeof saveCustomerCredits === "function") saveCustomerCredits({ silent:true, pushCloud:true });
+}
+
+// ===== ตัวช่วยอ่านตัวเลขราคาแบบเดียวกับระบบเดิม =====
+function getRowTotalSafe(priceText){
+  // ใช้ logic เดียวกับ getRowTotal ในระบบคุณ :contentReference[oaicite:3]{index=3}
+  const clean = (priceText || "").replace(/[Oo]/g, "0");
+  const nums = clean.match(/\d+/g);
+  let total = 0;
+  if (nums) nums.forEach(n => { if (n.length >= 3) total += parseInt(n, 10); });
+  return total;
+}
+
+// ===== แกนหลัก: เมื่อกด ชนะ/แพ้ ให้โยงไปเครดิต =====
+function applyCreditsFromOutcome(tableWrapper, outcome){
+  if (!tableWrapper) return;
+  if (outcome !== "C" && outcome !== "H") return; // ต้องเป็นชนะ/แพ้ เท่านั้น
+
+  const rows = tableWrapper.querySelectorAll("tbody tr");
+  rows.forEach(tr => {
+    const inputs = tr.querySelectorAll("input");
+    if (inputs.length < 3) return;
+
+    const chaser = creditNormalizeName(inputs[0].value);
+    const priceText = inputs[1].value;
+    const holder = creditNormalizeName(inputs[2].value);
+
+    const rowTotal = getRowTotalSafe(priceText);
+    if (rowTotal <= 0) return;
+
+    const netAmount = Math.floor(rowTotal * 0.9);
+
+    // ป้องกัน “กดซ้ำแล้วเครดิตบวกซ้ำ”
+    // ถ้าแถวนี้เคยประมวลผล outcome เดิมแล้ว ให้ข้าม
+    const last = tr.dataset.creditAppliedOutcome || "";
+    if (last === outcome) return;
+
+    // ถ้าเคยประมวลผล outcome อื่นมาก่อน (สลับ ชนะ/แพ้) — ป้องกันเพี้ยนด้วยการ “ไม่ย้อนคืน”
+    // วิธีง่าย/ชัวร์: ให้ยืนยันก่อนจะเปลี่ยนผล (ถ้าต้องการค่อยเพิ่ม rollback ได้)
+    if (last && last !== outcome) {
+      // ถ้าคุณอยากให้เปลี่ยนผลได้ ให้ลบ 2 บรรทัดนี้ทิ้ง
+      toastRateLimited?.("มีการตั้งผลไว้แล้ว แนะนำล้างผลก่อนแล้วค่อยตั้งใหม่", "warning");
+      return;
+    }
+
+    // outcome === "C" → คนไล่ได้สุทธิ, คนยั้งได้เต็ม :contentReference[oaicite:4]{index=4}
+    // outcome === "H" → คนยั้งได้สุทธิ, คนไล่ได้เต็ม :contentReference[oaicite:5]{index=5}
+    const winner = (outcome === "C") ? chaser : holder; // ฝั่ง “หัก %”
+    const fullSide = (outcome === "C") ? holder : chaser; // ฝั่ง “ไม่หัก %”
+
+    // 1) ฝั่งหัก % → + เครดิตสุทธิ
+    if (winner) creditAdd(winner, netAmount);
+
+    // 2) ฝั่งไม่หัก % → ลบเครดิตออกทั้งชื่อ
+    if (fullSide) creditRemove(fullSide);
+
+    // mark ว่าแถวนี้ทำแล้ว
+    tr.dataset.creditAppliedOutcome = outcome;
+  });
+
+  toastRateLimited?.("✅ อัปเดตเครดิตจากผล ชนะ/แพ้ แล้ว", "success");
+}
+
 
 
 function loadCustomerCredits() {
