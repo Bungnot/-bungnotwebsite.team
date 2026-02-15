@@ -30,6 +30,8 @@ function toggleNetDisplay(btn) {
     
     // สั่งให้อัปเดตทุกตารางทันที
     updateIndividualTableSummaries();
+    if (typeof syncAdminSummary === "function") syncAdminSummary();
+
 }
 
 // 3. ฟังก์ชันหลัก (รวมเช็คชื่อซ้ำ และ เปิด/ปิดยอด)
@@ -2402,13 +2404,14 @@ updateGlobalSummary = function() {
 // ================================
 // ระบบเครดิตลูกค้า (Customer Credits)
 // ================================
-const CUSTOMER_CREDIT_LS_KEY = "customerCredits_v1";
-let customerCredits = []; // [{ line: "name", credits: 123 }]
+var CUSTOMER_CREDIT_LS_KEY = "customerCredits_v1";
+window.customerCredits = window.customerCredits || [];
+
 
 function loadCustomerCredits() {
     try {
         const raw = localStorage.getItem(CUSTOMER_CREDIT_LS_KEY);
-        customerCredits = raw ? JSON.parse(raw) : [];
+       window.customerCredits = raw ? JSON.parse(raw) : [];
         if (!Array.isArray(customerCredits)) customerCredits = [];
     } catch (e) {
         customerCredits = [];
