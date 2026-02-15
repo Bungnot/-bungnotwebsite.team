@@ -999,8 +999,63 @@
         .btn-winlose:hover{ text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
         .btn-winlose:active{ text-shadow: 0 1px 1px rgba(0,0,0,0.35); }
 
+
+
+
+
 </style>
+<style>
+/* CSS สำหรับระบบเครดิต */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); z-index: 99999;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.credit-box {
+    width: 90%; max-width: 450px;
+    padding: 25px; border-radius: 15px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #333; /* ปรับตามธีม */
+    animation: fadeInUp 0.3s ease;
+}
+
+/* ปรับสีตัวอักษรให้เข้ากับธีมมืด/สว่าง */
+body.theme-midnight .credit-box, 
+body.theme-ocean .credit-box {
+    color: #fff;
+}
+
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+}
+.modal-header h3 { margin: 0; font-size: 1.4rem; }
+
+.close-modal-btn {
+    background: none; border: none; font-size: 2rem; color: inherit; cursor: pointer;
+}
+
+.premium-input {
+    width: 100%; padding: 10px; margin-top: 5px;
+    border-radius: 8px; border: 1px solid #ccc;
+    background: rgba(255,255,255,0.9);
+    font-family: 'Sarabun', sans-serif;
+}
+
+.input-group { margin-bottom: 10px; }
+
+.credit-list-container {
+    max-height: 300px; overflow-y: auto;
+}
+</style>
+    
 </head>
+    <button class="theme-btn" onclick="openCreditModal()">
+        <i class="fas fa-wallet"></i> ระบบเครดิต
+    </button>
 <body class="theme-christmas">
     <canvas id="confetti-canvas"></canvas>
     <canvas class="snow-canvas" id="snowCanvas"></canvas>
@@ -1350,9 +1405,49 @@ function initSnow() {
 }       
 </script>
 
+<div id="creditModal" class="modal-overlay" style="display:none;">
+    <div class="credit-box glass-bg">
+        <div class="modal-header">
+            <h3><i class="fas fa-coins" style="color: gold;"></i> จัดการเครดิตลูกค้า</h3>
+            <button onclick="closeCreditModal()" class="close-modal-btn">&times;</button>
+        </div>
+        
+        <div class="credit-input-section">
+            <div class="input-group">
+                <label>ชื่อไลน์ลูกค้า:</label>
+                <input type="text" id="creditLineName" placeholder="ระบุชื่อไลน์..." class="premium-input">
+            </div>
+            <div class="input-group">
+                <label>จำนวนเครดิตที่จะเติม:</label>
+                <input type="number" id="creditAmount" placeholder="0" class="premium-input">
+            </div>
+            <button onclick="addCredit()" class="btn-main" style="width:100%; margin-top:10px;">
+                <i class="fas fa-plus-circle"></i> เติมเครดิต
+            </button>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+
+        <div class="credit-list-container">
+            <h4>รายชื่อลูกค้าที่มีเครดิต</h4>
+            <table id="creditTable" style="width:100%; text-align:left; color: inherit;">
+                <thead>
+                    <tr style="border-bottom: 2px solid rgba(255,255,255,0.2);">
+                        <th style="padding: 8px;">ชื่อไลน์</th>
+                        <th style="padding: 8px; text-align:right;">เครดิตคงเหลือ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
     <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
 
 
 
