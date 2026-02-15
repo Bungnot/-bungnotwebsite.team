@@ -1000,108 +1000,6 @@
         .btn-winlose:active{ text-shadow: 0 1px 1px rgba(0,0,0,0.35); }
 
 </style>
-
-<style>
-/* ===== Customer Credit Modal ===== */
-.credit-box{
-    max-width: 950px !important;
-    width: 95% !important;
-    border-radius: 22px !important;
-}
-.credit-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    margin-bottom:12px;
-}
-.credit-close{
-    width:42px;
-    height:42px;
-    border:none;
-    border-radius:14px;
-    cursor:pointer;
-    background: rgba(0,0,0,0.08);
-    color:#0f172a;
-}
-.credit-close:hover{ background: rgba(0,0,0,0.12); }
-
-.credit-form{
-    display:grid;
-    grid-template-columns: 1.2fr 0.8fr 0.8fr;
-    gap:10px;
-    margin-bottom: 14px;
-}
-.credit-form input{
-    width:100%;
-    padding:12px 12px;
-    border-radius: 14px;
-    border: 2px solid rgba(203,213,225,0.9);
-    background: rgba(226,232,240,0.8);
-    outline:none;
-    font-family: 'Sarabun', system-ui;
-    font-weight: 600;
-}
-.credit-form input:focus{
-    border-color: rgba(191,149,63,0.8);
-    box-shadow: 0 0 0 4px rgba(191,149,63,0.18);
-}
-
-.credit-table-wrap{
-    max-height: 420px;
-    overflow:auto;
-    border-radius: 16px;
-    border: 1px solid rgba(15,23,42,0.08);
-}
-.credit-table tbody td{
-    vertical-align: middle;
-}
-.credit-actions{
-    display:flex;
-    justify-content:center;
-    gap:8px;
-    flex-wrap:wrap;
-}
-.btn-mini{
-    border:none;
-    cursor:pointer;
-    padding:8px 10px;
-    border-radius: 12px;
-    font-weight: 800;
-}
-.btn-mini-danger{
-    background: rgba(239,68,68,0.12);
-    color: #b91c1c;
-    border: 1px solid rgba(239,68,68,0.25);
-}
-.btn-mini-danger:hover{
-    background:#ef4444;
-    color:white;
-}
-.btn-mini-zero{
-    background: rgba(59,130,246,0.10);
-    color:#1d4ed8;
-    border: 1px solid rgba(59,130,246,0.22);
-}
-.btn-mini-zero:hover{
-    background:#3b82f6;
-    color:white;
-}
-.credit-footer{
-    display:flex;
-    gap:10px;
-    justify-content:flex-end;
-    margin-top: 14px;
-    flex-wrap: wrap;
-}
-
-@media (max-width: 820px){
-    .credit-form{ grid-template-columns: 1fr; }
-    .credit-footer{ justify-content: stretch; }
-    .credit-footer .btn-main{ width:100%; }
-}
-</style>
-
 </head>
 <body class="theme-christmas">
     <canvas id="confetti-canvas"></canvas>
@@ -1214,10 +1112,6 @@
         <button class="btn-main active" id="global-net-toggle" onclick="toggleNetDisplay(this)">
             <span class="flare"></span><i class="fas fa-eye"></i> สุทธิ: เปิด
         </button>
-        <button class="btn-main" onclick="openCustomerCreditSystem()">
-            <span class="flare"></span><i class="fas fa-coins"></i> ระบบเครดิตลูกค้า
-        </button>
-
     </div>
 
     <div id="tables-container"></div>
@@ -1229,50 +1123,6 @@
             <div id="modal-actions" class="modal-actions" style="display: flex; justify-content: center; gap: 15px;"></div>
         </div>
     </div>
-
-    <div id="credit-modal" class="modal-overlay" style="display:none;" onclick="closeCustomerCreditSystem(event)">
-        <div class="modal-box credit-box" onclick="event.stopPropagation()">
-            <div class="credit-header">
-                <h2 style="margin:0; font-size:1.25rem;">
-                    <i class="fas fa-coins"></i> ระบบเครดิตลูกค้า
-                </h2>
-                <button class="credit-close" onclick="closeCustomerCreditSystem()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-    
-            <div class="credit-form">
-                <input id="credit-line" type="text" placeholder="ชื่อไลน์ลูกค้า">
-                <input id="credit-amount" type="number" placeholder="จำนวนเครดิตที่เติม" min="0" step="1">
-                <button class="btn-main" onclick="addOrUpdateCustomerCredit()">
-                    <span class="flare"></span><i class="fas fa-plus-circle"></i> เติมเครดิต
-                </button>
-            </div>
-    
-            <div class="credit-table-wrap">
-                <table class="custom-table credit-table">
-                    <thead>
-                        <tr>
-                            <th class="th-green">ชื่อไลน์</th>
-                            <th class="th-orange">เครดิต</th>
-                            <th class="th-dark">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="credit-tbody"></tbody>
-                </table>
-            </div>
-    
-            <div class="credit-footer">
-                <button class="btn-main" onclick="exportCustomerCreditsToClipboard()">
-                    <span class="flare"></span><i class="fas fa-copy"></i> คัดลอกตาราง
-                </button>
-                <button class="btn-main btn-clear" onclick="resetAllCustomerCredits()">
-                    <span class="flare"></span><i class="fas fa-trash-alt"></i> ล้างเครดิตทั้งหมด
-                </button>
-            </div>
-        </div>
-    </div>
-    
 
     <footer style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
         <div style="background: rgba(0,0,0,0.2); display: inline-block; padding: 10px 25px; border-radius: 50px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);">
@@ -1504,4 +1354,3 @@ function initSnow() {
 </body>
 </html>
  
-
