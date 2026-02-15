@@ -2398,3 +2398,232 @@ updateGlobalSummary = function() {
     originalUpdateSummary(); // ทำงานเดิม
     syncAdminSummary();      // ส่งข้อมูลขึ้นคลาวด์ให้แอดมินคนอื่นเห็น
 };
+
+// ================================
+// ระบบเครดิตลูกค้า (Customer Credits)
+// ================================
+const CUSTOMER_CREDIT_LS_KEY = "customerCredits_v1";
+let customerCredits = []; // [{ line: "name", credits: 123 }]
+
+function loadCustomerCredits() {
+    try {
+        const raw = localStorage.getItem(CUSTOMER_CREDIT_LS_KEY);
+        customerCredits = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(customerCredits)) customerCredits = [];
+    } catch (e) {
+        customerCredits = [];
+    }
+}
+
+function saveCustomerCredits({ silent = false, pushCloud = true } = {}) {
+    localStorage.setItem(CUSTOMER_CREDIT_LS_KEY, JSON.stringify(customerCredits));
+    if (!silent && typeof toastRateLimited === "function") toastRateLimited("✅ บันทึกเครดิตแล้ว", "success", 900);
+    if (pushCloud) syncCustomerCreditsToFirebase();
+}
+
+function normalizeLineName(name) {
+    return (name || "").toString().trim();
+}
+
+function findCreditIndex(line) {
+    return customerCredits.findIndex(x => (x.line || "").toLowerCase() === line.toLowerCase());
+}
+
+function renderCustomerCreditTable() {
+    const tbody = document.getElementById("credit-tbody");
+    if (!tbody) return;
+
+    const sorted = customerCredits
+        .slice()
+        .sort((a, b) => (a.line || "").localeCompare((b.line || ""), "th"));
+
+    if (sorted.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" style="text-align:center; padding:18px; color:#64748b; font-weight:700;">
+                    ยังไม่มีข้อมูลเครดิตลูกค้า
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = sorted.map(item => {
+        const line = item.line || "-";
+        const credits = Number(item.credits || 0);
+        return `
+            <tr>
+                <td style="font-weight:800;">${escapeHtml(line)}</td>
+                <td style="text-align:center; font-weight:900; color: var(--theme-accent);">
+                    ${credits.toLocaleString()}
+                </td>
+                <td style="text-align:center;">
+                    <div class="credit-actions">
+                        <button class="btn-mini btn-mini-zero" onclick="setCustomerCreditToZero('${encodeURIComponent(line)}')">
+                            ตั้งเป็น 0
+                        </button>
+                        <button class="btn-mini btn-mini-danger" onclick="removeCustomerCredit('${encodeURIComponent(line)}')">
+                            ลบ
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function openCustomerCreditSystem() {
+    if (typeof playSound === "function") playSound("popup");
+    loadCustomerCredits();
+    renderCustomerCreditTable();
+
+    const modal = document.getElementById("credit-modal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    modal.classList.add("active");
+
+    // โฟกัสช่องชื่อไลน์
+    setTimeout(() => {
+        const el = document.getElementById("credit-line");
+        if (el) el.focus();
+    }, 50);
+}
+
+function closeCustomerCreditSystem(e) {
+    // ถ้าคลิกพื้นหลัง overlay ให้ปิด
+    if (e && e.target && e.target.id !== "credit-modal") return;
+
+    if (typeof playSound === "function") playSound("click");
+    const modal = document.getElementById("credit-modal");
+    if (!modal) return;
+    modal.classList.remove("active");
+    modal.style.display = "none";
+}
+
+function addOrUpdateCustomerCredit() {
+    const lineEl = document.getElementById("credit-line");
+    const amtEl = document.getElementById("credit-amount");
+    if (!lineEl || !amtEl) return;
+
+    const line = normalizeLineName(lineEl.value);
+    const amount = Math.floor(Number(amtEl.value || 0));
+
+    if (!line) return showToast?.("กรุณากรอกชื่อไลน์", "warning");
+    if (!Number.isFinite(amount) || amount <= 0) return showToast?.("กรุณากรอกจำนวนเครดิตที่เติม (มากกว่า 0)", "warning");
+
+    const idx = findCreditIndex(line);
+    if (idx >= 0) {
+        customerCredits[idx].credits = Number(customerCredits[idx].credits || 0) + amount;
+    } else {
+        customerCredits.push({ line, credits: amount });
+    }
+
+    saveCustomerCredits({ silent: false, pushCloud: true });
+    renderCustomerCreditTable();
+
+    // เคลียร์ช่องจำนวน แต่คงชื่อไว้เติมต่อได้
+    amtEl.value = "";
+    amtEl.focus();
+}
+
+function removeCustomerCredit(encodedLine) {
+    const line = decodeURIComponent(encodedLine || "");
+    customerCredits = customerCredits.filter(x => (x.line || "").toLowerCase() !== line.toLowerCase());
+    saveCustomerCredits({ silent: false, pushCloud: true });
+    renderCustomerCreditTable();
+}
+
+function setCustomerCreditToZero(encodedLine) {
+    const line = decodeURIComponent(encodedLine || "");
+    const idx = findCreditIndex(line);
+    if (idx >= 0) customerCredits[idx].credits = 0;
+    saveCustomerCredits({ silent: false, pushCloud: true });
+    renderCustomerCreditTable();
+}
+
+function resetAllCustomerCredits() {
+    if (typeof showConfirmModal === "function") {
+        // ใช้ modal เดิมของระบบคุณ
+        playSound?.("alert");
+        showConfirmModal("ยืนยันการล้างเครดิตทั้งหมด", 0, () => {
+            customerCredits = [];
+            saveCustomerCredits({ silent: false, pushCloud: true });
+            renderCustomerCreditTable();
+        });
+        return;
+    }
+    // fallback
+    if (confirm("ยืนยันการล้างเครดิตทั้งหมด?")) {
+        customerCredits = [];
+        saveCustomerCredits({ silent: false, pushCloud: true });
+        renderCustomerCreditTable();
+    }
+}
+
+async function exportCustomerCreditsToClipboard() {
+    const sorted = customerCredits
+        .slice()
+        .sort((a, b) => (a.line || "").localeCompare((b.line || ""), "th"));
+
+    const lines = ["📌 เครดิตลูกค้า", "----------------------"]
+        .concat(sorted.map(x => `• ${x.line}: ${Number(x.credits || 0).toLocaleString()} เครดิต`));
+
+    const text = lines.join("\n");
+
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast?.("📋 คัดลอกตารางเครดิตแล้ว", "success");
+    } catch (e) {
+        alert("คัดลอกไม่สำเร็จ (แนะนำใช้ Google Chrome)");
+    }
+}
+
+// ===== Firebase Sync (ถ้ามี firebase ในโปรเจค) =====
+function syncCustomerCreditsToFirebase() {
+    try {
+        if (!window.firebase || !firebase.database) return;
+        const obj = {};
+        customerCredits.forEach(x => {
+            const key = normalizeLineName(x.line);
+            if (!key) return;
+            obj[key] = Number(x.credits || 0);
+        });
+        firebase.database().ref("customerCredits").set(obj);
+    } catch (e) {
+        // เงียบไว้ ไม่ให้รบกวนผู้ใช้
+    }
+}
+
+let __creditFirebaseListening = false;
+function listenCustomerCreditsFromFirebase() {
+    try {
+        if (__creditFirebaseListening) return;
+        if (!window.firebase || !firebase.database) return;
+
+        __creditFirebaseListening = true;
+        firebase.database().ref("customerCredits").on("value", (snap) => {
+            const data = snap.val() || {};
+            const arr = Object.keys(data).map(k => ({ line: k, credits: Number(data[k] || 0) }));
+            customerCredits = arr;
+            localStorage.setItem(CUSTOMER_CREDIT_LS_KEY, JSON.stringify(customerCredits));
+
+            // ถ้า modal เปิดอยู่ ให้ re-render
+            const modal = document.getElementById("credit-modal");
+            const isOpen = modal && modal.style.display !== "none";
+            if (isOpen) renderCustomerCreditTable();
+        });
+    } catch (e) {}
+}
+
+function escapeHtml(str) {
+    return (str || "").replace(/[&<>"']/g, (m) => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "'":"&#039;"
+    }[m]));
+}
+
+// init
+document.addEventListener("DOMContentLoaded", () => {
+    loadCustomerCredits();
+    listenCustomerCreditsFromFirebase();
+});
+
