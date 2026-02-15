@@ -2511,3 +2511,58 @@ function setOutcomeForTable(btn, outcome) {
     tableWrapper.classList.toggle('outcome-lose', outcome === 'H');
     // ...
 }
+
+
+/* =========================================
+   ส่วนเสริม: เช็คเครดิตอัตโนมัติเมื่อพิมพ์ชื่อ
+   ========================================= */
+
+// ดักจับเหตุการณ์เมื่อพิมพ์ชื่อเสร็จแล้วกดออกจากช่อง (Focus Out)
+document.addEventListener('focusout', function(e) {
+    // ตรวจสอบว่าเป็น Input และอยู่ภายในตาราง
+    if (e.target && e.target.tagName === 'INPUT') {
+        const tr = e.target.closest('tr');
+        if (tr && tr.closest('.table-container')) {
+            const inputs = tr.querySelectorAll('input');
+            
+            // inputs[0] = คนไล่, inputs[2] = คนยั้ง
+            // ตรวจสอบว่าช่องที่พิมพ์คือช่องชื่อ (ไม่ใช่ช่องราคา)
+            if (e.target === inputs[0] || e.target === inputs[2]) {
+                checkCreditForAlert(e.target);
+            }
+        }
+    }
+});
+
+function checkCreditForAlert(inputElement) {
+    const name = inputElement.value.trim();
+    if (!name) return; // ถ้าไม่ได้กรอกชื่อ ให้ข้ามไป
+
+    // ดึงข้อมูลเครดิตจาก Firebase
+    firebase.database().ref('credits/' + name).once('value').then(snapshot => {
+        const credit = snapshot.val(); 
+        
+        // เงื่อนไข: ถ้าไม่มีข้อมูล (null) หรือ เครดิตน้อยกว่าหรือเท่ากับ 0
+        if (credit === null || credit <= 0) {
+            // 1. แจ้งเตือน
+            alert(`⚠️ แจ้งเตือน: เครดิตไม่พอ\n\nคุณ "${name}" มีเครดิตคงเหลือ: ${credit ? credit.toLocaleString() : 0} บาท\nกรุณาเติมเครดิตก่อน`);
+            
+            // 2. (ตัวเลือกเสริม) ทำไฮไลท์สีแดงที่ช่องชื่อเพื่อเตือน
+            inputElement.style.border = "2px solid red";
+            inputElement.style.backgroundColor = "#ffe6e6";
+            
+            // ล้างสีแดงออกเมื่อผ่านไป 5 วินาที
+            setTimeout(() => {
+                inputElement.style.border = "";
+                inputElement.style.backgroundColor = "";
+            }, 5000);
+        } else {
+            // (ถ้ามีเครดิต) อาจจะทำไฮไลท์สีเขียวบอกว่าผ่าน
+            console.log(`✅ ${name} มีเครดิต: ${credit}`);
+            inputElement.style.border = "2px solid #2ecc71";
+            setTimeout(() => {
+                inputElement.style.border = "";
+            }, 2000);
+        }
+    });
+}
