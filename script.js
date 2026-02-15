@@ -2398,3 +2398,71 @@ updateGlobalSummary = function() {
     originalUpdateSummary(); // ทำงานเดิม
     syncAdminSummary();      // ส่งข้อมูลขึ้นคลาวด์ให้แอดมินคนอื่นเห็น
 };
+
+
+
+
+// ข้อมูล Admin (แนะนำให้เก็บใน Firebase ในอนาคตเพื่อความปลอดภัย)
+const adminList = {
+    "admin_premium1": "RKT#9921!x",
+    "admin_premium2": "PMR@4482?y",
+    "admin_premium3": "BungFai*773",
+    "admin_premium4": "Gold#1150&z"
+};
+
+let currentUser = null;
+let sessionRef = null;
+
+function handleLogin() {
+    const user = document.getElementById('user-input').value;
+    const pass = document.getElementById('pass-input').value;
+    const errorMsg = document.getElementById('login-error');
+
+    if (adminList[user] && adminList[user] === pass) {
+        // สร้าง Session ID แบบสุ่ม
+        const sessionId = Math.random().toString(36).substring(7);
+        
+        // บันทึกลง Firebase เพื่อตรวจสอบการล็อกอินซ้ำ
+        firebase.database().ref('admin_sessions/' + user).set({
+            sessionId: sessionId,
+            lastActive: Date.now()
+        }).then(() => {
+            currentUser = user;
+            localStorage.setItem('admin_session_id', sessionId);
+            localStorage.setItem('admin_user', user);
+            startSessionCheck(user, sessionId);
+            document.getElementById('login-overlay').style.display = 'none';
+        });
+    } else {
+        errorMsg.style.display = 'block';
+        errorMsg.innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+    }
+}
+
+function startSessionCheck(user, mySessionId) {
+    sessionRef = firebase.database().ref('admin_sessions/' + user);
+    sessionRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        // ถ้า Session ID ใน Database ไม่ตรงกับของเรา หมายถึงมีคนใหม่เข้ามา
+        if (data && data.sessionId !== mySessionId) {
+            alert("⚠️ มีผู้ใช้งานอื่นเข้าสู่ระบบด้วยบัญชีนี้ คุณจะถูกออกจากระบบ");
+            location.reload(); // เด้งออกโดยการรีโหลดหน้าเว็บเพื่อกลับไปหน้า Login
+        }
+    });
+}
+
+// ตรวจสอบการคงอยู่ของ Session เมื่อโหลดหน้าเว็บ
+window.addEventListener('load', () => {
+    const savedUser = localStorage.getItem('admin_user');
+    const savedSid = localStorage.getItem('admin_session_id');
+    
+    if (savedUser && savedSid) {
+        firebase.database().ref('admin_sessions/' + savedUser).once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.sessionId === savedSid) {
+                document.getElementById('login-overlay').style.display = 'none';
+                startSessionCheck(savedUser, savedSid);
+            }
+        });
+    }
+});
