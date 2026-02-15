@@ -2409,39 +2409,54 @@ var CUSTOMER_CREDIT_LS_KEY = "customerCredits_v1";
 window.customerCredits = window.customerCredits || [];
 
 
-// ===== Credit helpers (ใช้กับ window.customerCredits ที่คุณทำไว้แล้ว) =====
+// ===== Credit helpers (คงชื่อไว้เสมอ) =====
 function creditNormalizeName(name){
   return (name || "").toString().trim();
 }
-function creditFindIndex(line){
-  const key = creditNormalizeName(line).toLowerCase();
-  return (window.customerCredits || []).findIndex(x => (x.line || "").toLowerCase() === key);
-}
-function creditAdd(line, amount){
-  line = creditNormalizeName(line);
-  amount = Math.floor(Number(amount || 0));
-  if (!line || !Number.isFinite(amount) || amount <= 0) return;
 
+function creditEnsure(line){
+  line = creditNormalizeName(line);
+  if (!line) return null;
   window.customerCredits = window.customerCredits || [];
-  const idx = creditFindIndex(line);
-  if (idx >= 0) window.customerCredits[idx].credits = Number(window.customerCredits[idx].credits || 0) + amount;
-  else window.customerCredits.push({ line, credits: amount });
-
-  // เซฟ + sync cloud ถ้ามี
-  if (typeof saveCustomerCredits === "function") saveCustomerCredits({ silent:true, pushCloud:true });
+  const idx = window.customerCredits.findIndex(x => (x.line || "").toLowerCase() === line.toLowerCase());
+  if (idx >= 0) return window.customerCredits[idx];
+  const obj = { line, credits: 0 };
+  window.customerCredits.push(obj);
+  return obj;
 }
-function creditRemove(line){
+
+function creditGet(line){
   line = creditNormalizeName(line);
-  if (!line) return;
+  if (!line) return 0;
+  window.customerCredits = window.customerCredits || [];
+  const obj = window.customerCredits.find(x => (x.line || "").toLowerCase() === line.toLowerCase());
+  return Number(obj?.credits || 0);
+}
 
-  window.customerCredits = (window.customerCredits || []).filter(x => (x.line || "").toLowerCase() !== line.toLowerCase());
-
+function creditAdd(line, amount){
+  amount = Math.floor(Number(amount || 0));
+  if (!Number.isFinite(amount) || amount <= 0) return;
+  const obj = creditEnsure(line);
+  if (!obj) return;
+  obj.credits = Number(obj.credits || 0) + amount;
   if (typeof saveCustomerCredits === "function") saveCustomerCredits({ silent:true, pushCloud:true });
 }
 
-// ===== ตัวช่วยอ่านตัวเลขราคาแบบเดียวกับระบบเดิม =====
+function creditSubtract(line, amount){
+  amount = Math.floor(Number(amount || 0));
+  if (!Number.isFinite(amount) || amount <= 0) return true;
+  const obj = creditEnsure(line);
+  if (!obj) return false;
+
+  const cur = Number(obj.credits || 0);
+  if (cur < amount) return false;            // ไม่พอ → ห้ามหัก
+  obj.credits = cur - amount;                // พอ → หัก
+  if (typeof saveCustomerCredits === "function") saveCustomerCredits({ silent:true, pushCloud:true });
+  return true;
+}
+
+// ===== อ่านราคาแบบเดียวกับระบบเดิม =====
 function getRowTotalSafe(priceText){
-  // ใช้ logic เดียวกับ getRowTotal ในระบบคุณ :contentReference[oaicite:3]{index=3}
   const clean = (priceText || "").replace(/[Oo]/g, "0");
   const nums = clean.match(/\d+/g);
   let total = 0;
@@ -2449,10 +2464,15 @@ function getRowTotalSafe(priceText){
   return total;
 }
 
-// ===== แกนหลัก: เมื่อกด ชนะ/แพ้ ให้โยงไปเครดิต =====
+
+
 function applyCreditsFromOutcome(tableWrapper, outcome){
   if (!tableWrapper) return;
-  if (outcome !== "C" && outcome !== "H") return; // ต้องเป็นชนะ/แพ้ เท่านั้น
+  if (outcome !== "C" && outcome !== "H") return;
+
+  // โหลดเครดิตล่าสุดก่อน (กันข้อมูลเก่า)
+  if (typeof loadCustomerCredits === "function") loadCustomerCredits();
+  window.customerCredits = window.customerCredits || [];
 
   const rows = tableWrapper.querySelectorAll("tbody tr");
   rows.forEach(tr => {
@@ -2468,36 +2488,54 @@ function applyCreditsFromOutcome(tableWrapper, outcome){
 
     const netAmount = Math.floor(rowTotal * 0.9);
 
-    // ป้องกัน “กดซ้ำแล้วเครดิตบวกซ้ำ”
-    // ถ้าแถวนี้เคยประมวลผล outcome เดิมแล้ว ให้ข้าม
+    // กันกดซ้ำ outcome เดิมแล้วเครดิตซ้ำ
     const last = tr.dataset.creditAppliedOutcome || "";
     if (last === outcome) return;
 
-    // ถ้าเคยประมวลผล outcome อื่นมาก่อน (สลับ ชนะ/แพ้) — ป้องกันเพี้ยนด้วยการ “ไม่ย้อนคืน”
-    // วิธีง่าย/ชัวร์: ให้ยืนยันก่อนจะเปลี่ยนผล (ถ้าต้องการค่อยเพิ่ม rollback ได้)
+    // ถ้าเคยกดผลไว้แล้ว แล้วจะเปลี่ยนผล → กันยอดเพี้ยน (ยังไม่ทำ rollback)
     if (last && last !== outcome) {
-      // ถ้าคุณอยากให้เปลี่ยนผลได้ ให้ลบ 2 บรรทัดนี้ทิ้ง
-      toastRateLimited?.("มีการตั้งผลไว้แล้ว แนะนำล้างผลก่อนแล้วค่อยตั้งใหม่", "warning");
+      toastRateLimited?.("แถวนี้ตั้งผลไว้แล้ว ถ้าจะเปลี่ยนผล แนะนำล้างผลก่อน", "warning");
       return;
     }
 
-    // outcome === "C" → คนไล่ได้สุทธิ, คนยั้งได้เต็ม :contentReference[oaicite:4]{index=4}
-    // outcome === "H" → คนยั้งได้สุทธิ, คนไล่ได้เต็ม :contentReference[oaicite:5]{index=5}
-    const winner = (outcome === "C") ? chaser : holder; // ฝั่ง “หัก %”
-    const fullSide = (outcome === "C") ? holder : chaser; // ฝั่ง “ไม่หัก %”
+    // outcome === "C": คนไล่ได้สุทธิ (หัก%), คนยั้งได้เต็ม (ไม่หัก%)
+    // outcome === "H": คนยั้งได้สุทธิ (หัก%), คนไล่ได้เต็ม (ไม่หัก%)
+    const percentSide = (outcome === "C") ? chaser : holder; // ฝั่งหัก%
+    const fullSide    = (outcome === "C") ? holder : chaser; // ฝั่งไม่หัก%
 
-    // 1) ฝั่งหัก % → + เครดิตสุทธิ
-    if (winner) creditAdd(winner, netAmount);
+    // ✅ ทำให้ชื่อทั้งคู่ "อยู่ในระบบเครดิตเสมอ"
+    creditEnsure(percentSide);
+    creditEnsure(fullSide);
 
-    // 2) ฝั่งไม่หัก % → ลบเครดิตออกทั้งชื่อ
-    if (fullSide) creditRemove(fullSide);
+    // ✅ เช็คเครดิตฝั่งไม่หัก% ว่าพอเล่นไหม (หักเต็ม rowTotal)
+    const ok = creditSubtract(fullSide, rowTotal);
+    if (!ok) {
+      const cur = creditGet(fullSide);
+      toastRateLimited?.(
+        `เครดิตไม่พอ: ${fullSide} มี ${cur.toLocaleString()} ต้องใช้ ${rowTotal.toLocaleString()}`,
+        "error",
+        2500
+      );
+      return; // ไม่ทำรายการแถวนั้น
+    }
+
+    // ✅ ฝั่งหัก% ได้ “เพิ่มเครดิต” เป็นสุทธิ 90%
+    creditAdd(percentSide, netAmount);
 
     // mark ว่าแถวนี้ทำแล้ว
     tr.dataset.creditAppliedOutcome = outcome;
   });
 
+  // ถ้า modal เครดิตเปิดอยู่ ให้รีเฟรชตารางด้วย
+  if (typeof renderCustomerCreditTable === "function") {
+    const modal = document.getElementById("credit-modal");
+    const isOpen = modal && modal.style.display !== "none";
+    if (isOpen) renderCustomerCreditTable();
+  }
+
   toastRateLimited?.("✅ อัปเดตเครดิตจากผล ชนะ/แพ้ แล้ว", "success");
 }
+
 
 
 
