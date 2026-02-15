@@ -2460,56 +2460,72 @@ function updateFirebaseCredit(name, amount, type) {
 }
 
 
+// ==========================================
+// แก้ไขฟังก์ชัน setOutcomeForTable (ตัดเงินจริง)
+// ==========================================
 function setOutcomeForTable(btn, outcome) {
     playSound('click');
     const tableWrapper = btn.closest('.table-container');
     if (!tableWrapper) return;
 
-    // --- [ส่วนที่เพิ่มใหม่: คำนวณเครดิตอัตโนมัติ] ---
-    // ทำงานเฉพาะตอนกดปุ่ม (ไม่รวมตอนโหลดหน้าเว็บ)
+    // ตรวจสอบว่าตารางนี้ "ปิดยอด" ไปแล้วหรือยัง เพื่อป้องกันการกดซ้ำแล้วเงินตัดรัวๆ
+    if (tableWrapper.dataset.status === 'completed') {
+        if(!confirm('รายการนี้ถูกตัดเงินไปแล้ว คุณต้องการแก้ไขใหม่ใช่ไหม? (ระวังยอดเงินเพี้ยน)')) {
+            return;
+        }
+    }
+
+    // 1. เปลี่ยนสีตาราง (Visual)
+    tableWrapper.querySelectorAll('tbody tr').forEach(tr => {
+        tr.dataset.outcome = outcome || "";
+    });
+
+    tableWrapper.classList.remove('outcome-win', 'outcome-lose');
+    if (outcome === 'C') tableWrapper.classList.add('outcome-win');
+    if (outcome === 'H') tableWrapper.classList.add('outcome-lose');
+
+    // 2. คำนวณเงินและตัดเครดิต (Logic)
     if (outcome) {
         const rows = tableWrapper.querySelectorAll('tbody tr');
+        let totalTransaction = 0;
+
         rows.forEach(tr => {
             const inputs = tr.querySelectorAll("input");
             if (inputs.length < 3) return;
 
-            const chaser = inputs[0].value.trim(); // ชื่อคนไล่
+            const chaser = inputs[0].value.trim(); // คนไล่
             const priceVal = inputs[1].value;      // ราคา
-            const holder = inputs[2].value.trim(); // ชื่อคนยั้ง
+            const holder = inputs[2].value.trim(); // คนยั้ง
             
-            const total = getRowTotal(priceVal);          // ยอดเต็ม
-            const net = total > 0 ? Math.floor(total * 0.9) : 0; // ยอดหัก % (90%)
+            // ใช้ฟังก์ชัน getRowTotal ที่มีอยู่แล้ว (หรือแปลงค่าตรงนี้)
+            const total = parseFloat(priceVal.replace(/,/g, '')) || 0; 
+            const net = Math.floor(total * 0.9); // หัก 10% เหลือ 90%
 
             if (total > 0) {
-                if (outcome === 'C') {
-                    // กรณี: คนไล่ชนะ (Chaser Win)
-                    // คนไล่ (โดนหัก %) -> ได้เงิน -> เพิ่มเครดิต
+                if (outcome === 'C') { 
+                    // --- คนไล่ชนะ (สีเขียว) ---
+                    // คนไล่: ได้เงิน (net)
                     updateFirebaseCredit(chaser, net, 'add');
-                    // คนยั้ง (ไม่โดนหัก) -> เสียเต็ม -> ลบเครดิต
+                    // คนยั้ง: เสียเงินเต็ม (total)
                     updateFirebaseCredit(holder, total, 'sub');
                 } 
                 else if (outcome === 'H') {
-                    // กรณี: คนยั้งชนะ (Holder Win)
-                    // คนยั้ง (โดนหัก %) -> ได้เงิน -> เพิ่มเครดิต
+                    // --- คนยั้งชนะ (สีแดง) ---
+                    // คนยั้ง: ได้เงิน (net)
                     updateFirebaseCredit(holder, net, 'add');
-                    // คนไล่ (ไม่โดนหัก) -> เสียเต็ม -> ลบเครดิต
+                    // คนไล่: เสียเงินเต็ม (total)
                     updateFirebaseCredit(chaser, total, 'sub');
                 }
+                totalTransaction += total;
             }
         });
-        
-        showToast(`💰 อัปเดตเครดิตตามผล: ${outcome === 'C' ? 'คนไล่ชนะ' : 'คนยั้งชนะ'} เรียบร้อย`);
-    }
-    // --- [จบส่วนที่เพิ่มใหม่] ---
 
-    tableWrapper.querySelectorAll('tbody tr').forEach(tr => {
-        tr.dataset.outcome = outcome || "";
-    });
-    
-    // ... (โค้ดเดิมด้านล่างปล่อยไว้เหมือนเดิม) ...
-    tableWrapper.classList.toggle('outcome-win', outcome === 'C');
-    tableWrapper.classList.toggle('outcome-lose', outcome === 'H');
-    // ...
+        // บันทึกสถานะว่าตัดเงินแล้ว (ป้องกันกดซ้ำ)
+        if(totalTransaction > 0) {
+            tableWrapper.dataset.status = 'completed';
+            showToast(`💰 ตัดเครดิตเรียบร้อย (${outcome==='C'?'คนไล่กิน':'คนยั้งกิน'})`);
+        }
+    }
 }
 
 
@@ -2563,6 +2579,103 @@ function checkCreditForAlert(inputElement) {
             setTimeout(() => {
                 inputElement.style.border = "";
             }, 2000);
+        }
+    });
+}
+
+/* ======================================================
+   SYSTEM: CREDIT MANAGER (ระบบจัดการเครดิต)
+   วางไว้ล่างสุดของไฟล์ script.js
+   ====================================================== */
+
+// 1. ฟังก์ชันเปิด/ปิด Modal
+function openCreditModal() {
+    document.getElementById('creditModal').style.display = 'flex';
+    document.getElementById('creditName').focus();
+}
+
+function closeCreditModal() {
+    document.getElementById('creditModal').style.display = 'none';
+    document.getElementById('creditStatus').innerText = "";
+    document.getElementById('creditName').value = "";
+    document.getElementById('creditAmount').value = "";
+}
+
+// 2. ฟังก์ชันเติมเงิน (Manual Add)
+function manualAddCredit() {
+    const name = document.getElementById('creditName').value.trim();
+    const amount = parseFloat(document.getElementById('creditAmount').value);
+
+    if (!name || isNaN(amount)) {
+        alert("❌ กรุณากรอกข้อมูลให้ครบ");
+        return;
+    }
+
+    updateFirebaseCredit(name, amount, 'add');
+    
+    const status = document.getElementById('creditStatus');
+    status.innerHTML = `✅ เติม <b>${amount.toLocaleString()}</b> ให้ <b>${name}</b> สำเร็จ`;
+    status.style.color = "green";
+    
+    // ล้างช่องจำนวนเงินเพื่อให้เติมคนต่อไปได้ง่าย
+    document.getElementById('creditAmount').value = '';
+}
+
+// 3. ฟังก์ชันคุยกับ Firebase (Core Function)
+function updateFirebaseCredit(name, amount, type) {
+    if (!name) return;
+    
+    // ตรวจสอบว่า firebase ทำงานไหม
+    if (typeof firebase === 'undefined') {
+        console.error("Firebase not loaded!");
+        return;
+    }
+
+    const ref = firebase.database().ref('credits/' + name);
+    
+    ref.once('value').then(snapshot => {
+        let current = snapshot.val() || 0;
+        
+        if (type === 'add') current += amount;
+        if (type === 'sub') current -= amount;
+        
+        ref.set(current);
+        console.log(`Credit Update: ${name} -> ${current}`);
+    }).catch(err => {
+        console.error("Error updating credit:", err);
+    });
+}
+
+// 4. ระบบแจ้งเตือนเครดิตอัตโนมัติ เมื่อพิมพ์ชื่อ (Auto Check)
+document.addEventListener('focusout', function(e) {
+    // ทำงานเมื่อพิมพ์เสร็จแล้วกดออกจากช่อง input ภายในตาราง
+    if (e.target && e.target.tagName === 'INPUT') {
+        const tr = e.target.closest('tr');
+        if (tr && tr.closest('.table-container')) { // ตรวจว่าเป็นช่องในตารางเกม
+            const inputs = tr.querySelectorAll('input');
+            // เช็คเฉพาะช่องชื่อ (ช่องที่ 1 และ 3)
+            if (e.target === inputs[0] || e.target === inputs[2]) {
+                const name = e.target.value.trim();
+                if(name) checkCredit(name, e.target);
+            }
+        }
+    }
+});
+
+function checkCredit(name, inputElement) {
+    firebase.database().ref('credits/' + name).once('value').then(snapshot => {
+        const credit = snapshot.val();
+        
+        if (credit == null || credit <= 0) {
+            // กรณีเครดิตหมด
+            alert(`⚠️ เตือน: คุณ "${name}" เครดิตไม่พอ! (คงเหลือ: ${credit||0})`);
+            inputElement.style.backgroundColor = "#ffcccc"; // สีแดงอ่อน
+            inputElement.style.border = "2px solid red";
+        } else {
+            // กรณีมีเครดิต
+            console.log(`${name} มีเครดิต: ${credit}`);
+            inputElement.style.backgroundColor = "#e6fffa"; // สีเขียวอ่อน
+            inputElement.style.border = "1px solid #ccc";   // คืนค่าเดิม
         }
     });
 }
