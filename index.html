@@ -1179,289 +1179,215 @@ body.theme-ocean .credit-box {
         </div>
     </div>
 
-    <footer style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
+<footer style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
         <div style="background: rgba(0,0,0,0.2); display: inline-block; padding: 10px 25px; border-radius: 50px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);">
             <i class="fas fa-code" style="margin-right: 8px; color: #ffdf91;"></i> 
             Developed by <span>Bungnot</span>
         </div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <script src="script.js"></script>
-
-<div id="creditModal" class="modal-overlay" style="display:none;">
-    <div class="credit-box glass-bg">
-        <div class="modal-header">
-            <h3><i class="fas fa-coins" style="color: gold;"></i> จัดการเครดิตลูกค้า</h3>
-            <button onclick="closeCreditModal()" class="close-modal-btn">&times;</button>
-        </div>
-        
-        <div class="credit-input-section">
-            <div class="input-group">
-                <label>ชื่อไลน์ลูกค้า:</label>
-                <input type="text" id="creditLineName" placeholder="ระบุชื่อไลน์..." class="premium-input">
+    <div id="creditModal" class="modal-overlay" style="display:none;">
+        <div class="credit-box glass-bg">
+            <div class="modal-header">
+                <h3><i class="fas fa-coins" style="color: gold;"></i> จัดการเครดิตลูกค้า</h3>
+                <button onclick="closeCreditModal()" class="close-modal-btn">&times;</button>
             </div>
-            <div class="input-group">
-                <label>จำนวนเครดิตที่จะเติม:</label>
-                <input type="number" id="creditAmount" placeholder="0" class="premium-input">
+            
+            <div class="credit-input-section">
+                <div class="input-group">
+                    <label>ชื่อไลน์ลูกค้า:</label>
+                    <input type="text" id="creditLineName" placeholder="ระบุชื่อไลน์..." class="premium-input">
+                </div>
+                <div class="input-group">
+                    <label>จำนวนเครดิตที่จะเติม:</label>
+                    <input type="number" id="creditAmount" placeholder="0" class="premium-input">
+                </div>
+                <button onclick="addCredit()" class="btn-main" style="width:100%; margin-top:10px;">
+                    <i class="fas fa-plus-circle"></i> เติมเครดิต
+                </button>
             </div>
-            <button onclick="addCredit()" class="btn-main" style="width:100%; margin-top:10px;">
-                <i class="fas fa-plus-circle"></i> เติมเครดิต
-            </button>
-        </div>
 
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
 
-        <div class="credit-list-container">
-            <h4>รายชื่อลูกค้าที่มีเครดิต</h4>
-            <table id="creditTable" style="width:100%; text-align:left; color: inherit;">
-                <thead>
-                    <tr style="border-bottom: 2px solid rgba(255,255,255,0.2);">
-                        <th style="padding: 8px;">ชื่อไลน์</th>
-                        <th style="padding: 8px; text-align:right;">เครดิตคงเหลือ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
+            <div class="credit-list-container">
+                <h4>รายชื่อลูกค้าที่มีเครดิต</h4>
+                <table id="creditTable" style="width:100%; text-align:left; color: inherit;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid rgba(255,255,255,0.2);">
+                            <th style="padding: 8px;">ชื่อไลน์</th>
+                            <th style="padding: 8px; text-align:right;">เครดิตคงเหลือ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
-    authDomain: "admin-rocket-live.firebaseapp.com",
-    databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "admin-rocket-live",
-    storageBucket: "admin-rocket-live.firebasestorage.app",
-    messagingSenderId: "875303528481",
-    appId: "1:875303528481:web:719af49939623d64225b60"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-    
-/* --- ส่วนของ JavaScript ทั้งหมด (เวอร์ชันอัปเกรดฮาโลวีน) --- */
-
-// 1. ฟังก์ชันเปลี่ยนธีม (หัวใจหลักของระบบ)
-function setTheme(name) {
-    // ล้าง Class เก่า
-    document.body.classList.remove('theme-christmas', 'theme-midnight', 'theme-ocean', 'theme-halloween');
-    document.body.classList.add('theme-' + name);
-    
-    // บันทึกค่า
-    localStorage.setItem('admin_selected_theme', name);
-    
-    // อัปเดตสถานะปุ่มใน Dashboard
-    document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-    const activeBtn = document.getElementById('btn-theme-' + name);
-    if(activeBtn) activeBtn.classList.add('active');
-
-    // --- RESET ระบบพิเศษ (เพิ่มการล้างคลาสตกแต่งใหม่) ---
-    document.querySelectorAll('.spider-web-top, .bat-animation, .ocean-bubble, .halloween-extra').forEach(el => el.remove());
-    
-    const snowCanvas = document.getElementById('snowCanvas');
-    if (snowCanvas) {
-        snowCanvas.style.display = (name === 'christmas') ? 'block' : 'none';
-    }
-
-    // --- โหลดระบบใหม่ ---
-    if (name === 'halloween') {
-        initHalloweenSystem();
-    } else if (name === 'ocean') {
-        createBubbles();
-    }
-
-    if (typeof playSound === 'function') playSound('click');
-}
-
-// 2. ระบบฮาโลวีน (อัปเกรด: ใยแมงมุม + ค้างคาว + ผี + แมงมุมห้อย)
-// 2. ระบบฮาโลวีน (อัปเกรด: ไม่ขวางตาราง)
-function initHalloweenSystem() {
-    // ล้างตัวตกแต่งเก่าถ้ามี
-    document.querySelectorAll('.halloween-extra').forEach(el => el.remove());
-
-    // 1. เพิ่มใยแมงมุมที่มุมจอ (Z-index ต่ำ เพื่อไม่ให้บังปุ่ม)
-    if (!document.querySelector('.spider-web-top')) {
-        const web = document.createElement('div');
-        web.className = 'spider-web-top halloween-extra';
-        // ปรับให้จางลงและอยู่หลังสุด
-        web.style.zIndex = "1"; 
-        web.style.opacity = "0.2";
-        document.body.appendChild(web);
-    }
-
-    // 2. เพิ่มผีลอย (ให้ลอยแค่บริเวณขอบจอซ้าย-ขวา ไม่ให้ทับกลางตาราง)
-    const ghostIcons = ['👻', '💀'];
-    for (let i = 0; i < 4; i++) {
-        const ghost = document.createElement('div');
-        ghost.className = 'halloween-extra';
-        ghost.innerHTML = ghostIcons[i % 2];
-        
-        // สุ่มให้อยู่แค่ขอบจอซ้าย (0-15%) หรือขอบจอขวา (85-100%)
-        const side = Math.random() > 0.5 ? Math.random() * 15 : 85 + (Math.random() * 10);
-        
-        ghost.style = `
-            position: fixed; 
-            font-size: 2rem; 
-            opacity: 0.3; 
-            z-index: 1; 
-            pointer-events: none; 
-            top: ${Math.random() * 80 + 10}vh; 
-            left: ${side}vw; 
-            animation: ghostFloat ${6 + i}s infinite ease-in-out;
-        `;
-        document.body.appendChild(ghost);
-    }
-
-    // 3. แมงมุมห้อยตัว (ย้ายไปไว้มุมขวาสุดเพื่อไม่ให้บังปุ่ม X)
-    const spiderHang = document.createElement('div');
-    spiderHang.className = 'halloween-extra';
-    spiderHang.style = `
-        position: fixed; 
-        top: 0; 
-        right: 5%; 
-        width: 1px; 
-        height: 100px; 
-        background: rgba(255,255,255,0.1); 
-        z-index: 1; 
-        animation: spiderHang 10s infinite ease-in-out;
-    `;
-    spiderHang.innerHTML = '<div style="position:absolute; bottom:-20px; left:-14px; font-size:20px; opacity:0.4;">🕷️</div>';
-    document.body.appendChild(spiderHang);
-
-    // 4. ค้างคาว (ให้บินอยู่ชั้นหลังสุด)
-    for (let i = 0; i < 2; i++) {
-        const bat = document.createElement('div');
-        bat.className = 'bat-animation halloween-extra';
-        bat.style.zIndex = "1"; 
-        bat.style.opacity = "0.2";
-        bat.style.animationDelay = (i * 6) + 's';
-        bat.innerHTML = '🦇';
-        document.body.appendChild(bat);
-    }
-}
-
-// 3. ระบบฟองอากาศ (Ocean)
-function createBubbles() {
-    for (let i = 0; i < 20; i++) {
-        const bubble = document.createElement('div');
-        bubble.className = 'ocean-bubble';
-        const size = Math.random() * 20 + 5 + 'px';
-        bubble.style.width = size;
-        bubble.style.height = size;
-        bubble.style.left = Math.random() * 100 + 'vw';
-        bubble.style.animationDuration = Math.random() * 5 + 5 + 's';
-        bubble.style.animationDelay = Math.random() * 5 + 's';
-        document.body.appendChild(bubble);
-    }
-}
-
-// 4. หน้าแรก (Welcome Screen)
-function selectInitialTheme(themeName) {
-    setTheme(themeName); 
-    document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
-    const targetCard = document.getElementById('card-' + themeName);
-    if(targetCard) targetCard.classList.add('active');
-
-    const btn = document.getElementById('btn-enter');
-    if(btn) {
-        btn.disabled = false;
-        btn.classList.add('ready', 'pulse-effect');
-    }
-}
-
-function enterWebsite() {
-    const screen = document.getElementById('welcome-screen');
-    if(screen) {
-        screen.style.transform = 'scale(1.1)';
-        screen.style.opacity = '0';
-        setTimeout(() => { screen.style.visibility = 'hidden'; }, 800);
-    }
-}
-
-// 5. เมื่อโหลดหน้าจอเสร็จ
-window.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('admin_selected_theme') || 'christmas';
-    setTheme(savedTheme);
-    initSnow(); 
-});
-
-/* --- ฟีเจอร์หิมะ (คงเดิม) --- */
-function initSnow() {
-    const canvas = document.getElementById('snowCanvas');
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let width, height, flakes = [];
-
-    function updateSize() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-    }
-
-    class Flake {
-        constructor() {
-            this.x = Math.random() * width;
-            this.y = Math.random() * height;
-            this.size = Math.random() * 3 + 1;
-            this.speed = Math.random() * 1 + 0.5;
-            this.velX = Math.random() * 0.5 - 0.25;
-        }
-        update() {
-            this.y += this.speed;
-            this.x += this.velX;
-            if (this.y > height) {
-                this.y = -10;
-                this.x = Math.random() * width;
-            }
-        }
-        draw() {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
-    for (let i = 0; i < 100; i++) flakes.push(new Flake());
-
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-        if (document.body.classList.contains('theme-christmas')) {
-            flakes.forEach(f => { f.update(); f.draw(); });
-        }
-        requestAnimationFrame(animate);
-    }
-
-    window.addEventListener('resize', updateSize);
-    updateSize();
-    animate();
-}       
-</script>
     <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
+        authDomain: "admin-rocket-live.firebaseapp.com",
+        databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "admin-rocket-live",
+        storageBucket: "admin-rocket-live.firebasestorage.app",
+        messagingSenderId: "875303528481",
+        appId: "1:875303528481:web:719af49939623d64225b60"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+      
+      /* --- ส่วนของ JavaScript (Theme, Halloween, etc.) --- */
+      
+      // ฟังก์ชันเปลี่ยนธีมและอื่นๆ (จากโค้ดเดิมของคุณ)
+      function setTheme(name) {
+        document.body.classList.remove('theme-christmas', 'theme-midnight', 'theme-ocean', 'theme-halloween');
+        document.body.classList.add('theme-' + name);
+        localStorage.setItem('admin_selected_theme', name);
+        document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.getElementById('btn-theme-' + name);
+        if(activeBtn) activeBtn.classList.add('active');
+        document.querySelectorAll('.spider-web-top, .bat-animation, .ocean-bubble, .halloween-extra').forEach(el => el.remove());
+        const snowCanvas = document.getElementById('snowCanvas');
+        if (snowCanvas) {
+            snowCanvas.style.display = (name === 'christmas') ? 'block' : 'none';
+        }
+        if (name === 'halloween') { initHalloweenSystem(); } 
+        else if (name === 'ocean') { createBubbles(); }
+        
+        if (typeof playSound === 'function') playSound('click');
+      }
+
+      function initHalloweenSystem() {
+           document.querySelectorAll('.halloween-extra').forEach(el => el.remove());
+           if (!document.querySelector('.spider-web-top')) {
+               const web = document.createElement('div');
+               web.className = 'spider-web-top halloween-extra';
+               web.style.zIndex = "1"; 
+               web.style.opacity = "0.2";
+               document.body.appendChild(web);
+           }
+           const ghostIcons = ['👻', '💀'];
+           for (let i = 0; i < 4; i++) {
+               const ghost = document.createElement('div');
+               ghost.className = 'halloween-extra';
+               ghost.innerHTML = ghostIcons[i % 2];
+               const side = Math.random() > 0.5 ? Math.random() * 15 : 85 + (Math.random() * 10);
+               ghost.style = `position: fixed; font-size: 2rem; opacity: 0.3; z-index: 1; pointer-events: none; top: ${Math.random() * 80 + 10}vh; left: ${side}vw; animation: ghostFloat ${6 + i}s infinite ease-in-out;`;
+               document.body.appendChild(ghost);
+           }
+           const spiderHang = document.createElement('div');
+           spiderHang.className = 'halloween-extra';
+           spiderHang.style = `position: fixed; top: 0; right: 5%; width: 1px; height: 100px; background: rgba(255,255,255,0.1); z-index: 1; animation: spiderHang 10s infinite ease-in-out;`;
+           spiderHang.innerHTML = '<div style="position:absolute; bottom:-20px; left:-14px; font-size:20px; opacity:0.4;">🕷️</div>';
+           document.body.appendChild(spiderHang);
+
+           for (let i = 0; i < 2; i++) {
+               const bat = document.createElement('div');
+               bat.className = 'bat-animation halloween-extra';
+               bat.style.zIndex = "1"; 
+               bat.style.opacity = "0.2";
+               bat.style.animationDelay = (i * 6) + 's';
+               bat.innerHTML = '🦇';
+               document.body.appendChild(bat);
+           }
+      }
+      
+      function createBubbles() {
+           for (let i = 0; i < 20; i++) {
+               const bubble = document.createElement('div');
+               bubble.className = 'ocean-bubble';
+               const size = Math.random() * 20 + 5 + 'px';
+               bubble.style.width = size;
+               bubble.style.height = size;
+               bubble.style.left = Math.random() * 100 + 'vw';
+               bubble.style.animationDuration = Math.random() * 5 + 5 + 's';
+               bubble.style.animationDelay = Math.random() * 5 + 's';
+               document.body.appendChild(bubble);
+           }
+      }
+
+      function selectInitialTheme(themeName) {
+           setTheme(themeName); 
+           document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
+           const targetCard = document.getElementById('card-' + themeName);
+           if(targetCard) targetCard.classList.add('active');
+           const btn = document.getElementById('btn-enter');
+           if(btn) {
+               btn.disabled = false;
+               btn.classList.add('ready', 'pulse-effect');
+           }
+      }
+
+      function enterWebsite() {
+           const screen = document.getElementById('welcome-screen');
+           if(screen) {
+               screen.style.transform = 'scale(1.1)';
+               screen.style.opacity = '0';
+               setTimeout(() => { screen.style.visibility = 'hidden'; }, 800);
+           }
+      }
+
+      function initSnow() {
+           const canvas = document.getElementById('snowCanvas');
+           if(!canvas) return;
+           const ctx = canvas.getContext('2d');
+           let width, height, flakes = [];
+           function updateSize() {
+               width = window.innerWidth;
+               height = window.innerHeight;
+               canvas.width = width;
+               canvas.height = height;
+           }
+           class Flake {
+               constructor() {
+                   this.x = Math.random() * width;
+                   this.y = Math.random() * height;
+                   this.size = Math.random() * 3 + 1;
+                   this.speed = Math.random() * 1 + 0.5;
+                   this.velX = Math.random() * 0.5 - 0.25;
+               }
+               update() {
+                   this.y += this.speed;
+                   this.x += this.velX;
+                   if (this.y > height) {
+                       this.y = -10;
+                       this.x = Math.random() * width;
+                   }
+               }
+               draw() {
+                   ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                   ctx.beginPath();
+                   ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                   ctx.fill();
+               }
+           }
+           for (let i = 0; i < 100; i++) flakes.push(new Flake());
+           function animate() {
+               ctx.clearRect(0, 0, width, height);
+               if (document.body.classList.contains('theme-christmas')) {
+                   flakes.forEach(f => { f.update(); f.draw(); });
+               }
+               requestAnimationFrame(animate);
+           }
+           window.addEventListener('resize', updateSize);
+           updateSize();
+           animate();
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('admin_selected_theme') || 'christmas';
+        setTheme(savedTheme);
+        initSnow(); 
+      });
+    </script>
+
+    <script src="script.js"></script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
