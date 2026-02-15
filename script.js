@@ -2398,3 +2398,102 @@ updateGlobalSummary = function() {
     originalUpdateSummary(); // ทำงานเดิม
     syncAdminSummary();      // ส่งข้อมูลขึ้นคลาวด์ให้แอดมินคนอื่นเห็น
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ==========================================
+// ส่วนจัดการระบบเครดิต (Customer Credit System)
+// ==========================================
+
+const creditRef = firebase.database().ref('credits');
+
+// ฟังก์ชันเปิด Modal และโหลดข้อมูล
+function openCreditModal() {
+    const modal = document.getElementById('creditModal');
+    if(modal) {
+        modal.style.display = 'flex';
+        loadCreditData(); // โหลดข้อมูลเมื่อเปิด
+    }
+}
+
+// ฟังก์ชันปิด Modal
+function closeCreditModal() {
+    const modal = document.getElementById('creditModal');
+    if(modal) modal.style.display = 'none';
+}
+
+// ฟังก์ชันเติมเครดิต (เพิ่มยอดทบไปกับของเดิม)
+function addCredit() {
+    const nameInput = document.getElementById('creditLineName');
+    const amountInput = document.getElementById('creditAmount');
+    
+    const name = nameInput.value.trim();
+    const amount = parseInt(amountInput.value);
+
+    if (!name || isNaN(amount)) {
+        alert("⚠️ กรุณากรอกชื่อและจำนวนเงินให้ถูกต้อง");
+        return;
+    }
+
+    // ดึงค่าเก่าก่อน แล้วบวกเพิ่ม
+    creditRef.child(name).once('value').then((snapshot) => {
+        const currentCredit = snapshot.val() || 0;
+        const newTotal = currentCredit + amount;
+
+        creditRef.child(name).set(newTotal).then(() => {
+            // แจ้งเตือนสำเร็จ (ใช้ alert หรือ toast ของคุณก็ได้)
+            alert(`✅ เติมเครดิตให้ ${name} เรียบร้อย!\nยอดเดิม: ${currentCredit.toLocaleString()}\nเติมเพิ่ม: ${amount.toLocaleString()}\nรวมเป็น: ${newTotal.toLocaleString()}`);
+            
+            // ล้างช่องกรอก
+            nameInput.value = '';
+            amountInput.value = '';
+        });
+    });
+}
+
+// ฟังก์ชันโหลดและแสดงผลตารางเครดิต (Real-time)
+function loadCreditData() {
+    creditRef.on('value', (snapshot) => {
+        const tbody = document.querySelector('#creditTable tbody');
+        if(!tbody) return;
+        
+        tbody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+        if (!snapshot.exists()) {
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:10px;">ยังไม่มีข้อมูลเครดิต</td></tr>';
+            return;
+        }
+
+        // แปลงข้อมูลเป็น Array เพื่อเรียงลำดับ (ยอดมากสุดขึ้นก่อน)
+        const data = [];
+        snapshot.forEach((child) => {
+            data.push({ name: child.key, credit: child.val() });
+        });
+
+        // เรียงจากมากไปน้อย
+        data.sort((a, b) => b.credit - a.credit);
+
+        // วนลูปแสดงผล
+        data.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+            tr.innerHTML = `
+                <td style="padding: 10px;">${item.name}</td>
+                <td style="padding: 10px; text-align: right; font-weight: bold; color: #4ade80;">
+                    ${item.credit.toLocaleString()}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+}
