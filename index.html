@@ -1085,6 +1085,12 @@
             <div id="total-profit-display" style="font-size: 1.8rem; font-weight: bold; color: var(--theme-accent);">฿0.00</div>
         </div>
         
+        <div class="info-card">
+            <h3><i class="fab fa-line"></i> ส่งข้อความ Line OA</h3>
+            <input type="text" id="lineName" placeholder="ชื่อใน Line OA" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:2.5px solid #cbd5e1; background:#e2e8f0;">
+            <textarea id="messageToSend" placeholder="ข้อความ..." style="width:100%; padding:10px; border-radius:10px; border:2.5px solid #cbd5e1; font-family:'Sarabun'; background:#e2e8f0;"></textarea>
+            <button onclick="sendMessageToLine()" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; background:#06c755; color:white; border:none; cursor:pointer; font-weight:bold;">ส่งข้อความ</button>
+        </div>
 
         <div class="info-card">
             <h3><i class="fas fa-info-circle"></i> วิธีคิดยอด</h3>
@@ -1344,36 +1350,9 @@ function initSnow() {
 }       
 </script>
 
-        <button onclick="openCreditModal()" class="btn-main" style="position:fixed; bottom:20px; left:20px; z-index:999;">
-        <i class="fas fa-wallet"></i> จัดการเครดิต
-    </button>
-    
-    <div id="creditModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center;">
-        <div style="background: white; padding: 25px; border-radius: 15px; width: 300px; text-align: center; box-shadow: 0 0 20px rgba(255,215,0,0.5);">
-            <h3 style="color:#333; margin-bottom:15px;">🏦 จัดการเครดิตลูกค้า</h3>
-            
-            <input type="text" id="creditName" placeholder="ระบุชื่อลูกค้า..." style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
-            
-            <input type="number" id="creditAmount" placeholder="จำนวนเครดิต (เช่น 1000)" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px;">
-            
-            <div style="display:flex; gap:10px; justify-content:center;">
-                <button onclick="manualAddCredit()" style="background:#0a4d34; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">
-                    <i class="fas fa-plus-circle"></i> เติมเครดิต
-                </button>
-                <button onclick="closeCreditModal()" style="background:#d42426; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">
-                    ปิด
-                </button>
-            </div>
-            <p id="creditStatus" style="margin-top:10px; font-size:0.9rem; color:green;"></p>
-        </div>
-    </div>
-
     <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
-
-
-
 
 
 
