@@ -718,7 +718,10 @@ function saveData() {
         table.querySelectorAll("tbody tr").forEach(r => {
             const cells = r.querySelectorAll("input");
             if (cells.length >= 3) {
-                rows.push([cells[0].value, cells[1].value, cells[2].value, (r.dataset.outcome || "")]);
+                const nameTds = r.querySelectorAll("td");
+                const chaserMarked = nameTds[0]?.querySelector('.btn-name-mark')?.classList.contains('active') ? 1 : 0;
+                const holderMarked = nameTds[2]?.querySelector('.btn-name-mark')?.classList.contains('active') ? 1 : 0;
+                rows.push([cells[0].value, cells[1].value, cells[2].value, (r.dataset.outcome || ""), chaserMarked, holderMarked]);
             }
         });
         data.push({ title, rows });
@@ -810,6 +813,89 @@ function loadData() {
 }
 
 // 3. ฟังก์ชันการทำงานของตาราง
+
+function injectNameMarkStyles() {
+    if (document.getElementById('name-mark-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'name-mark-styles';
+    style.textContent = `
+        .name-field-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .name-field-wrap input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .btn-name-mark {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border: 1px solid #84cc16;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #f8fafc, #e2e8f0);
+            color: #65a30d;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+            transition: all .18s ease;
+        }
+
+        .btn-name-mark:hover {
+            transform: translateY(-1px) scale(1.04);
+            box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+        }
+
+        .btn-name-mark.active {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fde68a, #f59e0b);
+            color: #7c2d12;
+            box-shadow: 0 10px 20px rgba(245,158,11,0.28);
+        }
+
+        .name-input-marked {
+            background: linear-gradient(135deg, rgba(254,240,138,0.65), rgba(253,224,71,0.30));
+            border-color: #f59e0b !important;
+            color: #92400e !important;
+            font-weight: 800;
+            box-shadow: inset 0 0 0 1px rgba(245,158,11,0.22), 0 6px 16px rgba(245,158,11,0.08);
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function createNameCellHtml(value = "", marked = false) {
+    return `
+        <td>
+            <div class="name-field-wrap">
+                <button type="button" class="btn-name-mark ${marked ? 'active' : ''}" onclick="toggleNameMark(this)" title="กาทับชื่อนี้">
+                    <i class="fas fa-check"></i>
+                </button>
+                <input type="text" value="${value}" oninput="saveData()" class="${marked ? 'name-input-marked' : ''}">
+            </div>
+        </td>`;
+}
+
+function toggleNameMark(btn) {
+    playSound('click');
+    const wrap = btn.closest('.name-field-wrap');
+    const input = wrap ? wrap.querySelector('input') : null;
+    const isActive = btn.classList.toggle('active');
+
+    if (input) {
+        input.classList.toggle('name-input-marked', isActive);
+    }
+
+    saveData();
+}
+
 // 3. ฟังก์ชันการทำงานของตาราง (ฉบับแก้ไขตำแหน่ง Sidebar)
 function addTable(title = "", rows = null, isSilent = false) {
     if(!isSilent) playSound('woosh');
@@ -825,11 +911,13 @@ function addTable(title = "", rows = null, isSilent = false) {
     newTableWrapper.style.opacity = '0';
     newTableWrapper.style.transform = 'translateY(20px)';
 
-    const generateRowHtml = (r = ["", "", "", ""]) => `
+    injectNameMarkStyles();
+
+    const generateRowHtml = (r = ["", "", "", "", 0, 0]) => `
         <tr data-outcome="${r[3] || ''}">
-            <td><input type="text" value="${r[0]}" oninput="saveData()"></td>
+            ${createNameCellHtml(r[0], !!r[4])}
             <td><input type="text" value="${r[1]}" oninput="saveData()" style="color:#2e7d32;"></td>
-            <td><input type="text" value="${r[2]}" oninput="saveData()"></td>
+            ${createNameCellHtml(r[2], !!r[5])}
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
@@ -888,10 +976,11 @@ function addRow(table) {
     const tbody = table.querySelector("tbody");
     const tr = document.createElement("tr");
     tr.dataset.outcome = "";
+    injectNameMarkStyles();
     tr.innerHTML = `
-        <td><input type="text" oninput="saveData()"></td>
+        ${createNameCellHtml("", false)}
         <td><input type="text" oninput="saveData()" style="color:#2e7d32;"></td>
-        <td><input type="text" oninput="saveData()"></td>
+        ${createNameCellHtml("", false)}
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
     tbody.appendChild(tr);
     saveData();
