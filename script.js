@@ -657,6 +657,7 @@ let currentModalKeyHandler = null;
 let isProcessingModal = false; // ป้องกันปิดยอดเบิ้ล
 let isRestoring = false;      // ป้องกันกู้คืนเบิ้ล
 let closedCampCount = 0; // ✅ จำนวนค่ายที่ปิดยอดแล้ว
+let selectedHotkeyTable = null; // ตารางที่ถูกเลือกไว้สำหรับคีย์ลัด Q / E
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -804,6 +805,7 @@ function pushToRealtime() {
 
 
 function loadData() {
+    selectedHotkeyTable = null;
     const raw = localStorage.getItem("savedTables");
     if (!raw) return;
     const data = JSON.parse(raw);
@@ -813,6 +815,157 @@ function loadData() {
 }
 
 // 3. ฟังก์ชันการทำงานของตาราง
+
+function injectHotkeyTableStyles() {
+    if (document.getElementById('hotkey-table-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'hotkey-table-styles';
+    style.textContent = `
+        .table-container.hotkey-table-selected {
+            position: relative;
+            border: 2px solid #38bdf8 !important;
+            box-shadow: 0 0 0 4px rgba(56,189,248,0.16), 0 18px 40px rgba(14,165,233,0.18) !important;
+        }
+
+        .table-container.hotkey-table-selected::after {
+            content: "⌨️ ตารางนี้ใช้คีย์ลัด Q / E";
+            position: absolute;
+            top: -12px;
+            left: 18px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #075985;
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border: 1px solid rgba(14,165,233,0.28);
+            box-shadow: 0 8px 18px rgba(14,165,233,0.18);
+            z-index: 5;
+        }
+
+        .btn-hotkey-table {
+            border: 1px solid #38bdf8;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 800;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f8fafc, #e0f2fe);
+            color: #0f172a;
+            box-shadow: 0 8px 16px rgba(15,23,42,0.08);
+            transition: all .18s ease;
+        }
+
+        .btn-hotkey-table:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 22px rgba(14,165,233,0.14);
+        }
+
+        .btn-hotkey-table.active {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            color: #ffffff;
+            border-color: #0284c7;
+            box-shadow: 0 14px 28px rgba(37,99,235,0.24);
+        }
+
+        .btn-name-mark.hotkey-flash,
+        .name-input-marked.hotkey-flash {
+            animation: hotkeyFlash .45s ease;
+        }
+
+        @keyframes hotkeyFlash {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function setSelectedHotkeyTable(btn) {
+    const tableWrapper = btn.closest('.table-container');
+    if (!tableWrapper) return;
+
+    injectHotkeyTableStyles();
+
+    document.querySelectorAll('.table-container.hotkey-table-selected').forEach(el => {
+        if (el !== tableWrapper) el.classList.remove('hotkey-table-selected');
+    });
+    document.querySelectorAll('.btn-hotkey-table.active').forEach(el => {
+        if (el !== btn) {
+            el.classList.remove('active');
+            el.innerHTML = '⌨️ ใช้คีย์ลัด';
+        }
+    });
+
+    const isAlreadySelected = selectedHotkeyTable === tableWrapper;
+    if (isAlreadySelected) {
+        tableWrapper.classList.remove('hotkey-table-selected');
+        btn.classList.remove('active');
+        btn.innerHTML = '⌨️ ใช้คีย์ลัด';
+        selectedHotkeyTable = null;
+        toastRateLimited('ปิดการใช้คีย์ลัดของตารางนี้แล้ว', 'info');
+        return;
+    }
+
+    selectedHotkeyTable = tableWrapper;
+    tableWrapper.classList.add('hotkey-table-selected');
+    btn.classList.add('active');
+    btn.innerHTML = '⌨️ ใช้งานอยู่';
+    toastRateLimited('เลือกตารางนี้แล้ว: กด Q = คนไล่, E = คนยั้ง', 'success');
+}
+
+function flashMarkedByHotkey(btn, input) {
+    if (btn) {
+        btn.classList.add('hotkey-flash');
+        setTimeout(() => btn.classList.remove('hotkey-flash'), 450);
+    }
+    if (input) {
+        input.classList.add('hotkey-flash');
+        setTimeout(() => input.classList.remove('hotkey-flash'), 450);
+    }
+}
+
+function markNextNameInSelectedTable(side) {
+    if (!selectedHotkeyTable || !document.body.contains(selectedHotkeyTable)) {
+        selectedHotkeyTable = null;
+        toastRateLimited('กรุณาเลือกตารางก่อนใช้คีย์ลัด', 'warning');
+        return;
+    }
+
+    const colIndex = side === 'chaser' ? 0 : 2;
+    const sideLabel = side === 'chaser' ? 'คนไล่' : 'คนยั้ง';
+    const rows = Array.from(selectedHotkeyTable.querySelectorAll('tbody tr'));
+
+    const targetRow = rows.find(tr => {
+        const tds = tr.querySelectorAll('td');
+        const td = tds[colIndex];
+        if (!td) return false;
+        const input = td.querySelector('input');
+        const btn = td.querySelector('.btn-name-mark');
+        if (!input || !btn) return false;
+        if (!input.value.trim()) return false;
+        return !btn.classList.contains('active');
+    });
+
+    if (!targetRow) {
+        toastRateLimited(`${sideLabel} ของตารางนี้ติ๊กครบแล้ว`, 'info');
+        return;
+    }
+
+    const td = targetRow.querySelectorAll('td')[colIndex];
+    const input = td.querySelector('input');
+    const btn = td.querySelector('.btn-name-mark');
+
+    if (!btn.classList.contains('active')) {
+        btn.classList.add('active');
+        input.classList.add('name-input-marked');
+        flashMarkedByHotkey(btn, input);
+        playSound('click');
+        saveData();
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
 
 function injectNameMarkStyles() {
     if (document.getElementById('name-mark-styles')) return;
@@ -912,6 +1065,7 @@ function addTable(title = "", rows = null, isSilent = false) {
     newTableWrapper.style.transform = 'translateY(20px)';
 
     injectNameMarkStyles();
+    injectHotkeyTableStyles();
 
     const generateRowHtml = (r = ["", "", "", "", 0, 0]) => `
         <tr data-outcome="${r[3] || ''}">
@@ -926,9 +1080,12 @@ function addTable(title = "", rows = null, isSilent = false) {
     // โครงสร้าง HTML: แบ่งฝั่งตาราง และ Sidebar (เลื่อนรายการลงมา 45px เพื่อให้ตรงกับแถวแรก)
     newTableWrapper.innerHTML = `
         <div class="table-main-content" style="flex: 1;">
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; gap:10px; flex-wrap:wrap;">
                 <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
-                <button class="btn-close-table" onclick="removeTable(this)" style="position:static;"><i class="fas fa-times"></i></button>
+                <div style="display:flex; gap:8px; align-items:center; margin-left:auto;">
+                    <button type="button" class="btn-hotkey-table" onclick="setSelectedHotkeyTable(this)" title="เลือกตารางนี้เพื่อใช้คีย์ลัด Q และ E">⌨️ ใช้คีย์ลัด</button>
+                    <button class="btn-close-table" onclick="removeTable(this)" style="position:static;"><i class="fas fa-times"></i></button>
+                </div>
             </div>
             <input type="text" class="table-title-input" value="${title}" placeholder="ชื่อค่าย..." oninput="saveData()" style="width: 80%;">
             <table class="custom-table">
@@ -1394,6 +1551,9 @@ function removeTable(button) {
         closedCampCount++;                 // ✅ นับค่ายที่ปิดยอด
         updateClosedCampDisplay();         // ✅ อัปเดต Dashboard
         
+        if (selectedHotkeyTable === tableContainer) {
+            selectedHotkeyTable = null;
+        }
         tableContainer.remove();
         playSound('chime');
         
@@ -1424,6 +1584,23 @@ function restoreLastDeleted() {
 
 
 function handleGlobalKeyDown(e) {
+    const isTypingTarget = e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable;
+    const modalActive = document.getElementById('custom-modal')?.classList.contains('active');
+
+    if (!modalActive && !isTypingTarget && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat) {
+        const key = e.key.toLowerCase();
+        if (key === 'q') {
+            e.preventDefault();
+            markNextNameInSelectedTable('chaser');
+            return;
+        }
+        if (key === 'e') {
+            e.preventDefault();
+            markNextNameInSelectedTable('holder');
+            return;
+        }
+    }
+
     if (e.target.tagName !== "INPUT") return;
     const currentInput = e.target;
     const currentTr = currentInput.closest('tr');
