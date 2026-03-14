@@ -1227,6 +1227,18 @@ function getNormalizedNamesFromRow(row) {
     )];
 }
 
+function getNameInputBySide(row, side) {
+    if (!row) return null;
+    const inputs = row.querySelectorAll('input');
+    if (side === 'holder') return inputs[2] || null;
+    return inputs[0] || null;
+}
+
+function getNormalizedNameBySide(row, side) {
+    const input = getNameInputBySide(row, side);
+    return input ? normalizeDuplicateName(input.value) : '';
+}
+
 function flashDuplicateMove(tr) {
     if (!tr) return;
     tr.classList.remove('duplicate-row-moved');
@@ -1235,24 +1247,7 @@ function flashDuplicateMove(tr) {
     setTimeout(() => tr.classList.remove('duplicate-row-moved'), 900);
 }
 
-function getLatestAnchorRow(tbody, rows) {
-    if (!tbody || !rows || rows.length === 0) return null;
-    const currentRows = Array.from(tbody.querySelectorAll('tr'));
-    let latestRow = null;
-    let latestIndex = -1;
-
-    rows.forEach(row => {
-        const index = currentRows.indexOf(row);
-        if (index > latestIndex) {
-            latestIndex = index;
-            latestRow = row;
-        }
-    });
-
-    return latestRow;
-}
-
-function sortDuplicateRowsInTable(tableWrapper) {
+function sortDuplicateRowsInTableBySide(tableWrapper, side) {
     const tbody = tableWrapper ? tableWrapper.querySelector('tbody') : null;
     if (!tbody) return 0;
 
@@ -1261,41 +1256,36 @@ function sortDuplicateRowsInTable(tableWrapper) {
     let movedCount = 0;
 
     originalRows.forEach(row => {
-        const namesInRow = getNormalizedNamesFromRow(row);
-        if (!namesInRow.length) return;
+        const name = getNormalizedNameBySide(row, side);
+        if (!name) return;
 
-        const anchorRows = namesInRow
-            .map(name => lastRowByName[name])
-            .filter(anchor => anchor && anchor !== row);
-
-        const targetAnchor = getLatestAnchorRow(tbody, anchorRows);
-
-        if (targetAnchor && targetAnchor.nextElementSibling !== row) {
-            tbody.insertBefore(row, targetAnchor.nextElementSibling);
+        const anchorRow = lastRowByName[name];
+        if (anchorRow && anchorRow !== row && anchorRow.nextElementSibling !== row) {
+            tbody.insertBefore(row, anchorRow.nextElementSibling);
             flashDuplicateMove(row);
             movedCount++;
         }
 
-        namesInRow.forEach(name => {
-            lastRowByName[name] = row;
-        });
+        lastRowByName[name] = row;
     });
 
     return movedCount;
 }
 
-function sortDuplicateNamesInTable(btn) {
+function sortDuplicateNamesBySide(btn, side) {
     playSound('click');
     const tableWrapper = btn ? btn.closest('.table-container') : null;
     if (!tableWrapper) return;
 
-    const movedCount = sortDuplicateRowsInTable(tableWrapper);
+    const movedCount = sortDuplicateRowsInTableBySide(tableWrapper, side);
     saveData();
 
+    const sideLabel = side === 'holder' ? 'คนยั้ง' : 'คนไล่';
+
     if (movedCount > 0) {
-        toastRateLimited(`เรียงชื่อซ้ำเป็นกลุ่มแล้ว ${movedCount} แถว`, 'success');
+        toastRateLimited(`เรียง${sideLabel}ที่ชื่อซ้ำเป็นกลุ่มแล้ว ${movedCount} แถว`, 'success');
     } else {
-        toastRateLimited('ตารางนี้ยังไม่มีชื่อซ้ำที่ต้องเรียง', 'info');
+        toastRateLimited(`ฝั่ง${sideLabel}ยังไม่มีชื่อซ้ำที่ต้องเรียง`, 'info');
     }
 }
 
@@ -1346,8 +1336,11 @@ function addTable(title = "", rows = null, isSilent = false) {
             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; gap:10px; flex-wrap:wrap;">
                 <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
                 <div style="display:flex; gap:8px; align-items:center; margin-left:auto; flex-wrap:wrap; justify-content:flex-end;">
-                    <button type="button" class="btn-hotkey-table" onclick="sortDuplicateNamesInTable(this)" title="กดเพื่อจัดกลุ่มชื่อซ้ำให้มาอยู่ต่อท้ายกัน">
-                        <i class="fas fa-arrow-down-a-z"></i> เรียงชื่อ
+                    <button type="button" class="btn-hotkey-table" onclick="sortDuplicateNamesBySide(this, 'chaser')" title="กดเพื่อจัดกลุ่มชื่อซ้ำเฉพาะฝั่งคนไล่">
+                        <i class="fas fa-arrow-down-a-z"></i> คนไล่
+                    </button>
+                    <button type="button" class="btn-hotkey-table" onclick="sortDuplicateNamesBySide(this, 'holder')" title="กดเพื่อจัดกลุ่มชื่อซ้ำเฉพาะฝั่งคนยั้ง">
+                        <i class="fas fa-arrow-down-a-z"></i> คนยั้ง
                     </button>
                     <button type="button" class="btn-hotkey-table" onclick="setSelectedHotkeyTable(this)" title="เลือกตารางนี้เพื่อใช้คีย์ลัด Q และ E">⌨️ ใช้คีย์ลัด</button>
                     <button class="btn-close-table" onclick="removeTable(this)" style="position:static;"><i class="fas fa-times"></i></button>
