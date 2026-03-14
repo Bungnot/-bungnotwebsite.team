@@ -908,7 +908,6 @@ function saveData() {
 
     updateNameSummary(); // <--- เพิ่มบรรทัดนี้
     updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
-    updateDuplicateNameBadges();
 
         // ✅ เพิ่มบรรทัดนี้
   //  updateBungAndCampSummary();
@@ -1159,33 +1158,6 @@ function injectNameMarkStyles() {
             min-width: 0;
         }
 
-        .name-repeat-badge {
-            min-width: 34px;
-            height: 26px;
-            padding: 0 8px;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.74rem;
-            font-weight: 800;
-            color: #1d4ed8;
-            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-            border: 1px solid rgba(59,130,246,0.30);
-            box-shadow: 0 6px 14px rgba(59,130,246,0.10);
-            white-space: nowrap;
-        }
-
-        .duplicate-row-moved td {
-            animation: duplicateRowMovedFlash .75s ease;
-        }
-
-        @keyframes duplicateRowMovedFlash {
-            0% { transform: scale(1); box-shadow: inset 0 0 0 rgba(59,130,246,0); }
-            35% { transform: scale(1.01); box-shadow: inset 0 0 0 999px rgba(191,219,254,0.55); }
-            100% { transform: scale(1); box-shadow: inset 0 0 0 rgba(59,130,246,0); }
-        }
-
         .btn-name-mark {
             width: 28px;
             height: 28px;
@@ -1225,14 +1197,14 @@ function injectNameMarkStyles() {
     document.head.appendChild(style);
 }
 
-function createNameCellHtml(value = "", marked = false, role = "") {
+function createNameCellHtml(value = "", marked = false) {
     return `
         <td>
             <div class="name-field-wrap">
                 <button type="button" class="btn-name-mark ${marked ? 'active' : ''}" onclick="toggleNameMark(this)" title="กาทับชื่อนี้">
                     <i class="fas fa-check"></i>
                 </button>
-                <input type="text" value="${value}" data-name-role="${role}" oninput="handleNameInput(this)" class="${marked ? 'name-input-marked' : ''}">
+                <input type="text" value="${value}" oninput="saveData()" class="${marked ? 'name-input-marked' : ''}">
             </div>
         </td>`;
 }
@@ -1243,15 +1215,16 @@ function normalizeDuplicateName(value) {
 
 function getNameInputsFromRow(row) {
     if (!row) return [];
-    return Array.from(row.querySelectorAll('input[data-name-role]'));
+    const cells = row.querySelectorAll('input');
+    return [cells[0], cells[2]].filter(Boolean);
 }
 
-function rowContainsDuplicateName(row, normalizedName, excludeInput = null) {
-    if (!row || !normalizedName) return false;
-    return getNameInputsFromRow(row).some(input => {
-        if (excludeInput && input === excludeInput) return false;
-        return normalizeDuplicateName(input.value) === normalizedName;
-    });
+function getNormalizedNamesFromRow(row) {
+    return [...new Set(
+        getNameInputsFromRow(row)
+            .map(input => normalizeDuplicateName(input.value))
+            .filter(Boolean)
+    )];
 }
 
 function flashDuplicateMove(tr) {
@@ -1262,36 +1235,68 @@ function flashDuplicateMove(tr) {
     setTimeout(() => tr.classList.remove('duplicate-row-moved'), 900);
 }
 
-function moveRowToDuplicateGroup(inputEl) {
-    const currentTr = inputEl ? inputEl.closest('tr') : null;
-    const tbody = currentTr ? currentTr.parentElement : null;
-    const normalizedName = normalizeDuplicateName(inputEl ? inputEl.value : "");
-    if (!currentTr || !tbody || !normalizedName) return;
+function getLatestAnchorRow(tbody, rows) {
+    if (!tbody || !rows || rows.length === 0) return null;
+    const currentRows = Array.from(tbody.querySelectorAll('tr'));
+    let latestRow = null;
+    let latestIndex = -1;
 
-    const matchedRows = Array.from(tbody.querySelectorAll('tr')).filter(row => {
-        if (row === currentTr) return false;
-        return rowContainsDuplicateName(row, normalizedName, inputEl);
+    rows.forEach(row => {
+        const index = currentRows.indexOf(row);
+        if (index > latestIndex) {
+            latestIndex = index;
+            latestRow = row;
+        }
     });
 
-    if (matchedRows.length === 0) return;
-
-    const lastMatchedRow = matchedRows[matchedRows.length - 1];
-    if (!lastMatchedRow || lastMatchedRow.nextElementSibling === currentTr) return;
-
-    tbody.insertBefore(currentTr, lastMatchedRow.nextElementSibling);
-    flashDuplicateMove(currentTr);
+    return latestRow;
 }
 
-function updateDuplicateNameBadges(scope = null) {
-    // เวอร์ชันนี้ไม่แสดงเลข #1 #2 #3 แล้ว
-    // ใช้เฉพาะการเด้งแถวไปต่อท้ายกลุ่มชื่อซ้ำอัตโนมัติ
-    return;
+function sortDuplicateRowsInTable(tableWrapper) {
+    const tbody = tableWrapper ? tableWrapper.querySelector('tbody') : null;
+    if (!tbody) return 0;
+
+    const originalRows = Array.from(tbody.querySelectorAll('tr'));
+    const lastRowByName = {};
+    let movedCount = 0;
+
+    originalRows.forEach(row => {
+        const namesInRow = getNormalizedNamesFromRow(row);
+        if (!namesInRow.length) return;
+
+        const anchorRows = namesInRow
+            .map(name => lastRowByName[name])
+            .filter(anchor => anchor && anchor !== row);
+
+        const targetAnchor = getLatestAnchorRow(tbody, anchorRows);
+
+        if (targetAnchor && targetAnchor.nextElementSibling !== row) {
+            tbody.insertBefore(row, targetAnchor.nextElementSibling);
+            flashDuplicateMove(row);
+            movedCount++;
+        }
+
+        namesInRow.forEach(name => {
+            lastRowByName[name] = row;
+        });
+    });
+
+    return movedCount;
 }
 
-function handleNameInput(inputEl) {
-    document.querySelectorAll('.name-repeat-badge').forEach(el => el.remove());
-    moveRowToDuplicateGroup(inputEl);
+function sortDuplicateNamesInTable(btn) {
+    playSound('click');
+    const tableWrapper = btn ? btn.closest('.table-container') : null;
+    if (!tableWrapper) return;
+
+    const movedCount = sortDuplicateRowsInTable(tableWrapper);
     saveData();
+
+    if (movedCount > 0) {
+        toastRateLimited(`เรียงชื่อซ้ำเป็นกลุ่มแล้ว ${movedCount} แถว`, 'success');
+    } else {
+        toastRateLimited('ตารางนี้ยังไม่มีชื่อซ้ำที่ต้องเรียง', 'info');
+    }
 }
 
 function toggleNameMark(btn) {
@@ -1327,9 +1332,9 @@ function addTable(title = "", rows = null, isSilent = false) {
 
     const generateRowHtml = (r = ["", "", "", "", 0, 0]) => `
         <tr data-outcome="${r[3] || ''}">
-            ${createNameCellHtml(r[0], !!r[4], 'chaser')}
+            ${createNameCellHtml(r[0], !!r[4])}
             <td><input type="text" value="${r[1]}" oninput="saveData()" style="color:#2e7d32;"></td>
-            ${createNameCellHtml(r[2], !!r[5], 'holder')}
+            ${createNameCellHtml(r[2], !!r[5])}
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
@@ -1340,7 +1345,10 @@ function addTable(title = "", rows = null, isSilent = false) {
         <div class="table-main-content" style="flex: 1;">
             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; gap:10px; flex-wrap:wrap;">
                 <span class="profit-badge-live" style="color:white; padding:4px 12px; border-radius:20px; font-weight:bold;">฿0.00</span>
-                <div style="display:flex; gap:8px; align-items:center; margin-left:auto;">
+                <div style="display:flex; gap:8px; align-items:center; margin-left:auto; flex-wrap:wrap; justify-content:flex-end;">
+                    <button type="button" class="btn-hotkey-table" onclick="sortDuplicateNamesInTable(this)" title="กดเพื่อจัดกลุ่มชื่อซ้ำให้มาอยู่ต่อท้ายกัน">
+                        <i class="fas fa-arrow-down-a-z"></i> เรียงชื่อ
+                    </button>
                     <button type="button" class="btn-hotkey-table" onclick="setSelectedHotkeyTable(this)" title="เลือกตารางนี้เพื่อใช้คีย์ลัด Q และ E">⌨️ ใช้คีย์ลัด</button>
                     <button class="btn-close-table" onclick="removeTable(this)" style="position:static;"><i class="fas fa-times"></i></button>
                 </div>
@@ -1393,9 +1401,9 @@ function addRow(table) {
     tr.dataset.outcome = "";
     injectNameMarkStyles();
     tr.innerHTML = `
-        ${createNameCellHtml("", false, 'chaser')}
+        ${createNameCellHtml("", false)}
         <td><input type="text" oninput="saveData()" style="color:#2e7d32;"></td>
-        ${createNameCellHtml("", false, 'holder')}
+        ${createNameCellHtml("", false)}
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
     tbody.appendChild(tr);
     saveData();
