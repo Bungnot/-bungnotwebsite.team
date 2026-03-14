@@ -908,6 +908,7 @@ function saveData() {
 
     updateNameSummary(); // <--- เพิ่มบรรทัดนี้
     updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
+    updateDuplicateNameBadges();
 
         // ✅ เพิ่มบรรทัดนี้
   //  updateBungAndCampSummary();
@@ -1158,6 +1159,33 @@ function injectNameMarkStyles() {
             min-width: 0;
         }
 
+        .name-repeat-badge {
+            min-width: 34px;
+            height: 26px;
+            padding: 0 8px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.74rem;
+            font-weight: 800;
+            color: #1d4ed8;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border: 1px solid rgba(59,130,246,0.30);
+            box-shadow: 0 6px 14px rgba(59,130,246,0.10);
+            white-space: nowrap;
+        }
+
+        .duplicate-row-moved td {
+            animation: duplicateRowMovedFlash .75s ease;
+        }
+
+        @keyframes duplicateRowMovedFlash {
+            0% { transform: scale(1); box-shadow: inset 0 0 0 rgba(59,130,246,0); }
+            35% { transform: scale(1.01); box-shadow: inset 0 0 0 999px rgba(191,219,254,0.55); }
+            100% { transform: scale(1); box-shadow: inset 0 0 0 rgba(59,130,246,0); }
+        }
+
         .btn-name-mark {
             width: 28px;
             height: 28px;
@@ -1197,16 +1225,118 @@ function injectNameMarkStyles() {
     document.head.appendChild(style);
 }
 
-function createNameCellHtml(value = "", marked = false) {
+function createNameCellHtml(value = "", marked = false, role = "") {
     return `
         <td>
             <div class="name-field-wrap">
                 <button type="button" class="btn-name-mark ${marked ? 'active' : ''}" onclick="toggleNameMark(this)" title="กาทับชื่อนี้">
                     <i class="fas fa-check"></i>
                 </button>
-                <input type="text" value="${value}" oninput="saveData()" class="${marked ? 'name-input-marked' : ''}">
+                <input type="text" value="${value}" data-name-role="${role}" oninput="handleNameInput(this)" class="${marked ? 'name-input-marked' : ''}">
+                <span class="name-repeat-badge" style="display:none;"></span>
             </div>
         </td>`;
+}
+
+function normalizeDuplicateName(value) {
+    return (value || "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function getNameInputsFromRow(row) {
+    if (!row) return [];
+    return Array.from(row.querySelectorAll('input[data-name-role]'));
+}
+
+function rowContainsDuplicateName(row, normalizedName, excludeInput = null) {
+    if (!row || !normalizedName) return false;
+    return getNameInputsFromRow(row).some(input => {
+        if (excludeInput && input === excludeInput) return false;
+        return normalizeDuplicateName(input.value) === normalizedName;
+    });
+}
+
+function flashDuplicateMove(tr) {
+    if (!tr) return;
+    tr.classList.remove('duplicate-row-moved');
+    void tr.offsetWidth;
+    tr.classList.add('duplicate-row-moved');
+    setTimeout(() => tr.classList.remove('duplicate-row-moved'), 900);
+}
+
+function moveRowToDuplicateGroup(inputEl) {
+    const currentTr = inputEl ? inputEl.closest('tr') : null;
+    const tbody = currentTr ? currentTr.parentElement : null;
+    const normalizedName = normalizeDuplicateName(inputEl ? inputEl.value : "");
+    if (!currentTr || !tbody || !normalizedName) return;
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const currentIndex = rows.indexOf(currentTr);
+    if (currentIndex === -1) return;
+
+    let hasPreviousMatch = false;
+    let lastMatchedRow = null;
+
+    rows.forEach((row, index) => {
+        if (row === currentTr) return;
+        if (!rowContainsDuplicateName(row, normalizedName, inputEl)) return;
+        if (index < currentIndex) hasPreviousMatch = true;
+        if (hasPreviousMatch) lastMatchedRow = row;
+    });
+
+    if (!hasPreviousMatch || !lastMatchedRow) return;
+    if (lastMatchedRow.nextElementSibling === currentTr) return;
+
+    tbody.insertBefore(currentTr, lastMatchedRow.nextElementSibling);
+    flashDuplicateMove(currentTr);
+}
+
+function updateDuplicateNameBadges(scope = null) {
+    const tables = scope && scope.classList && scope.classList.contains('table-container')
+        ? [scope]
+        : Array.from(document.querySelectorAll('.table-container'));
+
+    tables.forEach(table => {
+        const counts = {};
+        const sequence = {};
+        const nameInputs = Array.from(table.querySelectorAll('input[data-name-role]'));
+
+        nameInputs.forEach(input => {
+            const normalizedName = normalizeDuplicateName(input.value);
+            if (!normalizedName) return;
+            counts[normalizedName] = (counts[normalizedName] || 0) + 1;
+        });
+
+        nameInputs.forEach(input => {
+            const wrap = input.closest('.name-field-wrap');
+            if (!wrap) return;
+
+            let badge = wrap.querySelector('.name-repeat-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'name-repeat-badge';
+                wrap.appendChild(badge);
+            }
+
+            const normalizedName = normalizeDuplicateName(input.value);
+            if (!normalizedName || (counts[normalizedName] || 0) <= 1) {
+                badge.style.display = 'none';
+                badge.textContent = '';
+                badge.title = '';
+                return;
+            }
+
+            sequence[normalizedName] = (sequence[normalizedName] || 0) + 1;
+            badge.style.display = 'inline-flex';
+            badge.textContent = `#${sequence[normalizedName]}`;
+            badge.title = `${input.value.trim()} ซ้ำ ${counts[normalizedName]} ครั้ง`;
+        });
+    });
+}
+
+function handleNameInput(inputEl) {
+    moveRowToDuplicateGroup(inputEl);
+    updateDuplicateNameBadges(inputEl.closest('.table-container'));
+    saveData();
 }
 
 function toggleNameMark(btn) {
@@ -1242,9 +1372,9 @@ function addTable(title = "", rows = null, isSilent = false) {
 
     const generateRowHtml = (r = ["", "", "", "", 0, 0]) => `
         <tr data-outcome="${r[3] || ''}">
-            ${createNameCellHtml(r[0], !!r[4])}
+            ${createNameCellHtml(r[0], !!r[4], 'chaser')}
             <td><input type="text" value="${r[1]}" oninput="saveData()" style="color:#2e7d32;"></td>
-            ${createNameCellHtml(r[2], !!r[5])}
+            ${createNameCellHtml(r[2], !!r[5], 'holder')}
             <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>
         </tr>`;
 
@@ -1308,9 +1438,9 @@ function addRow(table) {
     tr.dataset.outcome = "";
     injectNameMarkStyles();
     tr.innerHTML = `
-        ${createNameCellHtml("", false)}
+        ${createNameCellHtml("", false, 'chaser')}
         <td><input type="text" oninput="saveData()" style="color:#2e7d32;"></td>
-        ${createNameCellHtml("", false)}
+        ${createNameCellHtml("", false, 'holder')}
         <td><button class="btn-remove-row" onclick="removeRow(this)"><i class="fas fa-trash-alt"></i></button></td>`;
     tbody.appendChild(tr);
     saveData();
