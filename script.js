@@ -1233,7 +1233,6 @@ function createNameCellHtml(value = "", marked = false, role = "") {
                     <i class="fas fa-check"></i>
                 </button>
                 <input type="text" value="${value}" data-name-role="${role}" oninput="handleNameInput(this)" class="${marked ? 'name-input-marked' : ''}">
-                <span class="name-repeat-badge" style="display:none;"></span>
             </div>
         </td>`;
 }
@@ -1269,73 +1268,29 @@ function moveRowToDuplicateGroup(inputEl) {
     const normalizedName = normalizeDuplicateName(inputEl ? inputEl.value : "");
     if (!currentTr || !tbody || !normalizedName) return;
 
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    const currentIndex = rows.indexOf(currentTr);
-    if (currentIndex === -1) return;
-
-    let hasPreviousMatch = false;
-    let lastMatchedRow = null;
-
-    rows.forEach((row, index) => {
-        if (row === currentTr) return;
-        if (!rowContainsDuplicateName(row, normalizedName, inputEl)) return;
-        if (index < currentIndex) hasPreviousMatch = true;
-        if (hasPreviousMatch) lastMatchedRow = row;
+    const matchedRows = Array.from(tbody.querySelectorAll('tr')).filter(row => {
+        if (row === currentTr) return false;
+        return rowContainsDuplicateName(row, normalizedName, inputEl);
     });
 
-    if (!hasPreviousMatch || !lastMatchedRow) return;
-    if (lastMatchedRow.nextElementSibling === currentTr) return;
+    if (matchedRows.length === 0) return;
+
+    const lastMatchedRow = matchedRows[matchedRows.length - 1];
+    if (!lastMatchedRow || lastMatchedRow.nextElementSibling === currentTr) return;
 
     tbody.insertBefore(currentTr, lastMatchedRow.nextElementSibling);
     flashDuplicateMove(currentTr);
 }
 
 function updateDuplicateNameBadges(scope = null) {
-    const tables = scope && scope.classList && scope.classList.contains('table-container')
-        ? [scope]
-        : Array.from(document.querySelectorAll('.table-container'));
-
-    tables.forEach(table => {
-        const counts = {};
-        const sequence = {};
-        const nameInputs = Array.from(table.querySelectorAll('input[data-name-role]'));
-
-        nameInputs.forEach(input => {
-            const normalizedName = normalizeDuplicateName(input.value);
-            if (!normalizedName) return;
-            counts[normalizedName] = (counts[normalizedName] || 0) + 1;
-        });
-
-        nameInputs.forEach(input => {
-            const wrap = input.closest('.name-field-wrap');
-            if (!wrap) return;
-
-            let badge = wrap.querySelector('.name-repeat-badge');
-            if (!badge) {
-                badge = document.createElement('span');
-                badge.className = 'name-repeat-badge';
-                wrap.appendChild(badge);
-            }
-
-            const normalizedName = normalizeDuplicateName(input.value);
-            if (!normalizedName || (counts[normalizedName] || 0) <= 1) {
-                badge.style.display = 'none';
-                badge.textContent = '';
-                badge.title = '';
-                return;
-            }
-
-            sequence[normalizedName] = (sequence[normalizedName] || 0) + 1;
-            badge.style.display = 'inline-flex';
-            badge.textContent = `#${sequence[normalizedName]}`;
-            badge.title = `${input.value.trim()} ซ้ำ ${counts[normalizedName]} ครั้ง`;
-        });
-    });
+    // เวอร์ชันนี้ไม่แสดงเลข #1 #2 #3 แล้ว
+    // ใช้เฉพาะการเด้งแถวไปต่อท้ายกลุ่มชื่อซ้ำอัตโนมัติ
+    return;
 }
 
 function handleNameInput(inputEl) {
+    document.querySelectorAll('.name-repeat-badge').forEach(el => el.remove());
     moveRowToDuplicateGroup(inputEl);
-    updateDuplicateNameBadges(inputEl.closest('.table-container'));
     saveData();
 }
 
