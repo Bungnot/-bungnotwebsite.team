@@ -946,6 +946,173 @@ function buildSummary(rows) {
   return { total, players };
 }
 
+function formatMoneySmart(value) {
+    const rounded = Math.round((Number(value) || 0) * 100) / 100;
+    const isInt = Math.abs(rounded - Math.round(rounded)) < 0.0000001;
+    return rounded.toLocaleString(undefined, {
+        minimumFractionDigits: isInt ? 0 : 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function collectPayerFeeSummaryFromRows(rows, campTitle = "") {
+    const summary = {};
+
+    (rows || []).forEach(r => {
+        const chaser = (r[0] || "").trim();
+        const holder = (r[2] || "").trim();
+        const outcome = (r[3] || "").trim().toUpperCase();
+        const payer = outcome === 'C' ? chaser : outcome === 'H' ? holder : "";
+
+        if (!payer) return;
+
+        const priceText = (r[1] || "").replace(/[Oo]/g, '0');
+        const nums = priceText.match(/\d+/g);
+        if (!nums) return;
+
+        nums.forEach(n => {
+            if (n.length < 3) return;
+            const amount = parseInt(n, 10);
+            const fee = Math.round(amount * 10) / 100;
+
+            if (!summary[payer]) {
+                summary[payer] = {
+                    name: payer,
+                    fee: 0,
+                    itemCount: 0,
+                    campSet: new Set()
+                };
+            }
+
+            summary[payer].fee += fee;
+            summary[payer].itemCount += 1;
+            if (campTitle) summary[payer].campSet.add(campTitle);
+        });
+    });
+
+    return summary;
+}
+
+function getClosedPayerFeeSummary() {
+    const merged = {};
+    let skippedCampCount = 0;
+
+    (historyData || []).forEach(item => {
+        const rows = Array.isArray(item?.rows) ? item.rows : [];
+        const campTitle = item?.title || "ไม่ระบุค่าย";
+        const current = collectPayerFeeSummaryFromRows(rows, campTitle);
+
+        if (Object.keys(current).length === 0) {
+            skippedCampCount += 1;
+            return;
+        }
+
+        Object.entries(current).forEach(([name, info]) => {
+            if (!merged[name]) {
+                merged[name] = {
+                    name,
+                    fee: 0,
+                    itemCount: 0,
+                    campSet: new Set()
+                };
+            }
+
+            merged[name].fee += info.fee;
+            merged[name].itemCount += info.itemCount;
+            info.campSet.forEach(camp => merged[name].campSet.add(camp));
+        });
+    });
+
+    const entries = Object.values(merged)
+        .map(item => ({
+            name: item.name,
+            fee: Math.round(item.fee * 100) / 100,
+            itemCount: item.itemCount,
+            campCount: item.campSet.size
+        }))
+        .sort((a, b) => b.fee - a.fee);
+
+    return { entries, skippedCampCount };
+}
+
+function showPayerProfitSummary() {
+    const { entries, skippedCampCount } = getClosedPayerFeeSummary();
+    if (!entries.length) {
+        const extraMsg = skippedCampCount > 0
+            ? `<br><span style="color:#ef4444;">หมายเหตุ: ประวัติบางค่ายยังไม่มีข้อมูล ชนะ/แพ้ จึงยังสรุปคนเสีย % ไม่ได้</span>`
+            : '';
+        return showSimpleModal("สรุปคนเสีย %", `ยังไม่มีข้อมูลปิดยอดที่ระบุคนเสีย % ได้${extraMsg}`);
+    }
+
+    playSound('popup');
+    const totalFee = entries.reduce((sum, item) => sum + item.fee, 0);
+    const opened = window.open("", "PayerProfitSummary", "width=980,height=820");
+    if (!opened) {
+        return showSimpleModal("แจ้งเตือน", "เบราว์เซอร์บล็อกหน้าต่างใหม่ กรุณาอนุญาต Pop-up แล้วลองอีกครั้ง");
+    }
+
+    const rowsHtml = entries.map((item, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${item.name}</td>
+            <td style="text-align:right; font-weight:800; color:#b45309;">฿${formatMoneySmart(item.fee)}</td>
+            <td style="text-align:center;">${item.itemCount}</td>
+            <td style="text-align:center;">${item.campCount}</td>
+        </tr>
+    `).join('');
+
+    const noteHtml = skippedCampCount > 0
+        ? `<div class="note">หมายเหตุ: มี ${skippedCampCount} ค่ายในประวัติที่ยังไม่มีข้อมูลผล ชนะ/แพ้ จึงยังไม่ถูกนำมารวมในรายงานนี้</div>`
+        : '';
+
+    opened.document.write(`
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>สรุปคนเสีย %</title>
+            <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
+            <style>
+                body{font-family:'Kanit',sans-serif;background:linear-gradient(180deg,#fff7ed 0%,#fffbeb 100%);margin:0;padding:24px;color:#422006;}
+                .wrap{max-width:920px;margin:0 auto;}
+                .hero{background:#fff;border-radius:24px;padding:24px 26px;box-shadow:0 18px 45px rgba(0,0,0,.12);border:1px solid rgba(180,83,9,.12);}
+                h1{margin:0 0 8px;font-size:28px;color:#9a3412;}
+                .sub{color:#78716c;margin-bottom:18px;}
+                .total{display:inline-block;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#fff;padding:10px 16px;border-radius:999px;font-weight:800;}
+                table{width:100%;border-collapse:collapse;margin-top:18px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(0,0,0,.08);}
+                th,td{padding:14px 12px;border-bottom:1px solid rgba(120,113,108,.15);}
+                th{background:#7c2d12;color:#fff;font-weight:700;text-align:left;}
+                tr:last-child td{border-bottom:none;}
+                .note{margin-top:14px;padding:12px 14px;border-radius:16px;background:#fff7ed;border:1px solid rgba(234,88,12,.18);color:#9a3412;}
+            </style>
+        </head>
+        <body>
+            <div class="wrap">
+                <div class="hero">
+                    <h1>สรุปคนที่เสีย % ให้เรา</h1>
+                    <div class="sub">สรุปจากค่ายที่ปิดยอดแล้ว โดยอิงจากผล ชนะ/แพ้ ของแต่ละแถว</div>
+                    <div class="total">รวมทั้งหมด ฿${formatMoneySmart(totalFee)}</div>
+                    ${noteHtml}
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:70px;">#</th>
+                            <th>ชื่อ</th>
+                            <th style="width:180px; text-align:right;">เสีย % ให้เรา</th>
+                            <th style="width:120px; text-align:center;">จำนวนรายการ</th>
+                            <th style="width:120px; text-align:center;">จำนวนค่าย</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>
+        </body>
+        </html>
+    `);
+    opened.document.close();
+}
+
 function pushToRealtime() {
   const ref = db.ref("realtimeEvents");
 
@@ -1798,7 +1965,17 @@ function removeTable(button) {
         const rowsData = [];
         tableContainer.querySelectorAll("tbody tr").forEach(tr => {
             const cells = tr.querySelectorAll("input");
-            rowsData.push([cells[0]?.value || "", cells[1]?.value || "", cells[2]?.value || ""]);
+            const nameTds = tr.querySelectorAll("td");
+            const chaserMarked = nameTds[0]?.querySelector('.btn-name-mark')?.classList.contains('active') ? 1 : 0;
+            const holderMarked = nameTds[2]?.querySelector('.btn-name-mark')?.classList.contains('active') ? 1 : 0;
+            rowsData.push([
+                cells[0]?.value || "",
+                cells[1]?.value || "",
+                cells[2]?.value || "",
+                (tr.dataset.outcome || ""),
+                chaserMarked,
+                holderMarked
+            ]);
         });
 
         // บันทึกประวัติ
