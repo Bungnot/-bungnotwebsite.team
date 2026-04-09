@@ -1198,142 +1198,217 @@ function getClosedPayerFeeSummary() {
     return { entries, skippedCampCount };
 }
 
-function showPayerProfitSummary() {
+function getPayerSummaryState() {
     const { months, overallEntries, totalFee, recordCount } = getPersistentPayerFeeSummary();
+    return {
+        months,
+        overallEntries,
+        totalFee,
+        recordCount,
+        monthCount: months.length,
+        peopleCount: overallEntries.length
+    };
+}
+
+function getPayerSummaryHtml() {
+    const { months, overallEntries, totalFee, recordCount, monthCount, peopleCount } = getPayerSummaryState();
+
     if (!overallEntries.length) {
-        return showSimpleModal("สรุปคนเสีย %", "ยังไม่มีข้อมูลสะสมของคนเสีย % กรุณาปิดยอดอย่างน้อย 1 ค่ายก่อน");
+        return `
+            <div class="payer-empty-state">
+                <div class="payer-empty-icon"><i class="fas fa-user-slash"></i></div>
+                <h3>ยังไม่มีข้อมูลคนเสีย %</h3>
+                <p>กรุณาปิดยอดอย่างน้อย 1 ค่ายก่อน ระบบจึงจะเริ่มสะสมข้อมูลส่วนนี้</p>
+            </div>
+        `;
     }
 
-    playSound('popup');
-    const opened = window.open("", "PayerProfitSummary", "width=1220,height=860");
-    if (!opened) {
-        return showSimpleModal("แจ้งเตือน", "เบราว์เซอร์บล็อกหน้าต่างใหม่ กรุณาอนุญาต Pop-up แล้วลองอีกครั้ง");
-    }
-
-    const overallRowsHtml = overallEntries.map((item, index) => `
-        <tr>
-            <td>${index + 1}</td>
-            <td>${item.name}</td>
-            <td class="money">฿${formatMoneySmart(item.fee)}</td>
-            <td class="center">${item.itemCount}</td>
-            <td class="center">${item.campCount}</td>
-            <td class="center">${item.monthCount}</td>
-        </tr>
+    const topFive = overallEntries.slice(0, 5);
+    const overallCards = overallEntries.map((item, index) => `
+        <div class="payer-person-card ${index < 3 ? 'is-top' : ''}">
+            <div class="payer-rank">#${index + 1}</div>
+            <div class="payer-person-main">
+                <div class="payer-person-name">${item.name}</div>
+                <div class="payer-person-meta">${item.itemCount} รายการ • ${item.campCount} ค่าย • ${item.monthCount} เดือน</div>
+            </div>
+            <div class="payer-person-fee">฿${formatMoneySmart(item.fee)}</div>
+        </div>
     `).join('');
 
-    const monthCardsHtml = months.map(month => {
-        const rowsHtml = month.entries.map((item, index) => `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${item.name}</td>
-                <td class="money">฿${formatMoneySmart(item.fee)}</td>
-                <td class="center">${item.itemCount}</td>
-                <td class="center">${item.campCount}</td>
-            </tr>
+    const monthOptions = months.map((month, index) => `
+        <button type="button" class="payer-tab ${index === 0 ? 'active' : ''}" data-month-tab="${month.monthKey}" onclick="switchPayerMonthTab('${month.monthKey}')">
+            <span>${month.monthLabel}</span>
+            <small>฿${formatMoneySmart(month.totalFee)}</small>
+        </button>
+    `).join('');
+
+    const monthPanels = months.map((month, index) => {
+        const rowsHtml = month.entries.map((item, rowIndex) => `
+            <div class="payer-row-item">
+                <div class="payer-row-left">
+                    <span class="payer-row-rank">#${rowIndex + 1}</span>
+                    <div>
+                        <div class="payer-row-name">${item.name}</div>
+                        <div class="payer-row-meta">${item.itemCount} รายการ • ${item.campCount} ค่าย</div>
+                    </div>
+                </div>
+                <div class="payer-row-money">฿${formatMoneySmart(item.fee)}</div>
+            </div>
         `).join('');
 
         return `
-            <section class="month-card">
-                <div class="month-head">
-                    <div>
-                        <h2>${month.monthLabel}</h2>
-                        <p>สรุปยอดคนที่เสีย % ประจำเดือน</p>
-                    </div>
-                    <div class="month-total">รวมเดือนนี้ ฿${formatMoneySmart(month.totalFee)}</div>
+            <div class="payer-month-panel ${index === 0 ? 'active' : ''}" data-month-panel="${month.monthKey}">
+                <div class="payer-month-summary">
+                    <div class="payer-month-chip">รวมเดือนนี้ ฿${formatMoneySmart(month.totalFee)}</div>
+                    <div class="payer-month-chip muted">${month.entries.length} คน • ${month.totalItems} รายการ</div>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:70px;">#</th>
-                            <th>ชื่อ</th>
-                            <th style="width:180px; text-align:right;">เสีย % ให้เรา</th>
-                            <th style="width:120px; text-align:center;">จำนวนรายการ</th>
-                            <th style="width:120px; text-align:center;">จำนวนค่าย</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rowsHtml}</tbody>
-                </table>
-            </section>
+                <div class="payer-row-list">${rowsHtml}</div>
+            </div>
         `;
     }).join('');
 
-    opened.document.write(`
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>สรุปคนเสีย %</title>
-            <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
-            <style>
-                :root{--bg1:#fff7ed;--bg2:#fffbeb;--ink:#422006;--muted:#78716c;--card:#ffffff;--line:rgba(120,113,108,.14);--accent:#ea580c;--accent2:#f59e0b;}
-                *{box-sizing:border-box;}
-                body{font-family:'Kanit',sans-serif;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);margin:0;padding:24px;color:var(--ink);}
-                .wrap{max-width:1180px;margin:0 auto;display:grid;gap:20px;}
-                .hero{background:rgba(255,255,255,.96);border-radius:28px;padding:28px;box-shadow:0 18px 45px rgba(0,0,0,.12);border:1px solid rgba(180,83,9,.10);}
-                h1{margin:0 0 6px;font-size:32px;color:#9a3412;}
-                .sub{color:var(--muted);margin-bottom:18px;}
-                .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
-                .stat{background:linear-gradient(135deg,#fff,#fffbeb);border:1px solid rgba(245,158,11,.14);border-radius:20px;padding:16px 18px;box-shadow:0 12px 30px rgba(245,158,11,.08);}
-                .stat-label{color:#9a3412;font-size:14px;margin-bottom:6px;}
-                .stat-value{font-size:28px;font-weight:800;color:#b45309;}
-                .section-card,.month-card{background:var(--card);border-radius:24px;padding:22px;box-shadow:0 18px 45px rgba(0,0,0,.08);border:1px solid rgba(180,83,9,.10);}
-                .section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
-                .section-title h2,.month-head h2{margin:0;color:#9a3412;font-size:24px;}
-                .section-title p,.month-head p{margin:4px 0 0;color:var(--muted);}
-                .month-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
-                .month-total{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:800;box-shadow:0 10px 24px rgba(234,88,12,.20);}
-                table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:18px;background:#fff;}
-                th,td{padding:14px 12px;border-bottom:1px solid var(--line);}
-                th{background:#7c2d12;color:#fff;font-weight:700;text-align:left;position:sticky;top:0;}
-                tr:last-child td{border-bottom:none;}
-                .money{text-align:right;font-weight:800;color:#b45309;}
-                .center{text-align:center;}
-                .month-list{display:grid;gap:18px;}
-                @media print{body{padding:0;background:#fff}.hero,.section-card,.month-card{box-shadow:none;border:1px solid #ddd}.month-card{break-inside:avoid;}}
-                @media (max-width:720px){body{padding:14px}.hero,.section-card,.month-card{padding:16px}h1{font-size:26px}.section-title h2,.month-head h2{font-size:20px}th,td{padding:10px 8px;font-size:14px}}
-            </style>
-        </head>
-        <body>
-            <div class="wrap">
-                <section class="hero">
-                    <h1>สรุปคนที่เสีย % ให้เรา</h1>
-                    <div class="sub">ข้อมูลชุดนี้เก็บสะสมแบบถาวร แยกยอดรายเดือน และยังอยู่แม้กดล้างประวัติทั่วไปแล้ว</div>
-                    <div class="hero-grid">
-                        <div class="stat"><div class="stat-label">ยอดสะสมทั้งหมด</div><div class="stat-value">฿${formatMoneySmart(totalFee)}</div></div>
-                        <div class="stat"><div class="stat-label">จำนวนคนทั้งหมด</div><div class="stat-value">${overallEntries.length}</div></div>
-                        <div class="stat"><div class="stat-label">จำนวนเดือนที่มีข้อมูล</div><div class="stat-value">${months.length}</div></div>
-                        <div class="stat"><div class="stat-label">จำนวนรายการสะสม</div><div class="stat-value">${recordCount}</div></div>
-                    </div>
-                </section>
+    return `
+        <div class="payer-summary-wrap">
+            <div class="payer-summary-hero">
+                <div>
+                    <div class="payer-kicker">Premium Summary</div>
+                    <h2>สรุปคนเสีย %</h2>
+                    <p>มุมมองใหม่แบบสั้น กระชับ แยกชัด และดูง่ายกว่าเดิม</p>
+                </div>
+                <div class="payer-hero-actions">
+                    <button type="button" class="btn-main payer-mini-btn" onclick="refreshPayerSummaryModal()"><span class="flare"></span><i class="fas fa-rotate"></i> รีเฟรช</button>
+                    <button type="button" class="btn-main btn-clear payer-mini-btn" onclick="confirmClearPayerFeeArchive()"><span class="flare"></span><i class="fas fa-trash"></i> ล้างทั้งหมด</button>
+                </div>
+            </div>
 
-                <section class="section-card">
-                    <div class="section-title">
+            <div class="payer-stat-grid">
+                <div class="payer-stat-card">
+                    <span>ยอดเสีย % สะสม</span>
+                    <strong>฿${formatMoneySmart(totalFee)}</strong>
+                </div>
+                <div class="payer-stat-card">
+                    <span>จำนวนคน</span>
+                    <strong>${peopleCount}</strong>
+                </div>
+                <div class="payer-stat-card">
+                    <span>จำนวนเดือน</span>
+                    <strong>${monthCount}</strong>
+                </div>
+                <div class="payer-stat-card">
+                    <span>จำนวนค่ายที่บันทึก</span>
+                    <strong>${recordCount}</strong>
+                </div>
+            </div>
+
+            <div class="payer-layout-grid">
+                <section class="payer-panel">
+                    <div class="payer-panel-head">
                         <div>
-                            <h2>ภาพรวมทุกเดือน</h2>
-                            <p>จัดอันดับจากยอดเสีย % สะสมมากไปน้อย</p>
+                            <h3>Top 5 คนเสีย % สูงสุด</h3>
+                            <p>ดูตัวท็อปทันทีโดยไม่ต้องไล่ตารางยาว</p>
                         </div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width:70px;">#</th>
-                                <th>ชื่อ</th>
-                                <th style="width:180px; text-align:right;">เสีย % สะสม</th>
-                                <th style="width:120px; text-align:center;">จำนวนรายการ</th>
-                                <th style="width:120px; text-align:center;">จำนวนค่าย</th>
-                                <th style="width:120px; text-align:center;">จำนวนเดือน</th>
-                            </tr>
-                        </thead>
-                        <tbody>${overallRowsHtml}</tbody>
-                    </table>
+                    <div class="payer-top-list">
+                        ${topFive.map((item, index) => `
+                            <div class="payer-top-card">
+                                <div class="payer-top-rank">#${index + 1}</div>
+                                <div class="payer-top-info">
+                                    <div class="payer-top-name">${item.name}</div>
+                                    <div class="payer-top-meta">${item.itemCount} รายการ • ${item.campCount} ค่าย</div>
+                                </div>
+                                <div class="payer-top-money">฿${formatMoneySmart(item.fee)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </section>
 
-                <div class="month-list">${monthCardsHtml}</div>
+                <section class="payer-panel">
+                    <div class="payer-panel-head">
+                        <div>
+                            <h3>รายเดือน</h3>
+                            <p>กดเลือกเดือนเพื่อดูเฉพาะช่วงที่ต้องการ</p>
+                        </div>
+                    </div>
+                    <div class="payer-tabs">${monthOptions}</div>
+                    <div class="payer-panels">${monthPanels}</div>
+                </section>
             </div>
-        </body>
-        </html>
-    `);
-    opened.document.close();
+
+            <section class="payer-panel">
+                <div class="payer-panel-head">
+                    <div>
+                        <h3>อันดับสะสมทั้งหมด</h3>
+                        <p>มุมมองแบบการ์ด อ่านง่ายกว่าตารางยาว</p>
+                    </div>
+                </div>
+                <div class="payer-person-list">${overallCards}</div>
+            </section>
+        </div>
+    `;
+}
+
+function renderPayerSummaryModal() {
+    const modal = document.getElementById('custom-modal');
+    if (!modal) return;
+
+    playSound('popup');
+    modal.classList.add('payer-summary-mode');
+    document.getElementById('modal-title').innerText = 'สรุปคนเสีย %';
+    document.getElementById('modal-msg').innerHTML = getPayerSummaryHtml();
+    const actions = document.getElementById('modal-actions');
+    actions.innerHTML = '';
+    actions.append(createModalBtn('ปิด', 'btn-confirm', closeModal));
+    modal.classList.add('active');
+}
+
+function showPayerProfitSummary() {
+    renderPayerSummaryModal();
+}
+
+function refreshPayerSummaryModal() {
+    const modal = document.getElementById('custom-modal');
+    if (!modal || !modal.classList.contains('active') || !modal.classList.contains('payer-summary-mode')) return;
+    document.getElementById('modal-msg').innerHTML = getPayerSummaryHtml();
+}
+
+function switchPayerMonthTab(monthKey) {
+    document.querySelectorAll('[data-month-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.monthTab === monthKey);
+    });
+    document.querySelectorAll('[data-month-panel]').forEach(panel => {
+        panel.classList.toggle('active', panel.dataset.monthPanel === monthKey);
+    });
+}
+
+function clearPayerFeeArchive() {
+    payerFeeArchive = [];
+    savePayerFeeArchive();
+    refreshPayerSummaryModal();
+    toastRateLimited('ล้างข้อมูลคนเสีย % ทั้งหมดแล้ว', 'success', 0);
+}
+
+function confirmClearPayerFeeArchive() {
+    const state = getPayerSummaryState();
+    if (!state.peopleCount) {
+        return showSimpleModal('สรุปคนเสีย %', 'ยังไม่มีข้อมูลให้ล้าง');
+    }
+
+    playSound('popup');
+    const modal = document.getElementById('custom-modal');
+    modal.classList.remove('payer-summary-mode');
+    document.getElementById('modal-title').innerText = 'ล้างข้อมูลคนเสีย % ทั้งหมด';
+    document.getElementById('modal-msg').innerHTML = `ต้องการล้างข้อมูลสะสมของคนเสีย % ทั้งหมดหรือไม่?<br><br><span style="color:#b91c1c;font-weight:700;">ข้อมูลส่วนนี้จะถูกลบถาวร ${state.recordCount} ค่าย / ${state.peopleCount} คน</span>`;
+    const actions = document.getElementById('modal-actions');
+    actions.innerHTML = '';
+    actions.append(
+        createModalBtn('ยกเลิก', 'btn-cancel', renderPayerSummaryModal),
+        createModalBtn('ล้างทั้งหมด', 'btn-confirm', () => {
+            clearPayerFeeArchive();
+            closeModal();
+            setTimeout(renderPayerSummaryModal, 120);
+        })
+    );
+    modal.classList.add('active');
 }
 
 function pushToRealtime() {
@@ -2775,7 +2850,9 @@ function showSimpleModal(title, msg) {
 
 function closeModal() { 
     playSound('click'); // เสียงตอนกดปิด Modal
-    document.getElementById('custom-modal').classList.remove('active'); 
+    const modal = document.getElementById('custom-modal');
+    modal.classList.remove('active');
+    modal.classList.remove('payer-summary-mode');
     window.removeEventListener('keydown', currentModalKeyHandler);
 }
 
