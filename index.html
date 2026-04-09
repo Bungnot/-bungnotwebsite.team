@@ -305,6 +305,84 @@
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-box { background: white; width: 90%; max-width: 450px; border-radius: 30px; padding: 40px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); transform: scale(0.9); transition: 0.3s; border: 4px solid #bf953f; }
         .modal-overlay.active .modal-box { transform: scale(1); }
+
+        .modal-overlay.payer-summary-mode .modal-box {
+            max-width: 1120px;
+            width: min(1120px, 94vw);
+            padding: 24px;
+            border-radius: 28px;
+        }
+        .modal-overlay.payer-summary-mode #modal-msg {
+            max-height: 72vh;
+            overflow: auto;
+            padding-right: 6px;
+        }
+        .payer-summary-wrap { display: grid; gap: 18px; }
+        .payer-summary-hero {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+            padding: 18px; border-radius: 22px; background: linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%);
+            border: 1px solid rgba(234,88,12,.14);
+        }
+        .payer-kicker { font-size: .8rem; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: .08em; }
+        .payer-summary-hero h2 { margin: 4px 0 6px; font-size: 1.9rem; color: #9a3412; -webkit-text-fill-color: initial; background: none; filter: none; }
+        .payer-summary-hero p { margin: 0; color: #78716c; }
+        .payer-hero-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .payer-mini-btn { padding: 10px 18px; font-size: .92rem; }
+        .payer-stat-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+        .payer-stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(255,247,237,.96));
+            border: 1px solid rgba(245,158,11,.16); border-radius: 20px; padding: 16px 18px;
+            box-shadow: 0 12px 24px rgba(0,0,0,.06);
+        }
+        .payer-stat-card span { display:block; font-size:.86rem; color:#78716c; margin-bottom:6px; }
+        .payer-stat-card strong { font-size:1.5rem; color:#b45309; }
+        .payer-layout-grid { display:grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+        .payer-panel {
+            background: #fff; border: 1px solid rgba(148,163,184,.16); border-radius: 22px; padding: 18px;
+            box-shadow: 0 14px 28px rgba(15,23,42,.06);
+        }
+        .payer-panel-head h3 { margin: 0 0 4px; color:#1e293b; font-size:1.05rem; }
+        .payer-panel-head p { margin:0; color:#64748b; font-size:.9rem; }
+        .payer-top-list,.payer-person-list,.payer-row-list { display:grid; gap:10px; margin-top:14px; }
+        .payer-top-card,.payer-person-card,.payer-row-item {
+            display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px;
+            border-radius:16px; background:linear-gradient(135deg,#fff,#f8fafc); border:1px solid rgba(226,232,240,.95);
+        }
+        .payer-top-rank,.payer-rank,.payer-row-rank {
+            min-width:48px; height:40px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center;
+            font-weight:800; color:#9a3412; background:linear-gradient(135deg,#ffedd5,#fef3c7);
+        }
+        .payer-top-info,.payer-person-main { flex:1; min-width:0; }
+        .payer-top-name,.payer-person-name,.payer-row-name { font-weight:700; color:#0f172a; }
+        .payer-top-meta,.payer-person-meta,.payer-row-meta { color:#64748b; font-size:.84rem; margin-top:2px; }
+        .payer-top-money,.payer-person-fee,.payer-row-money { font-weight:800; color:#b45309; white-space:nowrap; }
+        .payer-person-card.is-top { border-color: rgba(245,158,11,.4); box-shadow: 0 10px 22px rgba(245,158,11,.10); }
+        .payer-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+        .payer-tab {
+            border:none; cursor:pointer; padding:10px 12px; border-radius:14px; background:#f8fafc; color:#334155;
+            display:flex; flex-direction:column; align-items:flex-start; min-width:140px; transition:.2s ease; border:1px solid transparent;
+        }
+        .payer-tab small { color:#64748b; margin-top:2px; }
+        .payer-tab.active { background:linear-gradient(135deg,#ea580c,#f59e0b); color:#fff; box-shadow:0 10px 20px rgba(234,88,12,.18); }
+        .payer-tab.active small { color:#ffedd5; }
+        .payer-month-panel { display:none; margin-top:14px; }
+        .payer-month-panel.active { display:block; }
+        .payer-month-summary { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+        .payer-month-chip { display:inline-flex; padding:8px 12px; border-radius:999px; background:#fff7ed; color:#9a3412; font-weight:700; }
+        .payer-month-chip.muted { background:#f8fafc; color:#475569; }
+        .payer-empty-state { text-align:center; padding:32px 18px; color:#64748b; }
+        .payer-empty-icon { font-size:2.2rem; color:#c2410c; margin-bottom:10px; }
+        @media (max-width: 860px) {
+            .payer-layout-grid { grid-template-columns: 1fr; }
+            .modal-overlay.payer-summary-mode .modal-box { width: 96vw; padding: 18px; }
+        }
+        @media (max-width: 640px) {
+            .payer-summary-hero h2 { font-size: 1.5rem; }
+            .payer-top-card,.payer-person-card,.payer-row-item { padding: 10px 12px; }
+            .payer-top-rank,.payer-rank,.payer-row-rank { min-width: 40px; height: 36px; }
+            .payer-hero-actions { width:100%; }
+            .payer-mini-btn { flex:1; justify-content:center; }
+        }
         .modal-actions { margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
         .btn-modal { padding: 12px 25px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; }
 
