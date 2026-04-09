@@ -651,7 +651,15 @@ function playSound(soundName) {
     }
 }
 
+const STORAGE_KEYS = {
+    savedTables: 'savedTables',
+    historyData: 'historyData',
+    payerFeeArchive: 'payerFeeArchive',
+    usageGuideCollapsed: 'usageGuideCollapsed'
+};
+
 let historyData = [];
+let payerFeeArchive = [];
 let totalDeletedProfit = 0;
 let currentModalKeyHandler = null;
 let isProcessingModal = false; // ป้องกันปิดยอดเบิ้ล
@@ -778,7 +786,7 @@ function toggleUsageGuide(btn) {
 
     const isCollapsed = guide.classList.toggle('collapsed');
     btn.innerHTML = isCollapsed ? '📖 แสดงวิธีใช้' : '🙈 ซ่อนวิธีใช้';
-    localStorage.setItem('usageGuideCollapsed', isCollapsed ? '1' : '0');
+    localStorage.setItem(STORAGE_KEYS.usageGuideCollapsed, isCollapsed ? '1' : '0');
 }
 
 function injectUsageGuide() {
@@ -789,7 +797,7 @@ function injectUsageGuide() {
     const tablesContainer = document.getElementById('tables-container');
     if (!tablesContainer) return;
 
-    const isCollapsed = localStorage.getItem('usageGuideCollapsed') === '1';
+    const isCollapsed = localStorage.getItem(STORAGE_KEYS.usageGuideCollapsed) === '1';
     const guide = document.createElement('div');
     guide.id = 'web-usage-guide';
     guide.className = `web-usage-guide${isCollapsed ? ' collapsed' : ''}`;
@@ -833,13 +841,23 @@ function injectUsageGuide() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const savedHistory = localStorage.getItem("historyData");
+    const savedHistory = localStorage.getItem(STORAGE_KEYS.historyData);
     if (savedHistory) {
         historyData = JSON.parse(savedHistory);
         totalDeletedProfit = historyData.reduce((sum, item) => sum + (item.profit || 0), 0);
-                // ✅ นับจำนวนค่ายจากประวัติที่ปิดไปแล้ว
         closedCampCount = historyData.length;
     }
+
+    const savedPayerArchive = localStorage.getItem(STORAGE_KEYS.payerFeeArchive);
+    if (savedPayerArchive) {
+        try {
+            payerFeeArchive = JSON.parse(savedPayerArchive) || [];
+        } catch (error) {
+            payerFeeArchive = [];
+            console.warn('payerFeeArchive parse error:', error);
+        }
+    }
+
     injectUsageGuide();
     updateClosedCampDisplay(); // ✅ แสดงผลทันทีตอนเข้าเว็บ
     loadData(); 
@@ -900,7 +918,7 @@ function saveData() {
         });
         data.push({ title, rows });
     });
-    localStorage.setItem("savedTables", JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEYS.savedTables, JSON.stringify(data));
     refreshAllBadges();
     updateDashboardStats();
   
@@ -953,6 +971,151 @@ function formatMoneySmart(value) {
         minimumFractionDigits: isInt ? 0 : 2,
         maximumFractionDigits: 2
     });
+}
+
+
+function savePayerFeeArchive() {
+    localStorage.setItem(STORAGE_KEYS.payerFeeArchive, JSON.stringify(payerFeeArchive));
+}
+
+function getThaiMonthLabel(dateInput = new Date()) {
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+    return `${months[date.getMonth()]} ${date.getFullYear() + 543}`;
+}
+
+function getMonthKey(dateInput = new Date()) {
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    return `${date.getFullYear()}-${month}`;
+}
+
+function buildPayerArchiveRecords(rows, campTitle = "", closedAt = new Date()) {
+    const closedDate = closedAt instanceof Date ? closedAt : new Date(closedAt);
+    const monthKey = getMonthKey(closedDate);
+    const monthLabel = getThaiMonthLabel(closedDate);
+    const summary = collectPayerFeeSummaryFromRows(rows, campTitle);
+
+    return Object.values(summary).map(item => ({
+        name: item.name,
+        fee: Math.round(item.fee * 100) / 100,
+        itemCount: item.itemCount,
+        campCount: item.campSet.size,
+        camps: Array.from(item.campSet),
+        campTitle: campTitle || 'ไม่ระบุค่าย',
+        monthKey,
+        monthLabel,
+        closedAtISO: closedDate.toISOString(),
+        closedAtText: closedDate.toLocaleString('th-TH')
+    }));
+}
+
+function mergePayerArchive(records) {
+    const merged = {};
+
+    (records || []).forEach(item => {
+        const name = (item?.name || '').trim();
+        if (!name) return;
+        const mapKey = `${item.monthKey || 'unknown'}__${name}`;
+
+        if (!merged[mapKey]) {
+            merged[mapKey] = {
+                name,
+                fee: 0,
+                itemCount: 0,
+                campCount: 0,
+                campSet: new Set(),
+                monthKey: item.monthKey || 'unknown',
+                monthLabel: item.monthLabel || 'ไม่ระบุเดือน'
+            };
+        }
+
+        merged[mapKey].fee += Number(item.fee) || 0;
+        merged[mapKey].itemCount += Number(item.itemCount) || 0;
+
+        if (Array.isArray(item.camps) && item.camps.length) {
+            item.camps.forEach(camp => merged[mapKey].campSet.add(camp));
+        } else if (item.campTitle) {
+            merged[mapKey].campSet.add(item.campTitle);
+        }
+    });
+
+    return Object.values(merged).map(item => ({
+        name: item.name,
+        fee: Math.round(item.fee * 100) / 100,
+        itemCount: item.itemCount,
+        campCount: item.campSet.size,
+        monthKey: item.monthKey,
+        monthLabel: item.monthLabel
+    }));
+}
+
+function getPersistentPayerFeeSummary() {
+    const monthlyMap = {};
+    const overallMap = {};
+
+    const archiveRows = (payerFeeArchive || []).flatMap(item => Array.isArray(item?.rows) ? item.rows : []);
+    const mergedRecords = mergePayerArchive(archiveRows)
+        .sort((a, b) => (b.monthKey || '').localeCompare(a.monthKey || '') || b.fee - a.fee);
+
+    mergedRecords.forEach(item => {
+        if (!monthlyMap[item.monthKey]) {
+            monthlyMap[item.monthKey] = {
+                monthKey: item.monthKey,
+                monthLabel: item.monthLabel,
+                totalFee: 0,
+                totalItems: 0,
+                totalCamps: 0,
+                entries: []
+            };
+        }
+
+        monthlyMap[item.monthKey].entries.push(item);
+        monthlyMap[item.monthKey].totalFee += item.fee;
+        monthlyMap[item.monthKey].totalItems += item.itemCount;
+        monthlyMap[item.monthKey].totalCamps += item.campCount;
+
+        if (!overallMap[item.name]) {
+            overallMap[item.name] = {
+                name: item.name,
+                fee: 0,
+                itemCount: 0,
+                monthSet: new Set(),
+                campCount: 0
+            };
+        }
+
+        overallMap[item.name].fee += item.fee;
+        overallMap[item.name].itemCount += item.itemCount;
+        overallMap[item.name].campCount += item.campCount;
+        overallMap[item.name].monthSet.add(item.monthLabel);
+    });
+
+    const months = Object.values(monthlyMap)
+        .map(month => ({
+            ...month,
+            totalFee: Math.round(month.totalFee * 100) / 100,
+            entries: month.entries.sort((a, b) => b.fee - a.fee)
+        }))
+        .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+
+    const overallEntries = Object.values(overallMap)
+        .map(item => ({
+            name: item.name,
+            fee: Math.round(item.fee * 100) / 100,
+            itemCount: item.itemCount,
+            campCount: item.campCount,
+            monthCount: item.monthSet.size
+        }))
+        .sort((a, b) => b.fee - a.fee);
+
+    const totalFee = overallEntries.reduce((sum, item) => sum + item.fee, 0);
+    return {
+        months,
+        overallEntries,
+        totalFee: Math.round(totalFee * 100) / 100,
+        recordCount: payerFeeArchive.length
+    };
 }
 
 function collectPayerFeeSummaryFromRows(rows, campTitle = "") {
@@ -1036,63 +1199,47 @@ function getClosedPayerFeeSummary() {
 }
 
 function showPayerProfitSummary() {
-    const { entries, skippedCampCount } = getClosedPayerFeeSummary();
-    if (!entries.length) {
-        const extraMsg = skippedCampCount > 0
-            ? `<br><span style="color:#ef4444;">หมายเหตุ: ประวัติบางค่ายยังไม่มีข้อมูล ชนะ/แพ้ จึงยังสรุปคนเสีย % ไม่ได้</span>`
-            : '';
-        return showSimpleModal("สรุปคนเสีย %", `ยังไม่มีข้อมูลปิดยอดที่ระบุคนเสีย % ได้${extraMsg}`);
+    const { months, overallEntries, totalFee, recordCount } = getPersistentPayerFeeSummary();
+    if (!overallEntries.length) {
+        return showSimpleModal("สรุปคนเสีย %", "ยังไม่มีข้อมูลสะสมของคนเสีย % กรุณาปิดยอดอย่างน้อย 1 ค่ายก่อน");
     }
 
     playSound('popup');
-    const totalFee = entries.reduce((sum, item) => sum + item.fee, 0);
-    const opened = window.open("", "PayerProfitSummary", "width=980,height=820");
+    const opened = window.open("", "PayerProfitSummary", "width=1220,height=860");
     if (!opened) {
         return showSimpleModal("แจ้งเตือน", "เบราว์เซอร์บล็อกหน้าต่างใหม่ กรุณาอนุญาต Pop-up แล้วลองอีกครั้ง");
     }
 
-    const rowsHtml = entries.map((item, index) => `
+    const overallRowsHtml = overallEntries.map((item, index) => `
         <tr>
             <td>${index + 1}</td>
             <td>${item.name}</td>
-            <td style="text-align:right; font-weight:800; color:#b45309;">฿${formatMoneySmart(item.fee)}</td>
-            <td style="text-align:center;">${item.itemCount}</td>
-            <td style="text-align:center;">${item.campCount}</td>
+            <td class="money">฿${formatMoneySmart(item.fee)}</td>
+            <td class="center">${item.itemCount}</td>
+            <td class="center">${item.campCount}</td>
+            <td class="center">${item.monthCount}</td>
         </tr>
     `).join('');
 
-    const noteHtml = skippedCampCount > 0
-        ? `<div class="note">หมายเหตุ: มี ${skippedCampCount} ค่ายในประวัติที่ยังไม่มีข้อมูลผล ชนะ/แพ้ จึงยังไม่ถูกนำมารวมในรายงานนี้</div>`
-        : '';
+    const monthCardsHtml = months.map(month => {
+        const rowsHtml = month.entries.map((item, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.name}</td>
+                <td class="money">฿${formatMoneySmart(item.fee)}</td>
+                <td class="center">${item.itemCount}</td>
+                <td class="center">${item.campCount}</td>
+            </tr>
+        `).join('');
 
-    opened.document.write(`
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>สรุปคนเสีย %</title>
-            <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
-            <style>
-                body{font-family:'Kanit',sans-serif;background:linear-gradient(180deg,#fff7ed 0%,#fffbeb 100%);margin:0;padding:24px;color:#422006;}
-                .wrap{max-width:920px;margin:0 auto;}
-                .hero{background:#fff;border-radius:24px;padding:24px 26px;box-shadow:0 18px 45px rgba(0,0,0,.12);border:1px solid rgba(180,83,9,.12);}
-                h1{margin:0 0 8px;font-size:28px;color:#9a3412;}
-                .sub{color:#78716c;margin-bottom:18px;}
-                .total{display:inline-block;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#fff;padding:10px 16px;border-radius:999px;font-weight:800;}
-                table{width:100%;border-collapse:collapse;margin-top:18px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(0,0,0,.08);}
-                th,td{padding:14px 12px;border-bottom:1px solid rgba(120,113,108,.15);}
-                th{background:#7c2d12;color:#fff;font-weight:700;text-align:left;}
-                tr:last-child td{border-bottom:none;}
-                .note{margin-top:14px;padding:12px 14px;border-radius:16px;background:#fff7ed;border:1px solid rgba(234,88,12,.18);color:#9a3412;}
-            </style>
-        </head>
-        <body>
-            <div class="wrap">
-                <div class="hero">
-                    <h1>สรุปคนที่เสีย % ให้เรา</h1>
-                    <div class="sub">สรุปจากค่ายที่ปิดยอดแล้ว โดยอิงจากผล ชนะ/แพ้ ของแต่ละแถว</div>
-                    <div class="total">รวมทั้งหมด ฿${formatMoneySmart(totalFee)}</div>
-                    ${noteHtml}
+        return `
+            <section class="month-card">
+                <div class="month-head">
+                    <div>
+                        <h2>${month.monthLabel}</h2>
+                        <p>สรุปยอดคนที่เสีย % ประจำเดือน</p>
+                    </div>
+                    <div class="month-total">รวมเดือนนี้ ฿${formatMoneySmart(month.totalFee)}</div>
                 </div>
                 <table>
                     <thead>
@@ -1106,6 +1253,82 @@ function showPayerProfitSummary() {
                     </thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>
+            </section>
+        `;
+    }).join('');
+
+    opened.document.write(`
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>สรุปคนเสีย %</title>
+            <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
+            <style>
+                :root{--bg1:#fff7ed;--bg2:#fffbeb;--ink:#422006;--muted:#78716c;--card:#ffffff;--line:rgba(120,113,108,.14);--accent:#ea580c;--accent2:#f59e0b;}
+                *{box-sizing:border-box;}
+                body{font-family:'Kanit',sans-serif;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);margin:0;padding:24px;color:var(--ink);}
+                .wrap{max-width:1180px;margin:0 auto;display:grid;gap:20px;}
+                .hero{background:rgba(255,255,255,.96);border-radius:28px;padding:28px;box-shadow:0 18px 45px rgba(0,0,0,.12);border:1px solid rgba(180,83,9,.10);}
+                h1{margin:0 0 6px;font-size:32px;color:#9a3412;}
+                .sub{color:var(--muted);margin-bottom:18px;}
+                .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+                .stat{background:linear-gradient(135deg,#fff,#fffbeb);border:1px solid rgba(245,158,11,.14);border-radius:20px;padding:16px 18px;box-shadow:0 12px 30px rgba(245,158,11,.08);}
+                .stat-label{color:#9a3412;font-size:14px;margin-bottom:6px;}
+                .stat-value{font-size:28px;font-weight:800;color:#b45309;}
+                .section-card,.month-card{background:var(--card);border-radius:24px;padding:22px;box-shadow:0 18px 45px rgba(0,0,0,.08);border:1px solid rgba(180,83,9,.10);}
+                .section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+                .section-title h2,.month-head h2{margin:0;color:#9a3412;font-size:24px;}
+                .section-title p,.month-head p{margin:4px 0 0;color:var(--muted);}
+                .month-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+                .month-total{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:800;box-shadow:0 10px 24px rgba(234,88,12,.20);}
+                table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:18px;background:#fff;}
+                th,td{padding:14px 12px;border-bottom:1px solid var(--line);}
+                th{background:#7c2d12;color:#fff;font-weight:700;text-align:left;position:sticky;top:0;}
+                tr:last-child td{border-bottom:none;}
+                .money{text-align:right;font-weight:800;color:#b45309;}
+                .center{text-align:center;}
+                .month-list{display:grid;gap:18px;}
+                @media print{body{padding:0;background:#fff}.hero,.section-card,.month-card{box-shadow:none;border:1px solid #ddd}.month-card{break-inside:avoid;}}
+                @media (max-width:720px){body{padding:14px}.hero,.section-card,.month-card{padding:16px}h1{font-size:26px}.section-title h2,.month-head h2{font-size:20px}th,td{padding:10px 8px;font-size:14px}}
+            </style>
+        </head>
+        <body>
+            <div class="wrap">
+                <section class="hero">
+                    <h1>สรุปคนที่เสีย % ให้เรา</h1>
+                    <div class="sub">ข้อมูลชุดนี้เก็บสะสมแบบถาวร แยกยอดรายเดือน และยังอยู่แม้กดล้างประวัติทั่วไปแล้ว</div>
+                    <div class="hero-grid">
+                        <div class="stat"><div class="stat-label">ยอดสะสมทั้งหมด</div><div class="stat-value">฿${formatMoneySmart(totalFee)}</div></div>
+                        <div class="stat"><div class="stat-label">จำนวนคนทั้งหมด</div><div class="stat-value">${overallEntries.length}</div></div>
+                        <div class="stat"><div class="stat-label">จำนวนเดือนที่มีข้อมูล</div><div class="stat-value">${months.length}</div></div>
+                        <div class="stat"><div class="stat-label">จำนวนรายการสะสม</div><div class="stat-value">${recordCount}</div></div>
+                    </div>
+                </section>
+
+                <section class="section-card">
+                    <div class="section-title">
+                        <div>
+                            <h2>ภาพรวมทุกเดือน</h2>
+                            <p>จัดอันดับจากยอดเสีย % สะสมมากไปน้อย</p>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:70px;">#</th>
+                                <th>ชื่อ</th>
+                                <th style="width:180px; text-align:right;">เสีย % สะสม</th>
+                                <th style="width:120px; text-align:center;">จำนวนรายการ</th>
+                                <th style="width:120px; text-align:center;">จำนวนค่าย</th>
+                                <th style="width:120px; text-align:center;">จำนวนเดือน</th>
+                            </tr>
+                        </thead>
+                        <tbody>${overallRowsHtml}</tbody>
+                    </table>
+                </section>
+
+                <div class="month-list">${monthCardsHtml}</div>
             </div>
         </body>
         </html>
@@ -1146,7 +1369,7 @@ function pushToRealtime() {
 
 function loadData() {
     selectedHotkeyTable = null;
-    const raw = localStorage.getItem("savedTables");
+    const raw = localStorage.getItem(STORAGE_KEYS.savedTables);
     if (!raw) return;
     const data = JSON.parse(raw);
     const container = document.getElementById("tables-container");
@@ -1979,8 +2202,29 @@ function removeTable(button) {
         });
 
         // บันทึกประวัติ
-        historyData.push({ title, rows: rowsData, profit: finalProfit, timestamp: new Date().toLocaleString("th-TH") });
-        localStorage.setItem("historyData", JSON.stringify(historyData));
+        const closedAt = new Date();
+        historyData.push({
+            title,
+            rows: rowsData,
+            profit: finalProfit,
+            timestamp: closedAt.toLocaleString("th-TH"),
+            closedAtISO: closedAt.toISOString()
+        });
+        localStorage.setItem(STORAGE_KEYS.historyData, JSON.stringify(historyData));
+
+        const payerArchiveRows = buildPayerArchiveRecords(rowsData, title, closedAt);
+        if (payerArchiveRows.length) {
+            payerFeeArchive.push({
+                id: `${closedAt.getTime()}_${Math.random().toString(36).slice(2, 8)}`,
+                title,
+                closedAtISO: closedAt.toISOString(),
+                monthKey: getMonthKey(closedAt),
+                monthLabel: getThaiMonthLabel(closedAt),
+                rows: payerArchiveRows
+            });
+            savePayerFeeArchive();
+        }
+
         totalDeletedProfit += finalProfit;
         
         // --- จังหวะที่ 2: ปิดยอดเสร็จสิ้น (ลบตารางออกจากจอ) ---
@@ -2007,12 +2251,18 @@ function restoreLastDeleted() {
     const last = historyData.pop();
     totalDeletedProfit -= last.profit;
 
+    // ถ้ากู้คืนค่ายล่าสุด ให้ดึงข้อมูลสรุปคนเสีย % ของค่ายล่าสุดออกจากคลังสะสมด้วย
+    if (payerFeeArchive.length) {
+        payerFeeArchive.pop();
+        savePayerFeeArchive();
+    }
+
     // ✅ ลดจำนวนค่ายที่ปิด
     closedCampCount = Math.max(0, closedCampCount - 1);
     updateClosedCampDisplay();
 
     addTable(last.title, last.rows, true);
-    localStorage.setItem("historyData", JSON.stringify(historyData));
+    localStorage.setItem(STORAGE_KEYS.historyData, JSON.stringify(historyData));
     updateDashboardStats();
 
     setTimeout(() => { isRestoring = false; }, 500);
@@ -2534,11 +2784,17 @@ function clearAllHistory() {
     playSound('clear');
 
     showConfirmModal("ยืนยันการล้างข้อมูล", 0, () => {
-        localStorage.clear();
+        // ล้างเฉพาะข้อมูลทำงานรายวัน/ประวัติทั่วไป แต่คงคลังสรุปคนเสีย % แบบสะสมไว้
+        localStorage.removeItem(STORAGE_KEYS.savedTables);
+        localStorage.removeItem(STORAGE_KEYS.historyData);
 
-        // ✅ รีเซ็ตค่าทาง Logic
+        historyData = [];
+        totalDeletedProfit = 0;
         closedCampCount = 0;
+        selectedHotkeyTable = null;
+
         updateClosedCampDisplay();
+        updateDashboardStats();
 
         playSound('success');
         setTimeout(() => location.reload(), 500);
