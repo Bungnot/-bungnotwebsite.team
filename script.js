@@ -666,234 +666,6 @@ let isProcessingModal = false; // ป้องกันปิดยอดเบ�
 let isRestoring = false;      // ป้องกันกู้คืนเบิ้ล
 let closedCampCount = 0; // ✅ จำนวนค่ายที่ปิดยอดแล้ว
 let selectedHotkeyTable = null; // ตารางที่ถูกเลือกไว้สำหรับคีย์ลัด Q / E
-// ===== Admin Login + Cross Device Realtime Draft Sync =====
-// สร้างผู้ใช้ทั้ง 4 คนนี้ใน Firebase Authentication > Email/Password ก่อนใช้งานจริง
-const ADMIN_ACCOUNTS = {
-    "admin1@rocket-premium.com": "Admin 1 / User 1",
-    "admin2@rocket-premium.com": "Admin 2 / User 2",
-    "admin3@rocket-premium.com": "Admin 3 / User 3",
-    "admin4@rocket-premium.com": "Admin 4 / User 4"
-};
-
-const DEVICE_ID = (() => {
-    const key = "rocket_device_id";
-    let id = localStorage.getItem(key);
-    if (!id) {
-        id = "device_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
-        localStorage.setItem(key, id);
-    }
-    return id;
-})();
-
-let currentAdminUser = null;
-let currentAdminRef = null;
-let currentCloudListener = null;
-let isApplyingRemoteData = false;
-let cloudHasLoadedOnce = false;
-
-function getAdminLabel(email) {
-    return ADMIN_ACCOUNTS[(email || "").toLowerCase()] || "Admin";
-}
-
-function setSyncStatus(message, type = "info") {
-    const el = document.getElementById("sync-status");
-    if (!el) return;
-    const icon = type === "success" ? "fa-cloud-check" : type === "danger" ? "fa-triangle-exclamation" : "fa-cloud";
-    el.innerHTML = '<i class="fas ' + icon + '"></i> ' + message;
-    el.style.color = type === "danger" ? "#b91c1c" : type === "success" ? "#047857" : "#64748b";
-}
-
-function setLoginError(message = "") {
-    const el = document.getElementById("admin-login-error");
-    if (el) el.textContent = message;
-}
-
-function setLoginButtonLoading(isLoading) {
-    const btn = document.getElementById("admin-login-btn");
-    if (!btn) return;
-    btn.disabled = isLoading;
-    btn.innerHTML = isLoading ? '<i class="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...' : '<i class="fas fa-lock"></i> เข้าสู่ระบบ';
-}
-
-function showLoggedInUI(user) {
-    const form = document.getElementById("admin-login-form");
-    const success = document.getElementById("admin-login-success");
-    const themeStep = document.getElementById("theme-step");
-    const display = document.getElementById("admin-display-name");
-    if (form) form.style.display = "none";
-    if (success) success.style.display = "flex";
-    if (themeStep) themeStep.style.display = "block";
-    if (display) display.textContent = getAdminLabel(user.email);
-    const savedTheme = localStorage.getItem("admin_selected_theme") || "christmas";
-    if (typeof selectInitialTheme === "function") selectInitialTheme(savedTheme);
-}
-
-function showLoggedOutUI() {
-    const form = document.getElementById("admin-login-form");
-    const success = document.getElementById("admin-login-success");
-    const themeStep = document.getElementById("theme-step");
-    if (form) form.style.display = "grid";
-    if (success) success.style.display = "none";
-    if (themeStep) themeStep.style.display = "none";
-    setSyncStatus("รอเข้าสู่ระบบ");
-}
-
-async function adminLogin(event) {
-    if (event) event.preventDefault();
-    setLoginError("");
-    const email = (document.getElementById("admin-email")?.value || "").trim().toLowerCase();
-    const password = document.getElementById("admin-password")?.value || "";
-    if (!ADMIN_ACCOUNTS[email]) {
-        setLoginError("อีเมลนี้ไม่ได้อยู่ในรายชื่อแอดมิน 4 คน");
-        return;
-    }
-    if (!password) {
-        setLoginError("กรุณากรอกรหัสผ่าน");
-        return;
-    }
-    try {
-        setLoginButtonLoading(true);
-        await firebase.auth().signInWithEmailAndPassword(email, password);
-    } catch (error) {
-        console.error("Admin login error:", error);
-        setLoginError("เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบผู้ใช้/รหัสผ่าน หรือสร้าง User ใน Firebase Auth ก่อน");
-    } finally {
-        setLoginButtonLoading(false);
-    }
-}
-
-async function adminLogout() {
-    try {
-        if (currentAdminRef && currentCloudListener) currentAdminRef.off("value", currentCloudListener);
-        currentAdminRef = null;
-        currentCloudListener = null;
-        currentAdminUser = null;
-        cloudHasLoadedOnce = false;
-        localStorage.removeItem(STORAGE_KEYS.savedTables);
-        const container = document.getElementById("tables-container");
-        if (container) container.innerHTML = "";
-        await firebase.auth().signOut();
-        showLoggedOutUI();
-    } catch (error) {
-        console.error("Admin logout error:", error);
-    }
-}
-
-function getCloudStatePath(user) {
-    return "adminWorkspaces/" + user.uid + "/currentState";
-}
-
-function collectTablesDataFromDOM() {
-    const data = [];
-    document.querySelectorAll(".table-container").forEach(table => {
-        const titleInput = table.querySelector(".table-title-input");
-        const title = titleInput ? titleInput.value : "";
-        const rows = [];
-        table.querySelectorAll("tbody tr").forEach(r => {
-            const cells = r.querySelectorAll("input");
-            if (cells.length >= 3) {
-                const nameTds = r.querySelectorAll("td");
-                const chaserMarked = nameTds[0]?.querySelector('.btn-name-mark')?.classList.contains('active') ? 1 : 0;
-                const holderMarked = nameTds[2]?.querySelector('.btn-name-mark')?.classList.contains('active') ? 1 : 0;
-                rows.push([cells[0].value, cells[1].value, cells[2].value, (r.dataset.outcome || ""), chaserMarked, holderMarked]);
-            }
-        });
-        data.push({ title, rows });
-    });
-    return data;
-}
-
-function applyTablesData(data) {
-    const container = document.getElementById("tables-container");
-    if (!container || !Array.isArray(data)) return;
-    isApplyingRemoteData = true;
-    selectedHotkeyTable = null;
-    container.innerHTML = "";
-    data.forEach(t => addTable(t.title || "", Array.isArray(t.rows) ? t.rows : [], true));
-    isApplyingRemoteData = false;
-    try {
-        localStorage.setItem(STORAGE_KEYS.savedTables, JSON.stringify(data));
-    } catch (error) {
-        console.warn("Cannot cache synced data:", error);
-    }
-    refreshAllBadges();
-    updateDashboardStats();
-    updateNameSummary();
-    updateIndividualTableSummaries();
-}
-
-function saveCurrentStateToCloud(data) {
-    if (!currentAdminRef || !currentAdminUser || isApplyingRemoteData) return;
-    currentAdminRef.set({
-        tables: data,
-        updatedAt: Date.now(),
-        updatedBy: DEVICE_ID,
-        updatedByEmail: currentAdminUser.email || ""
-    }).then(() => {
-        setSyncStatus("บันทึกขึ้นคลาวด์แล้ว", "success");
-    }).catch(error => {
-        console.error("Cloud save error:", error);
-        setSyncStatus("บันทึกขึ้นคลาวด์ไม่สำเร็จ", "danger");
-    });
-}
-
-function startAdminRealtimeSync(user) {
-    if (!user || !ADMIN_ACCOUNTS[(user.email || "").toLowerCase()]) return;
-    if (currentAdminRef && currentCloudListener) currentAdminRef.off("value", currentCloudListener);
-    currentAdminUser = user;
-    currentAdminRef = db.ref(getCloudStatePath(user));
-    cloudHasLoadedOnce = false;
-    setSyncStatus("กำลังเชื่อมต่อข้อมูล...");
-    currentCloudListener = snapshot => {
-        const payload = snapshot.val();
-        cloudHasLoadedOnce = true;
-        if (!payload || !Array.isArray(payload.tables)) {
-            const localRaw = localStorage.getItem(STORAGE_KEYS.savedTables);
-            if (localRaw) {
-                try {
-                    const localData = JSON.parse(localRaw);
-                    if (Array.isArray(localData) && localData.length) saveCurrentStateToCloud(localData);
-                } catch (error) {
-                    console.warn("Local draft parse error:", error);
-                }
-            }
-            setSyncStatus("ยังไม่มีข้อมูลบนคลาวด์", "info");
-            return;
-        }
-        if (payload.updatedBy === DEVICE_ID) {
-            setSyncStatus("ซิงก์ข้อมูลล่าสุดแล้ว", "success");
-            return;
-        }
-        applyTablesData(payload.tables);
-        const when = payload.updatedAt ? new Date(payload.updatedAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) : "ล่าสุด";
-        setSyncStatus("ดึงข้อมูลจากคลาวด์แล้ว (" + when + ")", "success");
-    };
-    currentAdminRef.on("value", currentCloudListener, error => {
-        console.error("Cloud listener error:", error);
-        setSyncStatus("เชื่อมต่อข้อมูลไม่ได้", "danger");
-    });
-}
-
-function initAdminAuth() {
-    if (!window.firebase || !firebase.auth || !window.db) {
-        setLoginError("ยังเชื่อมต่อ Firebase ไม่ครบ กรุณาตรวจสอบ firebase-auth และ firebase config");
-        return;
-    }
-    firebase.auth().onAuthStateChanged(user => {
-        if (user && ADMIN_ACCOUNTS[(user.email || "").toLowerCase()]) {
-            showLoggedInUI(user);
-            startAdminRealtimeSync(user);
-        } else {
-            if (user) firebase.auth().signOut();
-            currentAdminUser = null;
-            currentAdminRef = null;
-            showLoggedOutUI();
-        }
-    });
-}
-
-document.addEventListener("DOMContentLoaded", initAdminAuth);
-
 
 function injectUsageGuideStyles() {
     if (document.getElementById('web-usage-guide-styles')) return;
@@ -1130,19 +902,39 @@ function refreshAllBadges() {
 
 // --- 1. เพิ่มเสียงตอนพิมพ์ (Auto Save) ---
 function saveData() {
-    const data = collectTablesDataFromDOM();
+    const data = [];
+    document.querySelectorAll(".table-container").forEach(table => {
+        const titleInput = table.querySelector(".table-title-input");
+        const title = titleInput ? titleInput.value : "";
+        const rows = [];
+        table.querySelectorAll("tbody tr").forEach(r => {
+            const cells = r.querySelectorAll("input");
+            if (cells.length >= 3) {
+                const nameTds = r.querySelectorAll("td");
+                const chaserMarked = nameTds[0]?.querySelector('.btn-name-mark')?.classList.contains('active') ? 1 : 0;
+                const holderMarked = nameTds[2]?.querySelector('.btn-name-mark')?.classList.contains('active') ? 1 : 0;
+                rows.push([cells[0].value, cells[1].value, cells[2].value, (r.dataset.outcome || ""), chaserMarked, holderMarked]);
+            }
+        });
+        data.push({ title, rows });
+    });
     localStorage.setItem(STORAGE_KEYS.savedTables, JSON.stringify(data));
     refreshAllBadges();
     updateDashboardStats();
-    updateNameSummary();
-    updateIndividualTableSummaries();
-    if (!isApplyingRemoteData && currentAdminUser && currentAdminRef) {
-        saveCurrentStateToCloud(data);
-    }
+  
+    pushToRealtime(); // 👈 เพิ่มบรรทัดนี้
+
+    updateNameSummary(); // <--- เพิ่มบรรทัดนี้
+    updateIndividualTableSummaries(); // <--- เพิ่มบรรทัดนี้ไว้ท้ายสุดของฟังก์ชัน saveData
+
+        // ✅ เพิ่มบรรทัดนี้
+  //  updateBungAndCampSummary();
+    
+    // แสดง Badge แจ้งเตือน และเล่นเสียงเบาๆ ตอนบันทึก
     const badge = document.getElementById("auto-save-alert");
-    if (badge) {
-        badge.style.opacity = "1";
-        setTimeout(() => badge.style.opacity = "0", 1500);
+    if(badge) { 
+        badge.style.opacity = "1"; 
+        setTimeout(() => badge.style.opacity = "0", 1500); 
     }
     toastRateLimited('บันทึกอัตโนมัติเรียบร้อย', 'success', 2000);
 }
@@ -1620,32 +1412,44 @@ function confirmClearPayerFeeArchive() {
 }
 
 function pushToRealtime() {
-  // คงฟังก์ชันไว้เพื่อไม่ให้โค้ดส่วนอื่นพัง
-  // การซิงก์จริงใช้ saveCurrentStateToCloud(data) ใน saveData() แทน
+  const ref = db.ref("realtimeEvents");
+
+  document.querySelectorAll(".table-container").forEach(table => {
+    table.querySelectorAll("tbody tr").forEach(tr => {
+      const inputs = tr.querySelectorAll("input");
+      if (inputs.length < 3) return;
+
+      const chaser = inputs[0].value.trim();
+      const price  = inputs[1].value.replace(/[Oo]/g,'0');
+      const holder = inputs[2].value.trim();
+
+      const nums = price.match(/\d+/g);
+      if (!nums) return;
+
+      nums.forEach(n => {
+        if (n.length >= 3) {
+          ref.push({
+            chaser,
+            holder,
+            amount: parseInt(n),
+            ts: Date.now()
+          });
+        }
+      });
+    });
+  });
 }
 
 
 
-function loadData(dataOverride = null) {
+function loadData() {
     selectedHotkeyTable = null;
-    let data = dataOverride;
-    if (!data) {
-        const raw = localStorage.getItem(STORAGE_KEYS.savedTables);
-        if (!raw) return;
-        try {
-            data = JSON.parse(raw);
-        } catch (error) {
-            console.warn('savedTables parse error:', error);
-            return;
-        }
-    }
-    if (!Array.isArray(data)) return;
+    const raw = localStorage.getItem(STORAGE_KEYS.savedTables);
+    if (!raw) return;
+    const data = JSON.parse(raw);
     const container = document.getElementById("tables-container");
-    if (!container) return;
-    isApplyingRemoteData = true;
     container.innerHTML = "";
-    data.forEach(t => addTable(t.title || "", Array.isArray(t.rows) ? t.rows : [], true));
-    isApplyingRemoteData = false;
+    data.forEach(t => addTable(t.title, t.rows, true));
 }
 
 // 3. ฟังก์ชันการทำงานของตาราง
