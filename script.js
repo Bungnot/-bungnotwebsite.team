@@ -1784,6 +1784,7 @@ function addTable(title = "", rows = null, isSilent = false) {
 
     injectNameMarkStyles();
     injectHotkeyTableStyles();
+    injectTableCaptureStyles();
 
     const generateRowHtml = (r = ["", "", "", "", 0, 0]) => `
         <tr data-outcome="${r[3] || ''}">
@@ -1808,6 +1809,9 @@ function addTable(title = "", rows = null, isSilent = false) {
                         <i class="fas fa-arrow-down-a-z"></i> คนยั้ง
                     </button>
                     <button type="button" class="btn-hotkey-table" onclick="setSelectedHotkeyTable(this)" title="เลือกตารางนี้เพื่อใช้คีย์ลัด Q และ E">⌨️ ใช้คีย์ลัด</button>
+                    <button type="button" class="btn-table-capture" onclick="copyTableAsImage(this.closest('.table-container'))" title="คัดลอกรูปตารางนี้ทั้งหมดสำหรับส่งในมือถือ">
+                        <i class="fas fa-camera"></i> คัดลอกรูป
+                    </button>
                     <button class="btn-close-table" onclick="removeTable(this)" style="position:static;"><i class="fas fa-times"></i></button>
                 </div>
             </div>
@@ -1873,36 +1877,441 @@ function removeRow(btn) {
     saveData(); 
 }
 
-function copyTableAsImage(tableElement) {
-    playSound('popup'); // เล่นเสียงเปิดการทำงาน
-    
-    // ตั้งค่าชั่วคราวเพื่อให้รูปออกมาสวย (ลบปุ่มต่างๆ ออกจากรูป)
-    const actionButtons = tableElement.querySelectorAll('button, .btn-close-table');
-    actionButtons.forEach(btn => btn.style.visibility = 'hidden');
 
-    html2canvas(tableElement, {
-        backgroundColor: "#ffffff", // พื้นหลังขาวเพื่อให้เห็นชัด
-        scale: 2, // เพิ่มความชัดของรูป
-        logging: false,
-        useCORS: true
-    }).then(canvas => {
-        // คืนค่าปุ่มต่างๆ ให้กลับมามองเห็นเหมือนเดิม
-        actionButtons.forEach(btn => btn.style.visibility = 'visible');
+function injectTableCaptureStyles() {
+    if (document.getElementById('table-capture-styles')) return;
 
-        // แปลงเป็นไฟล์ภาพและดาวน์โหลด (วิธีที่ชัวร์ที่สุดสำหรับส่งใน Line)
-        const link = document.createElement('a');
-        const title = tableElement.querySelector('.table-title-input').value || "Bung-Fai";
-        link.download = `ค่าย-${title}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+    const style = document.createElement('style');
+    style.id = 'table-capture-styles';
+    style.textContent = `
+        .btn-table-capture {
+            border: 1px solid rgba(34,197,94,0.35);
+            border-radius: 999px;
+            padding: 9px 13px;
+            font-family: 'Sarabun', sans-serif;
+            font-weight: 900;
+            cursor: pointer;
+            color: #065f46;
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            box-shadow: 0 8px 18px rgba(34,197,94,0.14);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+            white-space: nowrap;
+        }
+        .btn-table-capture:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(34,197,94,0.20);
+            filter: brightness(1.02);
+        }
+        .btn-table-capture:active { transform: translateY(0) scale(.98); }
+        @media (max-width: 720px) {
+            .btn-table-capture {
+                flex: 1 1 100%;
+                width: 100%;
+                min-height: 42px;
+                font-size: .95rem;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
 
-        playSound('success'); // เสียงเมื่อสำเร็จ
-        
-        const alertBox = document.getElementById("auto-save-alert");
-        alertBox.innerText = "📸 บันทึกรูปภาพลงเครื่องแล้ว!";
-        alertBox.style.opacity = "1";
-        setTimeout(() => alertBox.style.opacity = "0", 2000);
+function escapeCaptureText(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function formatCapturePrice(priceText) {
+    const raw = String(priceText || '').trim();
+    if (!raw) return '-';
+    const clean = raw.replace(/[Oo]/g, '0');
+    if (/^\d{3,}$/.test(clean)) return `${Number(clean).toLocaleString()} ชล`;
+    return raw;
+}
+
+function getCaptureRowsFromTable(tableElement) {
+    const rows = [];
+    tableElement.querySelectorAll('tbody tr').forEach((tr, index) => {
+        const inputs = tr.querySelectorAll('input');
+        if (inputs.length < 3) return;
+
+        const chaser = inputs[0].value.trim();
+        const price = inputs[1].value.trim();
+        const holder = inputs[2].value.trim();
+        const rowTotal = getRowTotal(price);
+        const hasAnyValue = chaser || price || holder;
+
+        if (!hasAnyValue) return;
+
+        rows.push({
+            no: index + 1,
+            chaser: chaser || '-',
+            price: formatCapturePrice(price),
+            holder: holder || '-',
+            rowTotal,
+            outcome: tr.dataset.outcome || ''
+        });
     });
+    return rows;
+}
+
+function getCaptureSummaryFromRows(rows) {
+    const summary = {};
+    let grandTotal = 0;
+
+    rows.forEach(r => {
+        if (r.rowTotal > 0) grandTotal += r.rowTotal;
+        if (r.rowTotal > 0 && r.chaser && r.chaser !== '-') {
+            summary[r.chaser] = (summary[r.chaser] || 0) + r.rowTotal;
+        }
+        if (r.rowTotal > 0 && r.holder && r.holder !== '-' && r.holder !== r.chaser) {
+            summary[r.holder] = (summary[r.holder] || 0) + r.rowTotal;
+        }
+    });
+
+    return {
+        grandTotal,
+        players: Object.entries(summary).sort((a, b) => b[1] - a[1])
+    };
+}
+
+function buildTableCaptureCard(tableElement) {
+    const title = tableElement.querySelector('.table-title-input')?.value.trim() || 'ไม่ระบุค่าย';
+    const rows = getCaptureRowsFromTable(tableElement);
+    const summary = getCaptureSummaryFromRows(rows);
+    const now = new Date();
+    const timestamp = now.toLocaleString('th-TH', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+    });
+
+    const captureDiv = document.createElement('div');
+    captureDiv.className = 'mobile-table-capture-card';
+    captureDiv.style.cssText = `
+        position: fixed;
+        left: -99999px;
+        top: 0;
+        width: 1080px;
+        box-sizing: border-box;
+        padding: 42px;
+        background: #ffffff;
+        color: #0f172a;
+        font-family: 'Kanit','Sarabun',Arial,sans-serif;
+        border-radius: 0;
+    `;
+
+    const rowsHtml = rows.length ? rows.map((r, idx) => {
+        const outcomeText = r.outcome === 'C' ? 'ชนะ' : r.outcome === 'H' ? 'แพ้' : '-';
+        return `
+            <tr>
+                <td class="cap-no">${idx + 1}</td>
+                <td class="cap-name cap-left">${escapeCaptureText(r.chaser)}</td>
+                <td class="cap-price">${escapeCaptureText(r.price)}</td>
+                <td class="cap-name cap-right">${escapeCaptureText(r.holder)}</td>
+                <td class="cap-status">${outcomeText}</td>
+            </tr>
+        `;
+    }).join('') : `
+        <tr><td colspan="5" class="cap-empty">ยังไม่มีข้อมูลในตารางนี้</td></tr>
+    `;
+
+    const summaryHtml = summary.players.length ? summary.players.slice(0, 8).map(([name, total], idx) => `
+        <div class="cap-player-chip">
+            <span class="cap-rank">#${idx + 1}</span>
+            <span class="cap-player-name">${escapeCaptureText(name)}</span>
+            <b>${total.toLocaleString()}</b>
+        </div>
+    `).join('') : `<div class="cap-muted">ยังไม่มีสรุปยอดผู้เล่น</div>`;
+
+    captureDiv.innerHTML = `
+        <style>
+            .mobile-table-capture-card * { box-sizing: border-box; }
+            .cap-header {
+                background: linear-gradient(135deg,#14532d,#166534 55%,#f59e0b);
+                color: white;
+                padding: 28px 30px;
+                border-radius: 28px;
+                box-shadow: 0 22px 48px rgba(15,23,42,.18);
+            }
+            .cap-kicker {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 22px;
+                font-weight: 900;
+                opacity: .92;
+                letter-spacing: .5px;
+            }
+            .cap-title {
+                margin-top: 8px;
+                font-size: 46px;
+                line-height: 1.15;
+                font-weight: 1000;
+                word-break: break-word;
+            }
+            .cap-meta-row {
+                margin-top: 18px;
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .cap-meta {
+                display: inline-flex;
+                padding: 10px 16px;
+                border-radius: 999px;
+                background: rgba(255,255,255,.16);
+                border: 1px solid rgba(255,255,255,.24);
+                font-size: 22px;
+                font-weight: 800;
+            }
+            .cap-total-card {
+                margin: 24px 0 22px;
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 14px;
+            }
+            .cap-stat {
+                padding: 20px 18px;
+                border-radius: 24px;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                text-align: center;
+            }
+            .cap-stat span {
+                display: block;
+                color: #64748b;
+                font-size: 20px;
+                font-weight: 800;
+                margin-bottom: 8px;
+            }
+            .cap-stat b {
+                color: #0f172a;
+                font-size: 34px;
+                line-height: 1.15;
+                font-weight: 1000;
+            }
+            .cap-table-wrap {
+                border: 1px solid #e2e8f0;
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 18px 40px rgba(15,23,42,.07);
+            }
+            .cap-table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+                font-size: 26px;
+            }
+            .cap-table th {
+                color: white;
+                padding: 18px 12px;
+                font-weight: 1000;
+                text-align: center;
+            }
+            .cap-table th:nth-child(1) { background: #334155; width: 8%; }
+            .cap-table th:nth-child(2) { background: #14532d; width: 30%; }
+            .cap-table th:nth-child(3) { background: #b45309; width: 20%; }
+            .cap-table th:nth-child(4) { background: #991b1b; width: 30%; }
+            .cap-table th:nth-child(5) { background: #1e293b; width: 12%; }
+            .cap-table td {
+                padding: 18px 14px;
+                border-bottom: 1px solid #e2e8f0;
+                background: #ffffff;
+                vertical-align: middle;
+            }
+            .cap-table tr:nth-child(even) td { background: #f8fafc; }
+            .cap-no, .cap-price, .cap-status { text-align: center; font-weight: 1000; }
+            .cap-price { color: #166534; font-variant-numeric: tabular-nums; }
+            .cap-name { font-weight: 900; word-break: break-word; line-height: 1.25; }
+            .cap-left { color: #14532d; }
+            .cap-right { color: #991b1b; text-align: right; }
+            .cap-status { color: #334155; font-size: 22px; }
+            .cap-empty {
+                padding: 40px !important;
+                text-align: center;
+                color: #94a3b8;
+                font-weight: 900;
+            }
+            .cap-summary {
+                margin-top: 24px;
+                padding: 24px;
+                border-radius: 26px;
+                background: linear-gradient(135deg,#fff7ed,#ffffff);
+                border: 1px solid #fed7aa;
+            }
+            .cap-summary-title {
+                color: #9a3412;
+                font-size: 28px;
+                font-weight: 1000;
+                margin-bottom: 14px;
+            }
+            .cap-player-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+            .cap-player-chip {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                min-width: 0;
+                padding: 14px 16px;
+                border-radius: 18px;
+                background: #ffffff;
+                border: 1px solid #ffedd5;
+                box-shadow: 0 10px 22px rgba(15,23,42,.05);
+                font-size: 23px;
+            }
+            .cap-rank {
+                flex: 0 0 auto;
+                min-width: 56px;
+                text-align: center;
+                padding: 6px 8px;
+                border-radius: 14px;
+                background: #ffedd5;
+                color: #9a3412;
+                font-weight: 1000;
+            }
+            .cap-player-name {
+                flex: 1;
+                min-width: 0;
+                color: #0f172a;
+                font-weight: 900;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .cap-player-chip b {
+                flex: 0 0 auto;
+                color: #166534;
+                font-weight: 1000;
+            }
+            .cap-muted { color: #94a3b8; font-size: 22px; font-weight: 800; }
+            .cap-footer {
+                margin-top: 24px;
+                text-align: center;
+                color: #94a3b8;
+                font-size: 18px;
+                font-weight: 800;
+                letter-spacing: 1px;
+            }
+        </style>
+        <div class="cap-header">
+            <div class="cap-kicker">📸 ตารางสำหรับส่งในมือถือ</div>
+            <div class="cap-title">${escapeCaptureText(title)}</div>
+            <div class="cap-meta-row">
+                <span class="cap-meta">เวลา: ${escapeCaptureText(timestamp)}</span>
+                <span class="cap-meta">จำนวนรายการ: ${rows.length}</span>
+            </div>
+        </div>
+        <div class="cap-total-card">
+            <div class="cap-stat"><span>ยอดรวม</span><b>${summary.grandTotal.toLocaleString()}</b></div>
+            <div class="cap-stat"><span>จำนวนแถว</span><b>${rows.length}</b></div>
+            <div class="cap-stat"><span>ผู้เล่น</span><b>${summary.players.length}</b></div>
+        </div>
+        <div class="cap-table-wrap">
+            <table class="cap-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>คนไล่</th>
+                        <th>ราคา</th>
+                        <th>คนยั้ง</th>
+                        <th>ผล</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+        </div>
+        <div class="cap-summary">
+            <div class="cap-summary-title">สรุปยอดเล่น Real-Time</div>
+            <div class="cap-player-grid">${summaryHtml}</div>
+        </div>
+        <div class="cap-footer">ADMIN ROCKET PREMIUM - TABLE CAPTURE</div>
+    `;
+
+    return { captureDiv, title };
+}
+
+function safeCaptureFileName(title) {
+    return `ตาราง-${String(title || 'ไม่ระบุค่าย').replace(/[\\/:*?"<>|]/g, '-').slice(0, 60)}.png`;
+}
+
+function downloadCanvasImage(canvas, title) {
+    const link = document.createElement('a');
+    link.download = safeCaptureFileName(title);
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}
+
+async function copyCanvasToClipboardOrDownload(canvas, title) {
+    const canCopyImage = !!(navigator.clipboard && window.ClipboardItem && window.isSecureContext);
+
+    if (canCopyImage) {
+        try {
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            if (blob) {
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                return 'copied';
+            }
+        } catch (err) {
+            console.warn('Clipboard image copy failed, fallback to download:', err);
+        }
+    }
+
+    downloadCanvasImage(canvas, title);
+    return 'downloaded';
+}
+
+async function copyTableAsImage(tableElement) {
+    if (!tableElement) return;
+    playSound('popup');
+
+    const clickedBtn = document.activeElement;
+    if (clickedBtn && clickedBtn.classList && clickedBtn.classList.contains('btn-table-capture')) {
+        clickedBtn.disabled = true;
+        clickedBtn.dataset.originalHtml = clickedBtn.innerHTML;
+        clickedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังทำรูป...';
+    }
+
+    const { captureDiv, title } = buildTableCaptureCard(tableElement);
+    document.body.appendChild(captureDiv);
+
+    try {
+        const canvas = await html2canvas(captureDiv, {
+            backgroundColor: '#ffffff',
+            scale: Math.min(3, window.devicePixelRatio || 2),
+            logging: false,
+            useCORS: true,
+            windowWidth: 1180
+        });
+
+        const result = await copyCanvasToClipboardOrDownload(canvas, title);
+        if (result === 'copied') {
+            showToast('📋 คัดลอกรูปตารางนี้แล้ว สามารถวางส่งใน LINE/แชทได้เลย', 'success');
+        } else {
+            showToast('📸 บันทึกรูปตารางลงเครื่องแล้ว เปิดรูปแล้วส่งต่อได้เลย', 'success');
+        }
+        playSound('success');
+    } catch (error) {
+        console.error('Table capture error:', error);
+        showToast('⚠️ แคปรูปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'danger');
+    } finally {
+        captureDiv.remove();
+        if (clickedBtn && clickedBtn.classList && clickedBtn.classList.contains('btn-table-capture')) {
+            clickedBtn.disabled = false;
+            clickedBtn.innerHTML = clickedBtn.dataset.originalHtml || '<i class="fas fa-camera"></i> คัดลอกรูป';
+        }
+    }
 }
 
 function getPlayerRecords(playerName) {
